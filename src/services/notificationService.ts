@@ -1,0 +1,169 @@
+import { Capacitor, registerPlugin } from "@capacitor/core";
+import type { NotificationScheduleEntry } from "../game/notifications";
+import { buildDailyReminderSchedule } from "../game/notifications";
+import type { DailyPenalty, NotificationSettings } from "../types";
+
+export type HunterNotificationStatus = {
+  android: boolean;
+  permissionGranted: boolean;
+  exactAlarmAvailable: boolean;
+  exactAlarmGranted: boolean;
+  channelsReady: boolean;
+  scheduledCount: number;
+  message: string;
+};
+
+export type NativeScheduledNotification = {
+  id: string;
+  channelId: string;
+  title: string;
+  body: string;
+  atMs: number;
+  exact: boolean;
+};
+
+type HunterNotificationsPlugin = {
+  getStatus(): Promise<HunterNotificationStatus>;
+  requestPermission(): Promise<HunterNotificationStatus>;
+  configureChannels(): Promise<HunterNotificationStatus>;
+  openExactAlarmSettings(): Promise<{ opened: boolean; message: string }>;
+  testNotification(options?: { channelId?: string; title?: string; body?: string }): Promise<{ shown: boolean; message: string }>;
+  scheduleNotifications(options: { notifications: NativeScheduledNotification[] }): Promise<{ scheduledCount: number; message: string }>;
+  cancelNotifications(options?: { ids?: string[]; channelId?: string }): Promise<{ cancelled: number; message: string }>;
+  getScheduledNotifications(): Promise<{ notifications: NativeScheduledNotification[] }>;
+  showRewardNotification(options: { title: string; body: string }): Promise<{ shown: boolean; message: string }>;
+  showPenaltyNotification(options: { penaltyId: string; title: string; body: string }): Promise<{ shown: boolean; message: string }>;
+  showWorkoutOngoing(options: { title: string; body: string; paused?: boolean }): Promise<{ shown: boolean; message: string }>;
+  clearWorkoutOngoing(): Promise<{ cleared: boolean; message: string }>;
+  getLaunchAction(): Promise<{ action: string | null }>;
+  clearLaunchAction(): Promise<{ cleared: boolean }>;
+};
+
+const HunterNotifications = registerPlugin<HunterNotificationsPlugin>("HunterNotifications");
+
+const WEB_STATUS: HunterNotificationStatus = {
+  android: false,
+  permissionGranted: false,
+  exactAlarmAvailable: false,
+  exactAlarmGranted: false,
+  channelsReady: false,
+  scheduledCount: 0,
+  message: "Powiadomienia: tylko Android.",
+};
+
+export async function getNotificationStatus(): Promise<HunterNotificationStatus> {
+  if (!Capacitor.isNativePlatform()) return WEB_STATUS;
+  try {
+    return await HunterNotifications.getStatus();
+  } catch (error) {
+    return { ...WEB_STATUS, android: true, message: errorMessage(error, "Nie udało się sprawdzić powiadomień.") };
+  }
+}
+
+export async function requestNotificationPermission() {
+  if (!Capacitor.isNativePlatform()) return WEB_STATUS;
+  try {
+    return await HunterNotifications.requestPermission();
+  } catch (error) {
+    return { ...WEB_STATUS, android: true, message: errorMessage(error, "Android odrzucił prośbę o powiadomienia.") };
+  }
+}
+
+export async function configureNotificationChannels() {
+  if (!Capacitor.isNativePlatform()) return WEB_STATUS;
+  try {
+    return await HunterNotifications.configureChannels();
+  } catch (error) {
+    return { ...WEB_STATUS, android: true, message: errorMessage(error, "Nie udało się skonfigurować kanałów.") };
+  }
+}
+
+export async function openExactAlarmSettings() {
+  if (!Capacitor.isNativePlatform()) {
+    return { opened: false, message: "Dokładne alarmy są dostępne tylko w aplikacji Android." };
+  }
+  return HunterNotifications.openExactAlarmSettings();
+}
+
+export async function testLocalNotification(channelId = "daily_training") {
+  if (!Capacitor.isNativePlatform()) return { shown: false, message: WEB_STATUS.message };
+  return HunterNotifications.testNotification({
+    channelId,
+    title: "System Łowcy",
+    body: "Test lokalnego powiadomienia działa offline.",
+  });
+}
+
+export async function scheduleDailyTrainingNotifications(settings: NotificationSettings, dailyCompleted: boolean) {
+  if (!Capacitor.isNativePlatform()) {
+    return { scheduledCount: 0, message: WEB_STATUS.message };
+  }
+  const notifications = buildDailyReminderSchedule(settings, new Date(), dailyCompleted).map(toNativeNotification);
+  await HunterNotifications.cancelNotifications({ channelId: "daily_training" });
+  await HunterNotifications.cancelNotifications({ channelId: "deadline_alert" });
+  if (!notifications.length) return { scheduledCount: 0, message: "Brak alertów do zaplanowania." };
+  return HunterNotifications.scheduleNotifications({ notifications });
+}
+
+export async function cancelDailyTrainingNotifications() {
+  if (!Capacitor.isNativePlatform()) return { cancelled: 0, message: WEB_STATUS.message };
+  const daily = await HunterNotifications.cancelNotifications({ channelId: "daily_training" });
+  const deadline = await HunterNotifications.cancelNotifications({ channelId: "deadline_alert" });
+  return { cancelled: daily.cancelled + deadline.cancelled, message: "Dzisiejsze przypomnienia treningowe anulowane." };
+}
+
+export async function getScheduledNotifications(): Promise<NativeScheduledNotification[]> {
+  if (!Capacitor.isNativePlatform()) return [];
+  const result = await HunterNotifications.getScheduledNotifications();
+  return result.notifications || [];
+}
+
+export async function notifyDailyReward(settings: NotificationSettings, title: string, body: string) {
+  if (!settings.enabled || !settings.rewardNotifications || !Capacitor.isNativePlatform()) return;
+  await HunterNotifications.showRewardNotification({ title, body });
+}
+
+export async function notifyPenaltyCreated(settings: NotificationSettings, penalty: DailyPenalty) {
+  if (!settings.enabled || !settings.penaltyNotifications || !Capacitor.isNativePlatform()) return;
+  await HunterNotifications.showPenaltyNotification({
+    penaltyId: penalty.id,
+    title: "System naliczył karę",
+    body: `${penalty.exerciseName}: ${penalty.requiredAmount} ${penalty.exerciseId === "plank" || penalty.exerciseId === "wall-sit" ? "s" : "powt."}`,
+  });
+}
+
+export async function showWorkoutOngoingNotification(settings: NotificationSettings, body: string, paused = false) {
+  if (!settings.enabled || !settings.workoutOngoingEnabled || !Capacitor.isNativePlatform()) return;
+  await HunterNotifications.showWorkoutOngoing({ title: "Aktywny plan treningowy", body, paused });
+}
+
+export async function clearWorkoutOngoingNotification() {
+  if (!Capacitor.isNativePlatform()) return;
+  await HunterNotifications.clearWorkoutOngoing();
+}
+
+export async function consumeNotificationLaunchAction(): Promise<string | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  try {
+    const result = await HunterNotifications.getLaunchAction();
+    if (result.action) await HunterNotifications.clearLaunchAction();
+    return result.action || null;
+  } catch {
+    return null;
+  }
+}
+
+function toNativeNotification(entry: NotificationScheduleEntry): NativeScheduledNotification {
+  return {
+    id: entry.id,
+    channelId: entry.channelId,
+    title: entry.title,
+    body: entry.body,
+    atMs: entry.atMs,
+    exact: entry.exact,
+  };
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}

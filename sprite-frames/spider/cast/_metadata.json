@@ -1,0 +1,15 @@
+{
+  "frameSize": 384,
+  "scale": 1.3737984,
+  "bottomPadding": 20,
+  "quality": { "maxCenterShift": 18.507, "maxHeightShift": 37, "warnings": [] },
+  "frames": [
+    { "index": 0, "file": "000.png", "sourceBounds": { "x": 758, "y": 636, "w": 181, "h": 92 }, "draw": { "x": 67, "y": 238, "w": 249, "h": 126 }, "components": 1 },
+    { "index": 1, "file": "001.png", "sourceBounds": { "x": 973, "y": 637, "w": 204, "h": 90 }, "draw": { "x": 52, "y": 240, "w": 280, "h": 124 }, "components": 2 },
+    { "index": 2, "file": "002.png", "sourceBounds": { "x": 1209, "y": 633, "w": 216, "h": 95 }, "draw": { "x": 43, "y": 233, "w": 297, "h": 131 }, "components": 1 },
+    { "index": 3, "file": "003.png", "sourceBounds": { "x": 51, "y": 769, "w": 111, "h": 112 }, "draw": { "x": 116, "y": 210, "w": 152, "h": 154 }, "components": 1 },
+    { "index": 4, "file": "004.png", "sourceBounds": { "x": 316, "y": 769, "w": 105, "h": 119 }, "draw": { "x": 120, "y": 201, "w": 144, "h": 163 }, "components": 1 },
+    { "index": 5, "file": "005.png", "sourceBounds": { "x": 542, "y": 796, "w": 113, "h": 92 }, "draw": { "x": 114, "y": 238, "w": 155, "h": 126 }, "components": 1 },
+    { "index": 6, "file": "006.png", "sourceBounds": { "x": 764, "y": 798, "w": 110, "h": 90 }, "draw": { "x": 116, "y": 240, "w": 151, "h": 124 }, "components": 1 }
+  ]
+}

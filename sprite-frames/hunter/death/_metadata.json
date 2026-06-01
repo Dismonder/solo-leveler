@@ -1,0 +1,32 @@
+{
+  "frameSize": 384,
+  "scale": 1.15830447761194,
+  "bottomPadding": 10,
+  "quality": { "maxCenterShift": 42.003, "maxHeightShift": 84, "warnings": ["heightShift"] },
+  "frames": [
+    { "index": 0, "file": "000.png", "sourceBounds": { "x": 37, "y": 19, "w": 206, "h": 268 }, "draw": { "x": 72, "y": 64, "w": 239, "h": 310 }, "components": 1 },
+    { "index": 1, "file": "001.png", "sourceBounds": { "x": 275, "y": 26, "w": 211, "h": 260 }, "draw": { "x": 70, "y": 73, "w": 244, "h": 301 }, "components": 1 },
+    { "index": 2, "file": "002.png", "sourceBounds": { "x": 532, "y": 29, "w": 203, "h": 256 }, "draw": { "x": 74, "y": 77, "w": 235, "h": 297 }, "components": 1 },
+    { "index": 3, "file": "003.png", "sourceBounds": { "x": 779, "y": 40, "w": 194, "h": 243 }, "draw": { "x": 79, "y": 93, "w": 225, "h": 281 }, "components": 1 },
+    { "index": 4, "file": "004.png", "sourceBounds": { "x": 1043, "y": 39, "w": 192, "h": 243 }, "draw": { "x": 81, "y": 93, "w": 222, "h": 281 }, "components": 1 },
+    { "index": 5, "file": "005.png", "sourceBounds": { "x": 1263, "y": 64, "w": 236, "h": 217 }, "draw": { "x": 55, "y": 123, "w": 273, "h": 251 }, "components": 1 },
+    { "index": 6, "file": "006.png", "sourceBounds": { "x": 33, "y": 315, "w": 211, "h": 192 }, "draw": { "x": 70, "y": 152, "w": 244, "h": 222 }, "components": 1 },
+    { "index": 7, "file": "007.png", "sourceBounds": { "x": 263, "y": 334, "w": 240, "h": 179 }, "draw": { "x": 53, "y": 167, "w": 278, "h": 207 }, "components": 1 },
+    { "index": 8, "file": "008.png", "sourceBounds": { "x": 524, "y": 325, "w": 223, "h": 193 }, "draw": { "x": 63, "y": 150, "w": 258, "h": 224 }, "components": 1 },
+    { "index": 9, "file": "009.png", "sourceBounds": { "x": 757, "y": 364, "w": 227, "h": 158 }, "draw": { "x": 60, "y": 191, "w": 263, "h": 183 }, "components": 1 },
+    { "index": 10, "file": "010.png", "sourceBounds": { "x": 1015, "y": 392, "w": 229, "h": 133 }, "draw": { "x": 59, "y": 220, "w": 265, "h": 154 }, "components": 1 },
+    { "index": 11, "file": "011.png", "sourceBounds": { "x": 1254, "y": 410, "w": 265, "h": 109 }, "draw": { "x": 38, "y": 248, "w": 307, "h": 126 }, "components": 1 },
+    { "index": 12, "file": "012.png", "sourceBounds": { "x": 1254, "y": 410, "w": 265, "h": 109 }, "draw": { "x": 38, "y": 248, "w": 307, "h": 126 }, "components": 1 },
+    { "index": 13, "file": "013.png", "sourceBounds": { "x": 12, "y": 634, "w": 255, "h": 106 }, "draw": { "x": 44, "y": 251, "w": 295, "h": 123 }, "components": 3 },
+    { "index": 14, "file": "014.png", "sourceBounds": { "x": 262, "y": 627, "w": 253, "h": 114 }, "draw": { "x": 45, "y": 242, "w": 293, "h": 132 }, "components": 1 },
+    { "index": 15, "file": "015.png", "sourceBounds": { "x": 515, "y": 596, "w": 239, "h": 145 }, "draw": { "x": 53, "y": 206, "w": 277, "h": 168 }, "components": 3 },
+    { "index": 16, "file": "016.png", "sourceBounds": { "x": 768, "y": 598, "w": 240, "h": 142 }, "draw": { "x": 53, "y": 210, "w": 278, "h": 164 }, "components": 2 },
+    { "index": 17, "file": "017.png", "sourceBounds": { "x": 1016, "y": 608, "w": 234, "h": 131 }, "draw": { "x": 56, "y": 222, "w": 271, "h": 152 }, "components": 1 },
+    { "index": 18, "file": "018.png", "sourceBounds": { "x": 1266, "y": 608, "w": 229, "h": 131 }, "draw": { "x": 59, "y": 222, "w": 265, "h": 152 }, "components": 1 },
+    { "index": 19, "file": "019.png", "sourceBounds": { "x": 37, "y": 782, "w": 192, "h": 204 }, "draw": { "x": 81, "y": 138, "w": 222, "h": 236 }, "components": 1 },
+    { "index": 20, "file": "020.png", "sourceBounds": { "x": 309, "y": 781, "w": 147, "h": 204 }, "draw": { "x": 107, "y": 138, "w": 170, "h": 236 }, "components": 1 },
+    { "index": 21, "file": "021.png", "sourceBounds": { "x": 561, "y": 784, "w": 136, "h": 200 }, "draw": { "x": 113, "y": 142, "w": 158, "h": 232 }, "components": 2 },
+    { "index": 22, "file": "022.png", "sourceBounds": { "x": 821, "y": 805, "w": 118, "h": 178 }, "draw": { "x": 123, "y": 168, "w": 137, "h": 206 }, "components": 2 },
+    { "index": 23, "file": "023.png", "sourceBounds": { "x": 1062, "y": 854, "w": 117, "h": 126 }, "draw": { "x": 124, "y": 228, "w": 136, "h": 146 }, "components": 4 }
+  ]
+}

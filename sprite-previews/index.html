@@ -1,0 +1,850 @@
+﻿<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sprite QA Player</title>
+  <style>
+    :root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; background: #030712; color: #dbeafe; }
+    body { margin: 0; padding: 24px; background: radial-gradient(circle at 20% 0%, rgba(14, 165, 233, .18), transparent 34%), #030712; }
+    h1 { margin: 0 0 8px; letter-spacing: .16em; text-transform: uppercase; font-size: 22px; }
+    .lead { margin: 0 0 22px; color: #94a3b8; max-width: 960px; line-height: 1.55; }
+    .toolbar { position: sticky; top: 0; z-index: 4; display: flex; gap: 12px; flex-wrap: wrap; padding: 12px; margin: 0 0 18px; background: rgba(3, 7, 18, .86); border: 1px solid rgba(34, 211, 238, .22); backdrop-filter: blur(12px); }
+    input, select, button { background: #06111f; color: #dbeafe; border: 1px solid rgba(34, 211, 238, .36); padding: 9px 11px; font: inherit; }
+    button { cursor: pointer; color: #67e8f9; text-transform: uppercase; letter-spacing: .12em; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; }
+    .card { border: 1px solid rgba(59, 130, 246, .38); background: linear-gradient(135deg, rgba(15, 23, 42, .96), rgba(2, 6, 23, .96)); box-shadow: 0 0 24px rgba(14, 165, 233, .12); padding: 14px; }
+    .title { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 10px; }
+    .title strong { color: #f8fafc; letter-spacing: .12em; text-transform: uppercase; }
+    .title span { color: #22d3ee; font-size: 12px; }
+    .stage { height: 190px; display: grid; place-items: center; background: linear-gradient(transparent 95%, rgba(34, 211, 238, .08) 95%), linear-gradient(90deg, transparent 95%, rgba(34, 211, 238, .08) 95%), #020617; background-size: 18px 18px; border: 1px solid rgba(59, 130, 246, .22); overflow: hidden; }
+    .stage img { width: 160px; height: 160px; object-fit: contain; image-rendering: auto; filter: drop-shadow(0 0 12px rgba(34, 211, 238, .4)); }
+    .strip { width: 100%; height: 78px; object-fit: contain; object-position: left center; background: #020617; border: 1px solid rgba(148, 163, 184, .14); margin-top: 10px; }
+    .meta { display: flex; justify-content: space-between; margin-top: 10px; color: #94a3b8; font-size: 12px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Sprite QA Player</h1>
+  <p class="lead">Ten podglad odtwarza pojedyncze klatki z <code>sprite-frames</code>, a nie skompresowany GIF. Dzieki temu widac prawdziwy crop, kotwice bottom-center i ewentualne skoki klatek bez utraty przezroczystosci.</p>
+  <div class="toolbar">
+    <input id="filter" placeholder="Filtr: hunter, wolf, attack..." />
+    <select id="speed">
+      <option value="90">Szybko</option>
+      <option value="130" selected>Normalnie</option>
+      <option value="190">Wolno</option>
+    </select>
+    <button id="toggle">Pauza</button>
+  </div>
+  <div id="grid" class="grid"></div>
+  <script>
+    const animations = [
+    {
+        "actor":  "assassin",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/assassin/attack_1",
+        "preview":  "assassin-attack_1-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/assassin/attack_2",
+        "preview":  "assassin-attack_2-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/assassin/cast",
+        "preview":  "assassin-cast-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/assassin/dash",
+        "preview":  "assassin-dash-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/assassin/death",
+        "preview":  "assassin-death-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/assassin/guard",
+        "preview":  "assassin-guard-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/assassin/hurt",
+        "preview":  "assassin-hurt-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/assassin/idle",
+        "preview":  "assassin-idle-preview.png"
+    },
+    {
+        "actor":  "assassin",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/assassin/run",
+        "preview":  "assassin-run-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-archer/attack_1",
+        "preview":  "goblin-archer-attack_1-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-archer/attack_2",
+        "preview":  "goblin-archer-attack_2-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-archer/cast",
+        "preview":  "goblin-archer-cast-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-archer/dash",
+        "preview":  "goblin-archer-dash-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-archer/death",
+        "preview":  "goblin-archer-death-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/goblin-archer/guard",
+        "preview":  "goblin-archer-guard-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/goblin-archer/hurt",
+        "preview":  "goblin-archer-hurt-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/goblin-archer/idle",
+        "preview":  "goblin-archer-idle-preview.png"
+    },
+    {
+        "actor":  "goblin-archer",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-archer/run",
+        "preview":  "goblin-archer-run-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-assassin/attack_1",
+        "preview":  "goblin-assassin-attack_1-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-assassin/attack_2",
+        "preview":  "goblin-assassin-attack_2-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-assassin/cast",
+        "preview":  "goblin-assassin-cast-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-assassin/dash",
+        "preview":  "goblin-assassin-dash-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-assassin/death",
+        "preview":  "goblin-assassin-death-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/goblin-assassin/guard",
+        "preview":  "goblin-assassin-guard-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/goblin-assassin/hurt",
+        "preview":  "goblin-assassin-hurt-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/goblin-assassin/idle",
+        "preview":  "goblin-assassin-idle-preview.png"
+    },
+    {
+        "actor":  "goblin-assassin",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/goblin-assassin/run",
+        "preview":  "goblin-assassin-run-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/golem/attack_1",
+        "preview":  "golem-attack_1-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/golem/attack_2",
+        "preview":  "golem-attack_2-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/golem/cast",
+        "preview":  "golem-cast-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/golem/dash",
+        "preview":  "golem-dash-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/golem/death",
+        "preview":  "golem-death-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/golem/guard",
+        "preview":  "golem-guard-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/golem/hurt",
+        "preview":  "golem-hurt-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/golem/idle",
+        "preview":  "golem-idle-preview.png"
+    },
+    {
+        "actor":  "golem",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/golem/run",
+        "preview":  "golem-run-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "attack_1",
+        "frames":  12,
+        "framePath":  "../sprite-frames/hunter/attack_1",
+        "preview":  "hunter-attack_1-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "attack_2",
+        "frames":  9,
+        "framePath":  "../sprite-frames/hunter/attack_2",
+        "preview":  "hunter-attack_2-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "cast",
+        "frames":  12,
+        "framePath":  "../sprite-frames/hunter/cast",
+        "preview":  "hunter-cast-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "dash",
+        "frames":  24,
+        "framePath":  "../sprite-frames/hunter/dash",
+        "preview":  "hunter-dash-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "death",
+        "frames":  24,
+        "framePath":  "../sprite-frames/hunter/death",
+        "preview":  "hunter-death-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "guard",
+        "frames":  4,
+        "framePath":  "../sprite-frames/hunter/guard",
+        "preview":  "hunter-guard-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "hurt",
+        "frames":  11,
+        "framePath":  "../sprite-frames/hunter/hurt",
+        "preview":  "hunter-hurt-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/hunter/idle",
+        "preview":  "hunter-idle-preview.png"
+    },
+    {
+        "actor":  "hunter",
+        "animation":  "run",
+        "frames":  24,
+        "framePath":  "../sprite-frames/hunter/run",
+        "preview":  "hunter-run-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/knight/attack_1",
+        "preview":  "knight-attack_1-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/knight/attack_2",
+        "preview":  "knight-attack_2-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/knight/cast",
+        "preview":  "knight-cast-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/knight/dash",
+        "preview":  "knight-dash-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/knight/death",
+        "preview":  "knight-death-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/knight/guard",
+        "preview":  "knight-guard-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/knight/hurt",
+        "preview":  "knight-hurt-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/knight/idle",
+        "preview":  "knight-idle-preview.png"
+    },
+    {
+        "actor":  "knight",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/knight/run",
+        "preview":  "knight-run-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/skeleton-shield/attack_1",
+        "preview":  "skeleton-shield-attack_1-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/skeleton-shield/attack_2",
+        "preview":  "skeleton-shield-attack_2-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/skeleton-shield/cast",
+        "preview":  "skeleton-shield-cast-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/skeleton-shield/dash",
+        "preview":  "skeleton-shield-dash-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/skeleton-shield/death",
+        "preview":  "skeleton-shield-death-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/skeleton-shield/guard",
+        "preview":  "skeleton-shield-guard-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/skeleton-shield/hurt",
+        "preview":  "skeleton-shield-hurt-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/skeleton-shield/idle",
+        "preview":  "skeleton-shield-idle-preview.png"
+    },
+    {
+        "actor":  "skeleton-shield",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/skeleton-shield/run",
+        "preview":  "skeleton-shield-run-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/attack_1",
+        "preview":  "slime-cursed-attack_1-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/attack_2",
+        "preview":  "slime-cursed-attack_2-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/cast",
+        "preview":  "slime-cursed-cast-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/dash",
+        "preview":  "slime-cursed-dash-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/death",
+        "preview":  "slime-cursed-death-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "guard",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/guard",
+        "preview":  "slime-cursed-guard-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "hurt",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/hurt",
+        "preview":  "slime-cursed-hurt-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "idle",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/idle",
+        "preview":  "slime-cursed-idle-preview.png"
+    },
+    {
+        "actor":  "slime-cursed",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/slime-cursed/run",
+        "preview":  "slime-cursed-run-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/attack_1",
+        "preview":  "spider-attack_1-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/attack_2",
+        "preview":  "spider-attack_2-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/cast",
+        "preview":  "spider-cast-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/dash",
+        "preview":  "spider-dash-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/death",
+        "preview":  "spider-death-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "guard",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/guard",
+        "preview":  "spider-guard-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "hurt",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/hurt",
+        "preview":  "spider-hurt-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "idle",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/idle",
+        "preview":  "spider-idle-preview.png"
+    },
+    {
+        "actor":  "spider",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/spider/run",
+        "preview":  "spider-run-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/attack_1",
+        "preview":  "wolf-attack_1-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/attack_2",
+        "preview":  "wolf-attack_2-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/cast",
+        "preview":  "wolf-cast-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/dash",
+        "preview":  "wolf-dash-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/death",
+        "preview":  "wolf-death-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "guard",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/guard",
+        "preview":  "wolf-guard-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "hurt",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/hurt",
+        "preview":  "wolf-hurt-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "idle",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/idle",
+        "preview":  "wolf-idle-preview.png"
+    },
+    {
+        "actor":  "wolf",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wolf/run",
+        "preview":  "wolf-run-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "attack_1",
+        "frames":  6,
+        "framePath":  "../sprite-frames/worm/attack_1",
+        "preview":  "worm-attack_1-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "attack_2",
+        "frames":  10,
+        "framePath":  "../sprite-frames/worm/attack_2",
+        "preview":  "worm-attack_2-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "cast",
+        "frames":  6,
+        "framePath":  "../sprite-frames/worm/cast",
+        "preview":  "worm-cast-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "dash",
+        "frames":  5,
+        "framePath":  "../sprite-frames/worm/dash",
+        "preview":  "worm-dash-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/worm/death",
+        "preview":  "worm-death-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "guard",
+        "frames":  8,
+        "framePath":  "../sprite-frames/worm/guard",
+        "preview":  "worm-guard-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/worm/hurt",
+        "preview":  "worm-hurt-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "idle",
+        "frames":  8,
+        "framePath":  "../sprite-frames/worm/idle",
+        "preview":  "worm-idle-preview.png"
+    },
+    {
+        "actor":  "worm",
+        "animation":  "run",
+        "frames":  10,
+        "framePath":  "../sprite-frames/worm/run",
+        "preview":  "worm-run-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "attack_1",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wraith/attack_1",
+        "preview":  "wraith-attack_1-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "attack_2",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wraith/attack_2",
+        "preview":  "wraith-attack_2-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "cast",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wraith/cast",
+        "preview":  "wraith-cast-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "dash",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wraith/dash",
+        "preview":  "wraith-dash-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "death",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wraith/death",
+        "preview":  "wraith-death-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "guard",
+        "frames":  6,
+        "framePath":  "../sprite-frames/wraith/guard",
+        "preview":  "wraith-guard-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "hurt",
+        "frames":  6,
+        "framePath":  "../sprite-frames/wraith/hurt",
+        "preview":  "wraith-hurt-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "idle",
+        "frames":  6,
+        "framePath":  "../sprite-frames/wraith/idle",
+        "preview":  "wraith-idle-preview.png"
+    },
+    {
+        "actor":  "wraith",
+        "animation":  "run",
+        "frames":  7,
+        "framePath":  "../sprite-frames/wraith/run",
+        "preview":  "wraith-run-preview.png"
+    }
+];
+    const grid = document.getElementById("grid");
+    const filter = document.getElementById("filter");
+    const speed = document.getElementById("speed");
+    const toggle = document.getElementById("toggle");
+    let paused = false;
+    let frame = 0;
+
+    function frameUrl(item, index) {
+      return item.framePath + "/" + String(index).padStart(3, "0") + ".png";
+    }
+
+    function render() {
+      grid.innerHTML = "";
+      for (const item of animations) {
+        const search = (item.actor + " " + item.animation).toLowerCase();
+        const card = document.createElement("article");
+        card.className = "card" + (filter.value && !search.includes(filter.value.toLowerCase()) ? " hidden" : "");
+        card.dataset.frames = item.frames;
+        card.innerHTML = `
+          <div class="title"><strong>${item.actor}</strong><span>${item.animation} - ${item.frames}f</span></div>
+          <div class="stage"><img src="${frameUrl(item, 0)}" alt=""></div>
+          <img class="strip" src="${item.preview}" alt="">
+          <div class="meta"><span>${item.framePath}</span><span>384x384</span></div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    function tick() {
+      if (!paused) {
+        frame++;
+        for (const card of grid.querySelectorAll(".card:not(.hidden)")) {
+          const title = card.querySelector(".title strong").textContent;
+          const anim = card.querySelector(".title span").textContent.split(" - ")[0];
+          const item = animations.find(entry => entry.actor === title && entry.animation === anim);
+          const img = card.querySelector(".stage img");
+          img.src = frameUrl(item, frame % item.frames);
+        }
+      }
+      setTimeout(tick, Number(speed.value));
+    }
+
+    filter.addEventListener("input", render);
+    toggle.addEventListener("click", () => {
+      paused = !paused;
+      toggle.textContent = paused ? "Start" : "Pauza";
+    });
+    render();
+    tick();
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+node_modules/
+build/
+dist/
+coverage/
+tools/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Local diagnostics and temporary QA output
+.audit-dir
+.codex-logs/
+artifacts/
+screenshots/
+tmp/
+phone-*.png
+phone-*.txt
+phone-*.xml
+solo_leveler_smoke*.png
+report.md

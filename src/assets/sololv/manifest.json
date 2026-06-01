@@ -1,0 +1,2017 @@
+﻿{
+    "version":  1,
+    "generatedAt":  "2026-05-25T22:22:36.9754099Z",
+    "sourceRoot":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv",
+    "importer":  "scripts/import-sololv-assets.ps1",
+    "extractor":  null,
+    "catalog":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\com.unity.addressables\\catalog_CDN.json",
+    "assets":  [
+
+               ],
+    "candidates":  [
+                       {
+                           "id":  "eventsystem",
+                           "kind":  "ui",
+                           "fileName":  "eventsystem.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\production\\timelinedata\\eventsystem.bundle",
+                           "sizeBytes":  1365,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-shadow-iron-rockpasa-asset",
+                           "kind":  "effect",
+                           "fileName":  "animationset_shadow_iron_rockpasa.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_shadow_iron_rockpasa.asset.bundle",
+                           "sizeBytes":  1565,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-redgate-snowtotem-asset",
+                           "kind":  "effect",
+                           "fileName":  "animationset_redgate_snowtotem.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_redgate_snowtotem.asset.bundle",
+                           "sizeBytes":  1578,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-giant-dungeonbreak-building-asset",
+                           "kind":  "ui",
+                           "fileName":  "animationset_giant_dungeonbreak_building.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_giant_dungeonbreak_building.asset.bundle",
+                           "sizeBytes":  1580,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-redgate-deserttotem-asset",
+                           "kind":  "effect",
+                           "fileName":  "animationset_redgate_deserttotem.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_redgate_deserttotem.asset.bundle",
+                           "sizeBytes":  1586,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-shadow-beste-fox-asset",
+                           "kind":  "effect",
+                           "fileName":  "animationset_shadow_beste_fox.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_shadow_beste_fox.asset.bundle",
+                           "sizeBytes":  1595,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "teamfighthunteraudiosetting-asset",
+                           "kind":  "audio",
+                           "fileName":  "teamfighthunteraudiosetting.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\teamfighthunteraudiosetting.asset.bundle",
+                           "sizeBytes":  1616,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "lizardman-skill-04b-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "lizardman_skill_04b-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\monster\\lizardman\\timelinedata\\lizardman_skill_04b-effect.playable.bundle",
+                           "sizeBytes":  1621,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "baltair-stun-end-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "baltair_stun_end-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\bufftimelinedata\\baltair_stun_end-effect.playable.bundle",
+                           "sizeBytes":  1623,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-06-2-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_06-2_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_06-2_pad-effect.playable.bundle",
+                           "sizeBytes":  1628,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-02-3-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_02-3_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_02-3_pad-effect.playable.bundle",
+                           "sizeBytes":  1628,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-15-1-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_15-1_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_15-1_pad-effect.playable.bundle",
+                           "sizeBytes":  1628,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-18-1-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_18-1-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\aerialkick\\sungjinwoo_skill_18-1-effect.playable.bundle",
+                           "sizeBytes":  1628,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sound",
+                           "kind":  "audio",
+                           "fileName":  "sound.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound.bundle",
+                           "sizeBytes":  1628,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-triggerskill-01-sound-playable",
+                           "kind":  "audio",
+                           "fileName":  "sungjinwoo_triggerskill_01-sound.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_triggerskill_01-sound.playable.bundle",
+                           "sizeBytes":  1628,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-16-3lv-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_16_3lv-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_16_3lv-effect.playable.bundle",
+                           "sizeBytes":  1631,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-41-3lv-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_41_3lv-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_41_3lv-effect.playable.bundle",
+                           "sizeBytes":  1631,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "songchiyul-skill-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "songchiyul_skill_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\hunter\\songchiyul\\timelinedata\\songchiyul_skill_pad-effect.playable.bundle",
+                           "sizeBytes":  1631,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-07-3-pad-sound-playable",
+                           "kind":  "audio",
+                           "fileName":  "sungjinwoo_skill_07-3_pad-sound.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_07-3_pad-sound.playable.bundle",
+                           "sizeBytes":  1631,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-42-3lv-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_42_3lv-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_42_3lv-effect.playable.bundle",
+                           "sizeBytes":  1631,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-16-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_16-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_16-effect.playable.bundle",
+                           "sizeBytes":  1631,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-18-3-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_18-3-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\aerialkick\\sungjinwoo_skill_18-3-effect.playable.bundle",
+                           "sizeBytes":  1636,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-16-3-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_16-3-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_16-3-effect.playable.bundle",
+                           "sizeBytes":  1636,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-07-2-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_07-2-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_07-2-effect.playable.bundle",
+                           "sizeBytes":  1636,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bluegolem-boss-passiveskill-01-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "bluegolem_boss_passiveskill_01-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\monster\\bluegolem_boss\\timelinedata\\bluegolem_boss_passiveskill_01-effect.playable.bundle",
+                           "sizeBytes":  1637,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "paralysis-effect-rimlight-buff-end-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "paralysis_effect_rimlight_buff_end-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\bufftimelinedata\\paralysis_effect_rimlight_buff_end-effect.playable.bundle",
+                           "sizeBytes":  1638,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-extreme-dash-invincible-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_extreme_dash_invincible-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_extreme_dash_invincible-effect.playable.bundle",
+                           "sizeBytes":  1639,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-assassin-skill-05-sound-playable",
+                           "kind":  "audio",
+                           "fileName":  "sungjinwoo_assassin_skill_05-sound.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_assassin_skill_05-sound.playable.bundle",
+                           "sizeBytes":  1640,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-triggerskill-01-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_triggerskill_01-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_triggerskill_01-effect.playable.bundle",
+                           "sizeBytes":  1640,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-assassin-skill-8-1-sound-playable",
+                           "kind":  "audio",
+                           "fileName":  "sungjinwoo_assassin_skill_8-1-sound.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_assassin_skill_8-1-sound.playable.bundle",
+                           "sizeBytes":  1642,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "seal-effect-rimlight-buff-end-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "seal_effect_rimlight_buff_end-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\bufftimelinedata\\seal_effect_rimlight_buff_end-effect.playable.bundle",
+                           "sizeBytes":  1642,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-14-3-extrem-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_14-3-extrem-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_14-3-extrem-effect.playable.bundle",
+                           "sizeBytes":  1643,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-16-4lv-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_16_4lv-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_16_4lv-effect.playable.bundle",
+                           "sizeBytes":  1643,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-16-5lv-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_16_5lv-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_16_5lv-effect.playable.bundle",
+                           "sizeBytes":  1643,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-skill-rune-16-2lv-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_skill_rune_16_2lv-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_skill_rune_16_2lv-effect.playable.bundle",
+                           "sizeBytes":  1643,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "spiritsungjinwoo-longsword-passiveskill-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "spiritsungjinwoo_longsword_passiveskill-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\longsword\\spiritsungjinwoo_longsword_passiveskill-effect.playable.bundle",
+                           "sizeBytes":  1645,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-manapole-skill-01-addhit02-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_manapole_skill_01_addhit02-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\manapole\\sungjinwoo_gs_manapole_skill_01_addhit02-effect.playable.bundle",
+                           "sizeBytes":  1645,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-esilsdoubleedge-passive-01-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_esilsdoubleedge_passive_01-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\esilsdoubleedge\\sungjinwoo_gs_esilsdoubleedge_passive_01-effect.playable.bundle",
+                           "sizeBytes":  1645,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-nagagdtrident-skill-01-2-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_nagagdtrident_skill_01-2_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\nagagdtrident\\sungjinwoo_gs_nagagdtrident_skill_01-2_pad-effect.playable.bundle",
+                           "sizeBytes":  1647,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "poisonfangedgiantcentipede-elite-skill-05-b-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "poisonfangedgiantcentipede_elite_skill_05_b-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\monster\\poisonfangedgiantcentipede_elite\\timelinedata\\poisonfangedgiantcentipede_elite_skill_05_b-effect.playable.bundle",
+                           "sizeBytes":  1649,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-plumblossom-coreattack-01-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_plumblossom_coreattack_01_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\plumblossom\\sungjinwoo_gs_plumblossom_coreattack_01_pad-effect.playable.bundle",
+                           "sizeBytes":  1649,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-burningdevilgrimoire-skill-01-1-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_burningdevilgrimoire_skill_01-1_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\burningdevilgrimoire\\sungjinwoo_gs_burningdevilgrimoire_skill_01-1_pad-effect.playable.bundle",
+                           "sizeBytes":  1651,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-qte-airborne-skill-1-pad-1-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_qte_airborne_skill-1_pad_1-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\qte_rune\\sungjinwoo_qte_airborne_skill-1_pad_1-effect.playable.bundle",
+                           "sizeBytes":  1651,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "spiritsungjinwoo-longswordepic01-passiveskill-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "spiritsungjinwoo_longswordepic01_passiveskill-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\longsword\\spiritsungjinwoo_longswordepic01_passiveskill-effect.playable.bundle",
+                           "sizeBytes":  1652,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-stormbringer-skill-01-start-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_stormbringer_skill_01_start_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\stormbringer\\sungjinwoo_gs_stormbringer_skill_01_start_pad-effect.playable.bundle",
+                           "sizeBytes":  1652,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-juicygrilledskewers-corepassive-01-effect-playable",
+                           "kind":  "ui",
+                           "fileName":  "sungjinwoo_gs_juicygrilledskewers_corepassive_01-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_gs_juicygrilledskewers_corepassive_01-effect.playable.bundle",
+                           "sizeBytes":  1653,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "spiritsungjinwoo-longsword-passiveskill-sound-playable",
+                           "kind":  "audio",
+                           "fileName":  "spiritsungjinwoo_longsword_passiveskill-sound.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\longsword\\spiritsungjinwoo_longsword_passiveskill-sound.playable.bundle",
+                           "sizeBytes":  1654,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "songchiyul-0chapter-supporter-in-skill-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "songchiyul_0chapter_supporter_in_skill-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\hunter\\songchiyul\\timelinedata\\songchiyul_0chapter_supporter_in_skill-effect.playable.bundle",
+                           "sizeBytes":  1654,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-nagagdtrident-skill-01-3-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_nagagdtrident_skill_01-3_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\nagagdtrident\\sungjinwoo_gs_nagagdtrident_skill_01-3_pad-effect.playable.bundle",
+                           "sizeBytes":  1656,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-manapole-skill-01-addhit01-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_manapole_skill_01_addhit01-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\manapole\\sungjinwoo_gs_manapole_skill_01_addhit01-effect.playable.bundle",
+                           "sizeBytes":  1656,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "pc-cross-reaction-3frame-asset",
+                           "kind":  "ui",
+                           "fileName":  "pc_cross_reaction_3frame.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\production\\timelinedata\\hitdelaycurves\\pc_cross_reaction_3frame.asset.bundle",
+                           "sizeBytes":  1656,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "steelfangedraikan-elite-skill06-indicator-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "steelfangedraikan_elite_skill06_indicator-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\character\\monster\\steelfangedraikan_elite\\timelinedata\\steelfangedraikan_elite_skill06_indicator-effect.playable.bundle",
+                           "sizeBytes":  1656,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "pc-cross-reaction-1frame-asset",
+                           "kind":  "ui",
+                           "fileName":  "pc_cross_reaction_1frame.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\production\\timelinedata\\hitdelaycurves\\pc_cross_reaction_1frame.asset.bundle",
+                           "sizeBytes":  1656,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-esilsdoubleedge-passive-02-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_esilsdoubleedge_passive_02-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\esilsdoubleedge\\sungjinwoo_gs_esilsdoubleedge_passive_02-effect.playable.bundle",
+                           "sizeBytes":  1656,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-razanblade-coreattack-01-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_razanblade_coreattack_01_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\razanblade\\sungjinwoo_gs_razanblade_coreattack_01_pad-effect.playable.bundle",
+                           "sizeBytes":  1657,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "spiritsungjinwoo-longswordepic01-passiveskill-sound-playable",
+                           "kind":  "audio",
+                           "fileName":  "spiritsungjinwoo_longswordepic01_passiveskill-sound.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\longsword\\spiritsungjinwoo_longswordepic01_passiveskill-sound.playable.bundle",
+                           "sizeBytes":  1659,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-plumblossomepic-coreattack-01-pad-master-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_plumblossomepic_coreattack_01_pad-master-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\plumblossom\\sungjinwoo_gs_plumblossomepic_coreattack_01_pad-master-effect.playable.bundle",
+                           "sizeBytes":  1662,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "ui-mute-wav",
+                           "kind":  "audio",
+                           "fileName":  "ui_mute.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\interface\\ui_mute.wav.bundle",
+                           "sizeBytes":  1666,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-juicygrilledskewers-skillpassive-01-effect-playable",
+                           "kind":  "ui",
+                           "fileName":  "sungjinwoo_gs_juicygrilledskewers_skillpassive_01-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\sungjinwoo_gs_juicygrilledskewers_skillpassive_01-effect.playable.bundle",
+                           "sizeBytes":  1667,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-gs-lightningdragonblade-coreattack-01-pad-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_gs_lightningdragonblade_coreattack_01_pad-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\lightningdragonblade\\sungjinwoo_gs_lightningdragonblade_coreattack_01_pad-effect.playable.bundle",
+                           "sizeBytes":  1668,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "pc-cross-reaction-5frame-asset",
+                           "kind":  "ui",
+                           "fileName":  "pc_cross_reaction_5frame.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\production\\timelinedata\\hitdelaycurves\\pc_cross_reaction_5frame.asset.bundle",
+                           "sizeBytes":  1673,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "sungjinwoo-roarofenniolegend01-extreme-dash-invincible-effect-playable",
+                           "kind":  "effect",
+                           "fileName":  "sungjinwoo_roarofenniolegend01_extreme_dash_invincible-effect.playable.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\character\\hunter\\sungjinwoo\\timelinedata\\roarofennio\\sungjinwoo_roarofenniolegend01_extreme_dash_invincible-effect.playable.bundle",
+                           "sizeBytes":  1674,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "soundduckingpresetdata-asset",
+                           "kind":  "audio",
+                           "fileName":  "soundduckingpresetdata.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\soundduckingpresetdata.asset.bundle",
+                           "sizeBytes":  1675,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "down-cooltime-effect-prefab",
+                           "kind":  "effect",
+                           "fileName":  "down_cooltime_effect.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\down_cooltime_effect.prefab.bundle",
+                           "sizeBytes":  1683,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap032-s002-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap032_s002_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap032_s002_part01.wav.bundle",
+                           "sizeBytes":  1684,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap027-s007-part1-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap027_s007_part1.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap027_s007_part1.wav.bundle",
+                           "sizeBytes":  1685,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap027-s006-part1-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap027_s006_part1.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap027_s006_part1.wav.bundle",
+                           "sizeBytes":  1685,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "ui-fx-text-skip-1-1-wav",
+                           "kind":  "audio",
+                           "fileName":  "ui_fx_text_skip_1_1.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\interface\\ui_fx_text_skip_1_1.wav.bundle",
+                           "sizeBytes":  1686,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap033-s002-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap033_s002_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap033_s002_part01.wav.bundle",
+                           "sizeBytes":  1688,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap034-s001-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap034_s001_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap034_s001_part01.wav.bundle",
+                           "sizeBytes":  1689,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "ui-mute-2-wav",
+                           "kind":  "audio",
+                           "fileName":  "ui_mute_2.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\interface\\ui_mute_2.wav.bundle",
+                           "sizeBytes":  1690,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap032-s001-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap032_s001_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap032_s001_part01.wav.bundle",
+                           "sizeBytes":  1691,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap033-s001-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap033_s001_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap033_s001_part01.wav.bundle",
+                           "sizeBytes":  1693,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap018-s005-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap018_s005_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap018_s005_part01.wav.bundle",
+                           "sizeBytes":  1693,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap006-s005-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap006_s005_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap006_s005_part01.wav.bundle",
+                           "sizeBytes":  1693,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "ui-fx-story-dungeon-title-1-1-wav",
+                           "kind":  "audio",
+                           "fileName":  "ui_fx_story_dungeon_title_1_1.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\interface\\ui_fx_story_dungeon_title_1_1.wav.bundle",
+                           "sizeBytes":  1695,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "baruka-frost-debuff-effect-prefab",
+                           "kind":  "effect",
+                           "fileName":  "baruka_frost_debuff_effect.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\baruka_frost_debuff_effect.prefab.bundle",
+                           "sizeBytes":  1700,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap031-s002-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap031_s002_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap031_s002_part01.wav.bundle",
+                           "sizeBytes":  1709,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap004-s001-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap004_s001_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap004_s001_part01.wav.bundle",
+                           "sizeBytes":  1714,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap020-s001-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap020_s001_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap020_s001_part01.wav.bundle",
+                           "sizeBytes":  1716,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap000-s002-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap000_s002_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap000_s002_part01.wav.bundle",
+                           "sizeBytes":  1717,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "ui-lobby-videoplay-rendertexture-rendertexture",
+                           "kind":  "ui",
+                           "fileName":  "ui_lobby_videoplay_rendertexture.rendertexture.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\ui\\element\\ui_lobby_videoplay_rendertexture.rendertexture.bundle",
+                           "sizeBytes":  1732,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-mute-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_mute.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_mute.wav.bundle",
+                           "sizeBytes":  1747,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "2dsound-asset",
+                           "kind":  "audio",
+                           "fileName":  "2dsound.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\2dsound.asset.bundle",
+                           "sizeBytes":  1754,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "pc-damage-reaction-base-air-2frame-asset",
+                           "kind":  "ui",
+                           "fileName":  "pc_damage_reaction_base_air_2frame.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\production\\timelinedata\\hitdelaycurves\\pc_damage_reaction_base_air_2frame.asset.bundle",
+                           "sizeBytes":  1757,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "amb-zone-lobby-01-wav",
+                           "kind":  "audio",
+                           "fileName":  "amb_zone_lobby_01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\enviroment\\amb_zone\\amb_zone_lobby_01.wav.bundle",
+                           "sizeBytes":  1759,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-cs-chap008-s003-part01-wav",
+                           "kind":  "music",
+                           "fileName":  "bgm_cs_chap008_s003_part01.wav.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_cs_chap008_s003_part01.wav.bundle",
+                           "sizeBytes":  1761,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-shadow-highorc-unarmed-skill-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_shadow_highorc_unarmed_skill_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\override\\mon_att_shadow_highorc_unarmed_skill_1.asset.bundle",
+                           "sizeBytes":  1814,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "pc-damage-reaction-base-3frame-asset",
+                           "kind":  "ui",
+                           "fileName":  "pc_damage_reaction_base_3frame.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\production\\timelinedata\\hitdelaycurves\\pc_damage_reaction_base_3frame.asset.bundle",
+                           "sizeBytes":  1819,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-blackshadowrazan-c-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_blackshadowrazan_c.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\mon_att_blackshadowrazan_c.asset.bundle",
+                           "sizeBytes":  1840,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-boss-gatekeepercerberus-boss-pad-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_boss_gatekeepercerberus_boss_pad.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\override\\mon_att_boss_gatekeepercerberus_boss_pad.asset.bundle",
+                           "sizeBytes":  1844,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-elite-blackshadowrazan-b-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_elite_blackshadowrazan_b.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\mon_att_elite_blackshadowrazan_b.asset.bundle",
+                           "sizeBytes":  1845,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-shadow-shieldaxe-knight-asset",
+                           "kind":  "effect",
+                           "fileName":  "animationset_shadow_shieldaxe_knight.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_shadow_shieldaxe_knight.asset.bundle",
+                           "sizeBytes":  1850,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-blackshadowrazan-b-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_blackshadowrazan_b.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\mon_att_blackshadowrazan_b.asset.bundle",
+                           "sizeBytes":  1857,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-blackshadowrazan-a-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_blackshadowrazan_a.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\mon_att_blackshadowrazan_a.asset.bundle",
+                           "sizeBytes":  1860,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "mon-att-elite-blackshadowrazan-a-asset",
+                           "kind":  "audio",
+                           "fileName":  "mon_att_elite_blackshadowrazan_a.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\audiosetting\\mon_att_elite_blackshadowrazan_a.asset.bundle",
+                           "sizeBytes":  1866,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-4-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_4_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_4_random_2.asset.bundle",
+                           "sizeBytes":  1877,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-5-1-2-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_5_1-2_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_5_1-2_random_2.asset.bundle",
+                           "sizeBytes":  1878,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-4-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_4_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_4_1_random_2.asset.bundle",
+                           "sizeBytes":  1878,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-1-2-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_1_2_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_1_2_random_2.asset.bundle",
+                           "sizeBytes":  1883,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-1-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_1_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_1_1_random_2.asset.bundle",
+                           "sizeBytes":  1883,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-special-shot-1-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_special_shot_1_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_special_shot_1_1_random_2.asset.bundle",
+                           "sizeBytes":  1884,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-5-1-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_5_1-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_5_1-2_random_1.asset.bundle",
+                           "sizeBytes":  1886,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "newbieprotocolatlas-spriteatlas",
+                           "kind":  "ui",
+                           "fileName":  "newbieprotocolatlas.spriteatlas.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\ui\\atlas\\newbieprotocolatlas.spriteatlas.bundle",
+                           "sizeBytes":  1887,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-2-2-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_2_2-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_2_2-2_random_1.asset.bundle",
+                           "sizeBytes":  1887,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-death-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_death_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_death_1_random_1.asset.bundle",
+                           "sizeBytes":  1887,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-5-2-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_5_2-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_5_2-2_random_1.asset.bundle",
+                           "sizeBytes":  1887,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-1-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_1_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_1_2_random_1.asset.bundle",
+                           "sizeBytes":  1889,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-4-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_4_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_4_1_random_1.asset.bundle",
+                           "sizeBytes":  1889,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-1-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_1_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_1_1_random_1.asset.bundle",
+                           "sizeBytes":  1889,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-special-shot-1-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_special_shot_1_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_special_shot_1_1_random_1.asset.bundle",
+                           "sizeBytes":  1894,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-special-cast-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_special_cast_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_special_cast_1_random_1.asset.bundle",
+                           "sizeBytes":  1896,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-special-shot-1-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_special_shot_1-3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_special_shot_1-3_random_1.asset.bundle",
+                           "sizeBytes":  1897,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-2-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_2_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_2_random_2.asset.bundle",
+                           "sizeBytes":  1901,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-2-2-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_2_2-1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_2_2-1_random_2.asset.bundle",
+                           "sizeBytes":  1901,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "animationset-shadow-icebear-a-asset",
+                           "kind":  "effect",
+                           "fileName":  "animationset_shadow_icebear_a.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\animation\\animationset\\animationset_shadow_icebear_a.asset.bundle",
+                           "sizeBytes":  1905,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-snow-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_snow_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_snow_random_01.asset.bundle",
+                           "sizeBytes":  1906,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-special-cast-1-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_special_cast_1_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_special_cast_1_1_random_2.asset.bundle",
+                           "sizeBytes":  1906,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-special-cast-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_special_cast_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_special_cast_1_random_2.asset.bundle",
+                           "sizeBytes":  1907,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-city-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_city_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_city_random_01.asset.bundle",
+                           "sizeBytes":  1907,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-forest-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_forest_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_forest_random_01.asset.bundle",
+                           "sizeBytes":  1908,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-special-shot-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_special_shot_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_special_shot_1_random_1.asset.bundle",
+                           "sizeBytes":  1908,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-desert-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_desert_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_desert_random_01.asset.bundle",
+                           "sizeBytes":  1909,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-5-2-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_5_2-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_5_2-1_random_1.asset.bundle",
+                           "sizeBytes":  1910,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-2-2-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_2_2-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_2_2-1_random_1.asset.bundle",
+                           "sizeBytes":  1910,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-large-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_large_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_large_1_random_1.asset.bundle",
+                           "sizeBytes":  1910,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-anthill-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_anthill_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_anthill_random_01.asset.bundle",
+                           "sizeBytes":  1911,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-5-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_5_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_5_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-medium-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_medium_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_medium_3_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_1_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_3_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-small-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_small_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_small_1_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-medium-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_medium_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_medium_3_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-9-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_9_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_9_random_1.asset.bundle",
+                           "sizeBytes":  1912,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-large-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_large_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_large_3_random_1.asset.bundle",
+                           "sizeBytes":  1913,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-medium-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_medium_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_medium_2_random_1.asset.bundle",
+                           "sizeBytes":  1913,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-medium-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_medium_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_medium_1_random_1.asset.bundle",
+                           "sizeBytes":  1913,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-11-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_11_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_11_random_1.asset.bundle",
+                           "sizeBytes":  1913,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-4-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_4_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_4_random_1.asset.bundle",
+                           "sizeBytes":  1913,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-7-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_7_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_7_random_1.asset.bundle",
+                           "sizeBytes":  1913,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-special-shot-1-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_special_shot_1-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_special_shot_1-2_random_1.asset.bundle",
+                           "sizeBytes":  1916,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-jump-armor-small-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_jump_armor_small_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_jump_armor_small_1_random_1.asset.bundle",
+                           "sizeBytes":  1916,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-cast-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_cast_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_cast_2_random_1.asset.bundle",
+                           "sizeBytes":  1917,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-special-shot-1-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_special_shot_1-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_special_shot_1-1_random_1.asset.bundle",
+                           "sizeBytes":  1918,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-death-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_death_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_death_1_random_1.asset.bundle",
+                           "sizeBytes":  1918,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-special-cast-1-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_special_cast_1_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_special_cast_1_1_random_1.asset.bundle",
+                           "sizeBytes":  1918,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-v-cast-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_v_cast_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan\\blackshadowrazan_v_cast_1_random_1.asset.bundle",
+                           "sizeBytes":  1918,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-armor-small-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_armor_small_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_armor_small_2_random_1.asset.bundle",
+                           "sizeBytes":  1919,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-medium-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_medium_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_medium_2_random_1.asset.bundle",
+                           "sizeBytes":  1919,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-armor-small-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_armor_small_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\weapon\\bodysound_flap_armor_small_2_random_1.asset.bundle",
+                           "sizeBytes":  1919,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-4-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_4_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_4_random_2.asset.bundle",
+                           "sizeBytes":  1919,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-small-s-skill-5-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_small_s_skill_5-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_small_s_skill_5-2_random_1.asset.bundle",
+                           "sizeBytes":  1920,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-medium-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_medium_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_medium_1_random_1.asset.bundle",
+                           "sizeBytes":  1920,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-medium-s-skill-3-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_medium_s_skill_3-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_medium_s_skill_3-2_random_1.asset.bundle",
+                           "sizeBytes":  1920,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-shot-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_shot_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_shot_1_random_1.asset.bundle",
+                           "sizeBytes":  1920,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-desert-oasis-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_desert_oasis_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_desert_oasis_random_01.asset.bundle",
+                           "sizeBytes":  1921,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-3-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_3_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_3_random_2.asset.bundle",
+                           "sizeBytes":  1921,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-medium-2-random-11-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_medium_2_random_11.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_medium_2_random_11.asset.bundle",
+                           "sizeBytes":  1921,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-v-death-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_v_death_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan\\blackshadowrazan_v_death_1_random_1.asset.bundle",
+                           "sizeBytes":  1922,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-cave-red-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_cave_red_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_cave_red_random_01.asset.bundle",
+                           "sizeBytes":  1923,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-small-s-skill-6-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_small_s_skill_6-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_small_s_skill_6-2_random_1.asset.bundle",
+                           "sizeBytes":  1924,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-desert-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_desert_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_desert_random_01.asset.bundle",
+                           "sizeBytes":  1924,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-subway-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_subway_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_subway_random_01.asset.bundle",
+                           "sizeBytes":  1924,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-death-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_death_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_death_1_random_1.asset.bundle",
+                           "sizeBytes":  1924,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_3_random_1.asset.bundle",
+                           "sizeBytes":  1925,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-5-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_5_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_5_random_1.asset.bundle",
+                           "sizeBytes":  1928,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_3_random_1.asset.bundle",
+                           "sizeBytes":  1928,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-dg-end-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_dg_end_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_dg_end_random_01.asset.bundle",
+                           "sizeBytes":  1929,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-dmg-strong-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_dmg_strong_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_dmg_strong_1_random_1.asset.bundle",
+                           "sizeBytes":  1929,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-small-s-skill-5-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_small_s_skill_5-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_small_s_skill_5-1_random_1.asset.bundle",
+                           "sizeBytes":  1929,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-city-random-02-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_city_random_02.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_city_random_02.asset.bundle",
+                           "sizeBytes":  1930,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_3_random_1.asset.bundle",
+                           "sizeBytes":  1930,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-snow-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_snow_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_snow_random_01.asset.bundle",
+                           "sizeBytes":  1930,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-10-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_10_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_10_random_1.asset.bundle",
+                           "sizeBytes":  1931,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-dmg-strong-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_dmg_strong_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_dmg_strong_random_1.asset.bundle",
+                           "sizeBytes":  1931,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-dmg-weak-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_dmg_weak_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_dmg_weak_random_1.asset.bundle",
+                           "sizeBytes":  1933,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-large-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_large_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_large_2_random_1.asset.bundle",
+                           "sizeBytes":  1935,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-6-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_6_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_6_random_1.asset.bundle",
+                           "sizeBytes":  1935,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-8-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_8_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_8_random_1.asset.bundle",
+                           "sizeBytes":  1935,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-medium-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_medium_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_medium_2_random_1.asset.bundle",
+                           "sizeBytes":  1935,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-v-shot-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_v_shot_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan\\blackshadowrazan_v_shot_2_random_1.asset.bundle",
+                           "sizeBytes":  1937,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "gatekeepercerberus-boss-v-dmg-weak-1-random-1-st-asset",
+                           "kind":  "audio",
+                           "fileName":  "gatekeepercerberus_boss_v_dmg_weak_1_random_1_st.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\gatekeepercerberus_boss\\gatekeepercerberus_boss_v_dmg_weak_1_random_1_st.asset.bundle",
+                           "sizeBytes":  1939,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-subway-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_subway_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_subway_random_01.asset.bundle",
+                           "sizeBytes":  1939,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-cast-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_cast_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_cast_1_random_1.asset.bundle",
+                           "sizeBytes":  1940,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-shot-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_shot_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_shot_1_random_2.asset.bundle",
+                           "sizeBytes":  1940,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-medium-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_medium_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_medium_1_random_1.asset.bundle",
+                           "sizeBytes":  1940,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-shot-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_shot_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_shot_2_random_1.asset.bundle",
+                           "sizeBytes":  1940,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-shot-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_shot_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_shot_3_random_1.asset.bundle",
+                           "sizeBytes":  1941,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-armor-small-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_armor_small_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_armor_small_1_random_1.asset.bundle",
+                           "sizeBytes":  1942,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-flap-armor-small-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_flap_armor_small_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_flap_armor_small_3_random_1.asset.bundle",
+                           "sizeBytes":  1943,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-medium-s-skill-4-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_medium_s_skill_4-2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_medium_s_skill_4-2_random_1.asset.bundle",
+                           "sizeBytes":  1944,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_2_random_1.asset.bundle",
+                           "sizeBytes":  1944,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-1-random-3-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_1_random_3.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_1_random_3.asset.bundle",
+                           "sizeBytes":  1944,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-3-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_3_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_3_random_2.asset.bundle",
+                           "sizeBytes":  1944,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-cast-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_cast_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_cast_1_random_2.asset.bundle",
+                           "sizeBytes":  1944,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-4-random-3-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_4_random_3.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_4_random_3.asset.bundle",
+                           "sizeBytes":  1944,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-v-dmg-weak-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_v_dmg_weak_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals\\dungeonjackals_v_dmg_weak_1_random_1.asset.bundle",
+                           "sizeBytes":  1945,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-large-4-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_large_4_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_large_4_random_1.asset.bundle",
+                           "sizeBytes":  1945,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-large-3-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_large_3_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_large_3_random_1.asset.bundle",
+                           "sizeBytes":  1945,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-large-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_large_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_large_2_random_1.asset.bundle",
+                           "sizeBytes":  1945,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-5-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_5_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_5_random_2.asset.bundle",
+                           "sizeBytes":  1945,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-cast-2-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_cast_2_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_cast_2_random_2.asset.bundle",
+                           "sizeBytes":  1947,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-small-s-skill-6-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_small_s_skill_6-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_small_s_skill_6-1_random_1.asset.bundle",
+                           "sizeBytes":  1947,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-cave-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_cave_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_cave_random_01.asset.bundle",
+                           "sizeBytes":  1947,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-medium-s-skill-4-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_medium_s_skill_4-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_medium_s_skill_4-1_random_1.asset.bundle",
+                           "sizeBytes":  1950,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_2_random_1.asset.bundle",
+                           "sizeBytes":  1950,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-cast-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_cast_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_cast_1_random_1.asset.bundle",
+                           "sizeBytes":  1950,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "suicide-spider-medium-s-skill-3-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "suicide_spider_medium_s_skill_3-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\suicide_spider\\suicide_spider_medium_s_skill_3-1_random_1.asset.bundle",
+                           "sizeBytes":  1950,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_1_random_2.asset.bundle",
+                           "sizeBytes":  1951,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_1_random_1.asset.bundle",
+                           "sizeBytes":  1951,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-4-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_4_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_4_random_1.asset.bundle",
+                           "sizeBytes":  1951,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-cast-4-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_cast_4_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_cast_4_random_1.asset.bundle",
+                           "sizeBytes":  1952,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_1_random_1.asset.bundle",
+                           "sizeBytes":  1952,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-4-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_4_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_4_random_1.asset.bundle",
+                           "sizeBytes":  1952,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-v-dmg-weak-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_v_dmg_weak_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan\\blackshadowrazan_v_dmg_weak_1_random_1.asset.bundle",
+                           "sizeBytes":  1952,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-armor-small-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_armor_small_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_armor_small_2_random_1.asset.bundle",
+                           "sizeBytes":  1952,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "gatekeepercerberus-boss-v-dmg-strong-1-random-1-st-asset",
+                           "kind":  "audio",
+                           "fileName":  "gatekeepercerberus_boss_v_dmg_strong_1_random_1_st.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\gatekeepercerberus_boss\\gatekeepercerberus_boss_v_dmg_strong_1_random_1_st.asset.bundle",
+                           "sizeBytes":  1952,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-dmg-weak-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_dmg_weak_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_dmg_weak_1_random_1.asset.bundle",
+                           "sizeBytes":  1954,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dungeonjackals-elite-v-shot-5-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dungeonjackals_elite_v_shot_5-1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\dungeonjackals_elite\\dungeonjackals_elite_v_shot_5-1_random_1.asset.bundle",
+                           "sizeBytes":  1954,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_2_random_1.asset.bundle",
+                           "sizeBytes":  1954,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-cast-2-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_cast_2_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_cast_2_random_1.asset.bundle",
+                           "sizeBytes":  1954,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-cave-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_cave_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_cave_random_01.asset.bundle",
+                           "sizeBytes":  1955,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-v-shot-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_v_shot_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan\\blackshadowrazan_v_shot_1_random_1.asset.bundle",
+                           "sizeBytes":  1967,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_1_random_1.asset.bundle",
+                           "sizeBytes":  1974,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "fx-white-png",
+                           "kind":  "effect",
+                           "fileName":  "fx_white.png.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\effect\\fx_texture\\fx_white.png.bundle",
+                           "sizeBytes":  1975,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "shadowgrouplist-prefab",
+                           "kind":  "ui",
+                           "fileName":  "shadowgrouplist.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\ui\\element\\common\\shadowgrouplist.prefab.bundle",
+                           "sizeBytes":  1975,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstanttargetmarkhud-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstanttargetmarkhud.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstanttargetmarkhud.prefab.bundle",
+                           "sizeBytes":  1976,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstanttargetmarkhud-wing-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstanttargetmarkhud_wing.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstanttargetmarkhud_wing.prefab.bundle",
+                           "sizeBytes":  1976,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dia-seolin-lobby-intro-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dia_seolin_lobby_intro_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\voice_kor\\dialogue\\npc\\seolin\\timeline\\dia_seolin_lobby_intro_1_random_1.asset.bundle",
+                           "sizeBytes":  1980,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "gatekeepercerberus-boss-s-skill-10-pad-1-random-1-st-asset",
+                           "kind":  "audio",
+                           "fileName":  "gatekeepercerberus_boss_s_skill_10_pad_1_random_1_st.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\gatekeepercerberus_boss\\gatekeepercerberus_boss_s_skill_10_pad_1_random_1_st.asset.bundle",
+                           "sizeBytes":  1982,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstantbarrierhud-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstantbarrierhud.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstantbarrierhud.prefab.bundle",
+                           "sizeBytes":  1982,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-elite-v-shot-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_elite_v_shot_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan_elite\\blackshadowrazan_elite_v_shot_1_random_2.asset.bundle",
+                           "sizeBytes":  1984,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "fx-gra-17-png",
+                           "kind":  "effect",
+                           "fileName":  "fx_gra_17.png.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\effect\\fx_texture\\fx_gra_17.png.bundle",
+                           "sizeBytes":  1985,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bodysound-heavy-stone-large-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "bodysound_heavy_stone_large_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\share_sfx\\foley\\body\\bodysound_heavy_stone_large_1_random_1.asset.bundle",
+                           "sizeBytes":  1986,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "blackshadowrazan-v-shot-1-random-2-asset",
+                           "kind":  "audio",
+                           "fileName":  "blackshadowrazan_v_shot_1_random_2.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\blackshadowrazan\\blackshadowrazan_v_shot_1_random_2.asset.bundle",
+                           "sizeBytes":  1988,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "kuimin-fireball-parryable-prefab",
+                           "kind":  "ui",
+                           "fileName":  "kuimin_fireball_parryable.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\kuimin_fireball_parryable.prefab.bundle",
+                           "sizeBytes":  1991,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstantskillbuttonhud-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstantskillbuttonhud.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstantskillbuttonhud.prefab.bundle",
+                           "sizeBytes":  1994,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstantskillbuttonhud-2-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstantskillbuttonhud_2.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstantskillbuttonhud_2.prefab.bundle",
+                           "sizeBytes":  1996,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "gacha-fx-gra-17-png",
+                           "kind":  "effect",
+                           "fileName":  "gacha_fx_gra_17.png.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\animation\\cutscene\\gacha\\gacha_fx_resource\\_gacha_fx_texture\\gacha_fx_gra_17.png.bundle",
+                           "sizeBytes":  1997,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstanttargetmarkhud-tail-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstanttargetmarkhud_tail.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstanttargetmarkhud_tail.prefab.bundle",
+                           "sizeBytes":  1997,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "gatekeepercerberus-boss-s-skill-7-pad-1-random-1-st-asset",
+                           "kind":  "audio",
+                           "fileName":  "gatekeepercerberus_boss_s_skill_7_pad_1_random_1_st.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\gatekeepercerberus_boss\\gatekeepercerberus_boss_s_skill_7_pad_1_random_1_st.asset.bundle",
+                           "sizeBytes":  1999,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "gatekeepercerberus-boss-s-skill-7-pad-1-random-2-st-asset",
+                           "kind":  "audio",
+                           "fileName":  "gatekeepercerberus_boss_s_skill_7_pad_1_random_2_st.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\monster\\gatekeepercerberus_boss\\gatekeepercerberus_boss_s_skill_7_pad_1_random_2_st.asset.bundle",
+                           "sizeBytes":  2002,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstantbarrierhud-kamish-wing-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstantbarrierhud_kamish_wing.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstantbarrierhud_kamish_wing.prefab.bundle",
+                           "sizeBytes":  2003,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-city-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_city_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_city_random_01.asset.bundle",
+                           "sizeBytes":  2004,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "specialbuffuiinvokercounter-prefab",
+                           "kind":  "ui",
+                           "fileName":  "specialbuffuiinvokercounter.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\specialbuffuiinvokercounter.prefab.bundle",
+                           "sizeBytes":  2019,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "addinstantbarrierhud-kamish-tail-prefab",
+                           "kind":  "ui",
+                           "fileName":  "addinstantbarrierhud_kamish_tail.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\addinstantbarrierhud_kamish_tail.prefab.bundle",
+                           "sizeBytes":  2019,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-demoncastle-upstairs-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_demoncastle_upstairs_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_demoncastle_upstairs_random_01.asset.bundle",
+                           "sizeBytes":  2020,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "bgm-battle-boss-demoncastle-middlestairs-random-01-asset",
+                           "kind":  "music",
+                           "fileName":  "bgm_battle_boss_demoncastle_middlestairs_random_01.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\sound\\source\\bgm\\bgm_battle_boss_demoncastle_middlestairs_random_01.asset.bundle",
+                           "sizeBytes":  2024,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "dia-sungjinwoos-shadowlord-win-1-random-1-asset",
+                           "kind":  "audio",
+                           "fileName":  "dia_sungjinwoos_shadowlord_win_1_random_1.asset.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\predownload_assets_assets\\assetbundles\\sound\\source\\voice_kor\\dialogue\\hunter\\sungjinwoos\\timeline\\dia_sungjinwoos_shadowlord_win_1_random_1.asset.bundle",
+                           "sizeBytes":  2024,
+                           "status":  "candidate"
+                       },
+                       {
+                           "id":  "specialbuffuiinvokersoyeonbuff-prefab",
+                           "kind":  "ui",
+                           "fileName":  "specialbuffuiinvokersoyeonbuff.prefab.bundle",
+                           "sourcePath":  "C:\\Program Files\\Netmarble\\Netmarble Game\\sololv\\GameAsset\\backdownload_assets_assets\\assetbundles\\data\\buff\\specialbuffuiinvokersoyeonbuff.prefab.bundle",
+                           "sizeBytes":  2028,
+                           "status":  "candidate"
+                       }
+                   ],
+    "warnings":  [
+                     "AssetStudio/AssetRipper CLI was not found in tools/ or ASSETSTUDIO_CLI/ASSETRIPPER_CLI. Unity .bundle files were indexed only.",
+                     "No loose audio/UI/VFX files were found for copying. Export Unity bundles first, then pass the exported folder as -StagingRoot."
+                 ]
+}

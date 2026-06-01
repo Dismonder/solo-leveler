@@ -1,0 +1,32 @@
+{
+  "frameSize": 384,
+  "scale": 1.10866285714286,
+  "bottomPadding": 10,
+  "quality": { "maxCenterShift": 15.508, "maxHeightShift": 31, "warnings": [] },
+  "frames": [
+    { "index": 0, "file": "000.png", "sourceBounds": { "x": 32, "y": 45, "w": 163, "h": 280 }, "draw": { "x": 101, "y": 64, "w": 181, "h": 310 }, "components": 1 },
+    { "index": 1, "file": "001.png", "sourceBounds": { "x": 229, "y": 45, "w": 159, "h": 280 }, "draw": { "x": 104, "y": 64, "w": 176, "h": 310 }, "components": 1 },
+    { "index": 2, "file": "002.png", "sourceBounds": { "x": 422, "y": 46, "w": 168, "h": 276 }, "draw": { "x": 99, "y": 68, "w": 186, "h": 306 }, "components": 1 },
+    { "index": 3, "file": "003.png", "sourceBounds": { "x": 605, "y": 46, "w": 158, "h": 275 }, "draw": { "x": 104, "y": 69, "w": 175, "h": 305 }, "components": 1 },
+    { "index": 4, "file": "004.png", "sourceBounds": { "x": 780, "y": 47, "w": 178, "h": 277 }, "draw": { "x": 93, "y": 67, "w": 197, "h": 307 }, "components": 1 },
+    { "index": 5, "file": "005.png", "sourceBounds": { "x": 966, "y": 47, "w": 176, "h": 278 }, "draw": { "x": 94, "y": 66, "w": 195, "h": 308 }, "components": 1 },
+    { "index": 6, "file": "006.png", "sourceBounds": { "x": 1147, "y": 47, "w": 179, "h": 278 }, "draw": { "x": 93, "y": 66, "w": 198, "h": 308 }, "components": 1 },
+    { "index": 7, "file": "007.png", "sourceBounds": { "x": 1329, "y": 49, "w": 174, "h": 275 }, "draw": { "x": 95, "y": 69, "w": 193, "h": 305 }, "components": 1 },
+    { "index": 8, "file": "008.png", "sourceBounds": { "x": 15, "y": 368, "w": 187, "h": 274 }, "draw": { "x": 88, "y": 70, "w": 207, "h": 304 }, "components": 1 },
+    { "index": 9, "file": "009.png", "sourceBounds": { "x": 201, "y": 368, "w": 184, "h": 274 }, "draw": { "x": 90, "y": 70, "w": 204, "h": 304 }, "components": 1 },
+    { "index": 10, "file": "010.png", "sourceBounds": { "x": 385, "y": 370, "w": 176, "h": 272 }, "draw": { "x": 94, "y": 72, "w": 195, "h": 302 }, "components": 1 },
+    { "index": 11, "file": "011.png", "sourceBounds": { "x": 572, "y": 369, "w": 188, "h": 273 }, "draw": { "x": 88, "y": 71, "w": 208, "h": 303 }, "components": 1 },
+    { "index": 12, "file": "012.png", "sourceBounds": { "x": 751, "y": 370, "w": 189, "h": 272 }, "draw": { "x": 87, "y": 72, "w": 210, "h": 302 }, "components": 1 },
+    { "index": 13, "file": "013.png", "sourceBounds": { "x": 937, "y": 372, "w": 190, "h": 271 }, "draw": { "x": 86, "y": 74, "w": 211, "h": 300 }, "components": 1 },
+    { "index": 14, "file": "014.png", "sourceBounds": { "x": 1118, "y": 373, "w": 194, "h": 271 }, "draw": { "x": 84, "y": 74, "w": 215, "h": 300 }, "components": 1 },
+    { "index": 15, "file": "015.png", "sourceBounds": { "x": 1310, "y": 374, "w": 195, "h": 270 }, "draw": { "x": 84, "y": 75, "w": 216, "h": 299 }, "components": 1 },
+    { "index": 16, "file": "016.png", "sourceBounds": { "x": 9, "y": 685, "w": 192, "h": 262 }, "draw": { "x": 85, "y": 84, "w": 213, "h": 290 }, "components": 1 },
+    { "index": 17, "file": "017.png", "sourceBounds": { "x": 200, "y": 689, "w": 188, "h": 258 }, "draw": { "x": 88, "y": 88, "w": 208, "h": 286 }, "components": 1 },
+    { "index": 18, "file": "018.png", "sourceBounds": { "x": 383, "y": 688, "w": 204, "h": 260 }, "draw": { "x": 79, "y": 86, "w": 226, "h": 288 }, "components": 1 },
+    { "index": 19, "file": "019.png", "sourceBounds": { "x": 585, "y": 688, "w": 196, "h": 259 }, "draw": { "x": 83, "y": 87, "w": 217, "h": 287 }, "components": 1 },
+    { "index": 20, "file": "020.png", "sourceBounds": { "x": 771, "y": 688, "w": 199, "h": 259 }, "draw": { "x": 81, "y": 87, "w": 221, "h": 287 }, "components": 1 },
+    { "index": 21, "file": "021.png", "sourceBounds": { "x": 954, "y": 687, "w": 196, "h": 260 }, "draw": { "x": 83, "y": 86, "w": 217, "h": 288 }, "components": 1 },
+    { "index": 22, "file": "022.png", "sourceBounds": { "x": 1131, "y": 687, "w": 206, "h": 232 }, "draw": { "x": 78, "y": 117, "w": 228, "h": 257 }, "components": 1 },
+    { "index": 23, "file": "023.png", "sourceBounds": { "x": 1312, "y": 688, "w": 211, "h": 259 }, "draw": { "x": 75, "y": 87, "w": 234, "h": 287 }, "components": 1 }
+  ]
+}

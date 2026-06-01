@@ -1,0 +1,248 @@
+{
+  "generatedAt": "2026-05-09T23:25:30.2510941Z",
+  "sources": [
+  {
+    "actor": "hunter",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\modele_bohaterow\\modele_bohater_3.png",
+    "mode": "loosePoses",
+    "expectedPoses": 24,
+    "detectedPoses": 24,
+    "animations": [
+    { "animation": "run", "status": "accepted", "requested": 24, "accepted": 24, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "hunter",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\modele_bohaterow\\modele_bohater_4.png",
+    "mode": "loosePoses",
+    "expectedPoses": 24,
+    "detectedPoses": 24,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 4, "accepted": 4, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "substituted", "requested": 9, "accepted": 7, "rejected": 2, "substituted": 2 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "substituted", "requested": 12, "accepted": 11, "rejected": 1, "substituted": 1 }
+    ]
+  },
+  {
+    "actor": "hunter",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\modele_bohaterow\\modele_bohater_5.png",
+    "mode": "loosePoses",
+    "expectedPoses": 24,
+    "detectedPoses": 23,
+    "animations": [
+    { "animation": "dash", "status": "substituted", "requested": 24, "accepted": 23, "rejected": 1, "substituted": 1 },
+    { "animation": "cast", "status": "accepted", "requested": 12, "accepted": 12, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "hunter",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\modele_bohaterow\\modele_bohater_6.png",
+    "mode": "loosePoses",
+    "expectedPoses": 24,
+    "detectedPoses": 24,
+    "animations": [
+    { "animation": "hurt", "status": "accepted", "requested": 11, "accepted": 11, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "substituted", "requested": 24, "accepted": 23, "rejected": 1, "substituted": 1 }
+    ]
+  },
+  {
+    "actor": "assassin",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_goblin_zabójca.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 37,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "attack_2", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "goblin-archer",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_goblin_lucznik.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 31,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "goblin-assassin",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_goblin_zabójca.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 37,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "attack_2", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "skeleton-shield",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_szkilet_ztarcza.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 40,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "wolf",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_mlody_wilk.png",
+    "mode": "loosePoses",
+    "expectedPoses": 42,
+    "detectedPoses": 53,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "spider",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_mlody_spider.png",
+    "mode": "loosePoses",
+    "expectedPoses": 36,
+    "detectedPoses": 36,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "slime-cursed",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_slime_cursed.png",
+    "mode": "loosePoses",
+    "expectedPoses": 49,
+    "detectedPoses": 45,
+    "animations": [
+    { "animation": "guard", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "death", "status": "substituted", "requested": 7, "accepted": 3, "rejected": 4, "substituted": 4 },
+    { "animation": "cast", "status": "substituted", "requested": 7, "accepted": 5, "rejected": 2, "substituted": 2 },
+    { "animation": "run", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "attack_1", "status": "substituted", "requested": 7, "accepted": 5, "rejected": 2, "substituted": 2 },
+    { "animation": "idle", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "hurt", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "wraith",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_slime_cursed.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 45,
+    "animations": [
+    { "animation": "guard", "status": "substituted", "requested": 6, "accepted": 5, "rejected": 1, "substituted": 1 },
+    { "animation": "death", "status": "substituted", "requested": 7, "accepted": 4, "rejected": 3, "substituted": 3 },
+    { "animation": "cast", "status": "substituted", "requested": 7, "accepted": 5, "rejected": 2, "substituted": 2 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "substituted", "requested": 7, "accepted": 6, "rejected": 1, "substituted": 1 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "substituted", "requested": 6, "accepted": 3, "rejected": 3, "substituted": 3 }
+    ]
+  },
+  {
+    "actor": "knight",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_szkilet_ztarcza.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 40,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "golem",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_szkilet_ztarcza.png",
+    "mode": "loosePoses",
+    "expectedPoses": 31,
+    "detectedPoses": 40,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  },
+  {
+    "actor": "worm",
+    "source": "C:\\Users\\Damia\\Downloads\\solo-leveler\\modele\\model_monster\\model_animacja_mlody_spider.png",
+    "mode": "loosePoses",
+    "expectedPoses": 36,
+    "detectedPoses": 36,
+    "animations": [
+    { "animation": "guard", "status": "accepted", "requested": 8, "accepted": 8, "rejected": 0, "substituted": 0 },
+    { "animation": "death", "status": "accepted", "requested": 7, "accepted": 7, "rejected": 0, "substituted": 0 },
+    { "animation": "cast", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "run", "status": "accepted", "requested": 10, "accepted": 10, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_1", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 },
+    { "animation": "idle", "status": "accepted", "requested": 8, "accepted": 8, "rejected": 0, "substituted": 0 },
+    { "animation": "dash", "status": "accepted", "requested": 5, "accepted": 5, "rejected": 0, "substituted": 0 },
+    { "animation": "attack_2", "status": "accepted", "requested": 10, "accepted": 10, "rejected": 0, "substituted": 0 },
+    { "animation": "hurt", "status": "accepted", "requested": 6, "accepted": 6, "rejected": 0, "substituted": 0 }
+    ]
+  }
+  ]
+}
