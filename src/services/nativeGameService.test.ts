@@ -42,7 +42,34 @@ test("native launch payload carries current player and mini-game state", () => {
     playerXp: 881,
     fpsOverlayEnabled: true,
     graphicsQuality: "cinematic",
+    xpMultiplier: 1,
+    scoreBonus: 0,
+    targetLifetimeBonusMs: 0,
+    hitWindowBonus: 0,
+    timePenaltyResist: 0,
+    selectedEffectName: "Aura Systemu",
+    showGrid: false,
   });
+});
+
+test("native launch payload carries runtime shop and relic bonuses", () => {
+  const payload = createNativeGameLaunchOptions("shadow-extraction", makePlayer(), {
+    xpMultiplier: 1.25,
+    scoreBonus: 0.12,
+    targetLifetimeBonusMs: 420,
+    hitWindowBonus: 0.09,
+    timePenaltyResist: 0.14,
+    selectedEffectName: "Runy Monarchii",
+    showGrid: true,
+  });
+
+  assert.equal(payload.xpMultiplier, 1.25);
+  assert.equal(payload.scoreBonus, 0.12);
+  assert.equal(payload.targetLifetimeBonusMs, 420);
+  assert.equal(payload.hitWindowBonus, 0.09);
+  assert.equal(payload.timePenaltyResist, 0.14);
+  assert.equal(payload.selectedEffectName, "Runy Monarchii");
+  assert.equal(payload.showGrid, true);
 });
 
 test("native game error parser accepts guarded Android failure payloads", () => {

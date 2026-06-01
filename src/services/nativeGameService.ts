@@ -13,7 +13,25 @@ export type NativeGameLaunchOptions = {
   playerXp?: number;
   fpsOverlayEnabled?: boolean;
   graphicsQuality?: PlayerState["settings"]["graphicsQuality"];
+  xpMultiplier?: number;
+  scoreBonus?: number;
+  targetLifetimeBonusMs?: number;
+  hitWindowBonus?: number;
+  timePenaltyResist?: number;
+  selectedEffectName?: string;
+  showGrid?: boolean;
 };
+
+export type NativeGameRuntimeBonuses = Pick<
+  NativeGameLaunchOptions,
+  | "xpMultiplier"
+  | "scoreBonus"
+  | "targetLifetimeBonusMs"
+  | "hitWindowBonus"
+  | "timePenaltyResist"
+  | "selectedEffectName"
+  | "showGrid"
+>;
 
 type HunterNativeGamePlugin = {
   isAvailable: () => Promise<{ available: boolean; engine?: string; runtime?: string }>;
@@ -47,6 +65,13 @@ export type NativeMiniGameResult = {
   difficultyLevel: number;
   rewardMultiplier: number;
   penaltyApplied: boolean;
+  boosterApplied?: boolean;
+  xpMultiplier?: number;
+  scoreBonus?: number;
+  targetLifetimeBonusMs?: number;
+  hitWindowBonus?: number;
+  timePenaltyResist?: number;
+  selectedEffectName?: string;
   fpsLast?: number;
   fpsAverage?: number;
   fpsMin?: number;
@@ -82,7 +107,11 @@ export function isNativeGameRuntimeAvailable() {
   return Capacitor.getPlatform() === "android";
 }
 
-export function createNativeGameLaunchOptions(gameId: MiniGameId, player: PlayerState): NativeGameLaunchOptions {
+export function createNativeGameLaunchOptions(
+  gameId: MiniGameId,
+  player: PlayerState,
+  runtime: NativeGameRuntimeBonuses = {}
+): NativeGameLaunchOptions {
   const progress = player.miniGames?.[gameId];
   return {
     gameId,
@@ -95,17 +124,24 @@ export function createNativeGameLaunchOptions(gameId: MiniGameId, player: Player
     playerXp: player.xp,
     fpsOverlayEnabled: Boolean(player.settings.fpsOverlayEnabled),
     graphicsQuality: player.settings.graphicsQuality ?? "balanced",
+    xpMultiplier: runtime.xpMultiplier ?? 1,
+    scoreBonus: runtime.scoreBonus ?? 0,
+    targetLifetimeBonusMs: runtime.targetLifetimeBonusMs ?? 0,
+    hitWindowBonus: runtime.hitWindowBonus ?? 0,
+    timePenaltyResist: runtime.timePenaltyResist ?? 0,
+    selectedEffectName: runtime.selectedEffectName ?? "Aura Systemu",
+    showGrid: Boolean(runtime.showGrid),
   };
 }
 
-export async function launchNativeMiniGame(gameId: MiniGameId, player: PlayerState) {
+export async function launchNativeMiniGame(gameId: MiniGameId, player: PlayerState, runtime?: NativeGameRuntimeBonuses) {
   if (!isNativeGameRuntimeAvailable() || gameId !== "shadow-extraction") return false;
 
   try {
     const availability = await HunterNativeGame.isAvailable();
     if (!availability.available) return false;
 
-    const launched = await HunterNativeGame.launch(createNativeGameLaunchOptions(gameId, player));
+    const launched = await HunterNativeGame.launch(createNativeGameLaunchOptions(gameId, player, runtime));
     return Boolean(launched.launched);
   } catch {
     return false;

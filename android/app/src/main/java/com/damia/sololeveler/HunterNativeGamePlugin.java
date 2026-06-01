@@ -45,6 +45,13 @@ public class HunterNativeGamePlugin extends Plugin {
                 intent.putExtra("playerXp", call.getInt("playerXp", 0));
                 intent.putExtra("fpsOverlayEnabled", call.getBoolean("fpsOverlayEnabled", false));
                 intent.putExtra("graphicsQuality", call.getString("graphicsQuality", "balanced"));
+                intent.putExtra("xpMultiplier", call.getDouble("xpMultiplier", 1.0));
+                intent.putExtra("scoreBonus", call.getDouble("scoreBonus", 0.0));
+                intent.putExtra("targetLifetimeBonusMs", call.getDouble("targetLifetimeBonusMs", 0.0));
+                intent.putExtra("hitWindowBonus", call.getDouble("hitWindowBonus", 0.0));
+                intent.putExtra("timePenaltyResist", call.getDouble("timePenaltyResist", 0.0));
+                intent.putExtra("selectedEffectName", call.getString("selectedEffectName", "Aura Systemu"));
+                intent.putExtra("showGrid", call.getBoolean("showGrid", false));
                 activity.startActivity(intent);
 
                 JSObject result = new JSObject();

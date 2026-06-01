@@ -35,6 +35,13 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     private int playerXp;
     private boolean fpsOverlayEnabled;
     private String graphicsQuality;
+    private float xpMultiplier;
+    private float scoreBonus;
+    private float targetLifetimeBonusMs;
+    private float hitWindowBonus;
+    private float timePenaltyResist;
+    private String selectedEffectName;
+    private boolean showGrid;
     private Thread.UncaughtExceptionHandler previousNativeCrashHandler;
     private Thread.UncaughtExceptionHandler nativeCrashHandler;
 
@@ -67,6 +74,16 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
         if (graphicsQuality == null || graphicsQuality.isEmpty()) {
             graphicsQuality = "balanced";
         }
+        xpMultiplier = clampFloat((float) getIntent().getDoubleExtra("xpMultiplier", 1.0), 1f, 1.45f);
+        scoreBonus = clampFloat((float) getIntent().getDoubleExtra("scoreBonus", 0.0), 0f, 0.15f);
+        targetLifetimeBonusMs = clampFloat((float) getIntent().getDoubleExtra("targetLifetimeBonusMs", 0.0), 0f, 520f);
+        hitWindowBonus = clampFloat((float) getIntent().getDoubleExtra("hitWindowBonus", 0.0), 0f, 0.12f);
+        timePenaltyResist = clampFloat((float) getIntent().getDoubleExtra("timePenaltyResist", 0.0), 0f, 0.18f);
+        selectedEffectName = getIntent().getStringExtra("selectedEffectName");
+        if (selectedEffectName == null || selectedEffectName.isEmpty()) {
+            selectedEffectName = "Aura Systemu";
+        }
+        showGrid = getIntent().getBooleanExtra("showGrid", false);
 
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useAccelerometer = false;
@@ -193,6 +210,41 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     }
 
     @Override
+    public float getXpMultiplier() {
+        return xpMultiplier;
+    }
+
+    @Override
+    public float getScoreBonus() {
+        return scoreBonus;
+    }
+
+    @Override
+    public float getTargetLifetimeBonusMs() {
+        return targetLifetimeBonusMs;
+    }
+
+    @Override
+    public float getHitWindowBonus() {
+        return hitWindowBonus;
+    }
+
+    @Override
+    public float getTimePenaltyResist() {
+        return timePenaltyResist;
+    }
+
+    @Override
+    public String getSelectedEffectName() {
+        return selectedEffectName;
+    }
+
+    @Override
+    public boolean shouldShowGrid() {
+        return showGrid;
+    }
+
+    @Override
     public void setPlayerXp(int xp) {
         playerXp = Math.max(0, xp);
         saveState();
@@ -256,5 +308,9 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
             .putInt(KEY_PLAYER_LEVEL, playerLevel)
             .putInt(KEY_PLAYER_XP, playerXp)
             .apply();
+    }
+
+    private float clampFloat(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 }

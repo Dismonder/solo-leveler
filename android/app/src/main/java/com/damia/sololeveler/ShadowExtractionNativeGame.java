@@ -37,6 +37,13 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         void setPlayerXp(int xp);
         boolean shouldShowFpsOverlay();
         String getGraphicsQuality();
+        float getXpMultiplier();
+        float getScoreBonus();
+        float getTargetLifetimeBonusMs();
+        float getHitWindowBonus();
+        float getTimePenaltyResist();
+        String getSelectedEffectName();
+        boolean shouldShowGrid();
         void setNativeState(String state);
         void saveRoundResult(String resultJson);
         void exitGame();
@@ -202,6 +209,13 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private String resultNote = "";
     private String tip = "Tnij dlugim gestem przez srodek cienia.";
     private String graphicsQuality = "balanced";
+    private String selectedEffectName = "Aura Systemu";
+    private float xpMultiplier = 1f;
+    private float scoreBonus = 0f;
+    private float targetLifetimeBonusMs = 0f;
+    private float hitWindowBonus = 0f;
+    private float timePenaltyResist = 0f;
+    private boolean showGrid = false;
     private boolean fpsOverlayEnabled;
     private float fpsSampleTimer;
     private int fpsSampleFrames;
@@ -253,6 +267,14 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         camera = new OrthographicCamera();
         fpsOverlayEnabled = host.shouldShowFpsOverlay();
         graphicsQuality = normalizeGraphicsQuality(host.getGraphicsQuality());
+        xpMultiplier = MathUtils.clamp(host.getXpMultiplier(), 1f, 1.45f);
+        scoreBonus = MathUtils.clamp(host.getScoreBonus(), 0f, 0.15f);
+        targetLifetimeBonusMs = MathUtils.clamp(host.getTargetLifetimeBonusMs(), 0f, 520f);
+        hitWindowBonus = MathUtils.clamp(host.getHitWindowBonus(), 0f, 0.12f);
+        timePenaltyResist = MathUtils.clamp(host.getTimePenaltyResist(), 0f, 0.18f);
+        selectedEffectName = host.getSelectedEffectName();
+        if (selectedEffectName == null || selectedEffectName.isEmpty()) selectedEffectName = "Aura Systemu";
+        showGrid = host.shouldShowGrid();
         backgroundTexture = loadTexture("native-game/shadow-extraction-bg.jpg");
         shadowTexture = loadTexture("native-game/shadow-wraith.png");
         decoyTexture = loadTexture("native-game/shadow-decoy.png");
@@ -482,7 +504,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         int survived = Math.round(roundDuration);
         int collectedGoldBonus = goldReward;
         float multiplier = won ? (1f + (gameLevelAfter - 1) * 0.12f) : 0.34f;
-        xpReward = Math.max(8, Math.round((90 + score / 12f + survived * 1.5f) * multiplier));
+        xpReward = Math.max(8, Math.round((90 + score / 12f + survived * 1.5f) * multiplier * xpMultiplier));
         goldReward = (won ? Math.max(1, Math.round((15 + gameLevelAfter * 2.1f) * multiplier)) : Math.max(1, gameLevelBefore / 2)) + collectedGoldBonus;
 
         playerXpAfter = playerXpBefore + xpReward;
@@ -549,6 +571,13 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             result.put("difficultyLevel", gameLevelBefore);
             result.put("rewardMultiplier", won ? (1f + (gameLevelAfter - 1) * 0.12f) : 0.34f);
             result.put("penaltyApplied", hpAfter < hpBefore);
+            result.put("boosterApplied", xpMultiplier > 1.001f);
+            result.put("xpMultiplier", Math.round(xpMultiplier * 100f) / 100f);
+            result.put("scoreBonus", Math.round(scoreBonus * 1000f) / 1000f);
+            result.put("targetLifetimeBonusMs", Math.round(targetLifetimeBonusMs));
+            result.put("hitWindowBonus", Math.round(hitWindowBonus * 1000f) / 1000f);
+            result.put("timePenaltyResist", Math.round(timePenaltyResist * 1000f) / 1000f);
+            result.put("selectedEffectName", selectedEffectName);
             result.put("fpsLast", Math.round(fpsCurrent * 10f) / 10f);
             result.put("fpsAverage", Math.round(fpsAverage * 10f) / 10f);
             result.put("fpsMin", Math.round((fpsMin == 999f ? fpsCurrent : fpsMin) * 10f) / 10f);
@@ -604,6 +633,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         float life = bottomLaunch
             ? MathUtils.clamp(3.15f - gameLevelBefore * 0.01f, 2.25f, 3.15f)
             : MathUtils.clamp(2.25f - gameLevelBefore * 0.01f, 1.45f, 2.25f);
+        life += targetLifetimeBonusMs / 1000f;
         if (type == TargetType.TIME) life += 0.55f;
         if (type == TargetType.HEART) life += 0.28f;
 
@@ -631,7 +661,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         for (Target target : targets) {
             if (!target.alive) continue;
             float distance = distanceToSegment(target.x, target.y, ax, ay, bx, by);
-            if (distance <= target.radius * 0.95f) {
+            if (distance <= target.radius * (0.95f + hitWindowBonus)) {
                 hitTarget(target);
             }
         }
@@ -641,16 +671,16 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         target.alive = false;
         if (target.type == TargetType.SHADOW) {
             combo += 1;
-            score += 110 + gameLevelBefore * 7 + combo * 18;
+            score += applyScoreBonus(110 + gameLevelBefore * 7 + combo * 18);
             addBurst(target.x, target.y, cyan(), false);
         } else if (target.type == TargetType.GOLD) {
-            score += 70 + combo * 5;
+            score += applyScoreBonus(70 + combo * 5);
             goldReward += 2;
             addBurst(target.x, target.y, gold(), false);
         } else if (target.type == TargetType.BOMB) {
             combo = 0;
             score = Math.max(0, score - 170);
-            roundTime = Math.max(0f, roundTime - 1.25f);
+            roundTime = Math.max(0f, roundTime - 1.25f * (1f - timePenaltyResist));
             addBurst(target.x, target.y, danger(), true);
         } else if (target.type == TargetType.HEART) {
             int restore = Math.max(1, Math.round(host.getBaseHp() * 0.05f));
@@ -665,6 +695,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             score = Math.max(0, score - 80);
             addBurst(target.x, target.y, danger(), false);
         }
+    }
+
+    private int applyScoreBonus(int baseScore) {
+        return Math.max(1, Math.round(baseScore * (1f + scoreBonus)));
     }
 
     private float distanceToSegment(float px, float py, float ax, float ay, float bx, float by) {
@@ -759,6 +793,18 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         for (int i = 0; i < 7; i++) {
             float cx = width * (0.12f + i * 0.14f) + MathUtils.sin(elapsed * 0.18f + i) * 14f;
             shapes.circle(cx, height * 0.48f + MathUtils.cos(elapsed * 0.12f + i) * 28f, 80f * scale + i * 9f);
+        }
+        if (showGrid) drawOptionalGrid();
+    }
+
+    private void drawOptionalGrid() {
+        float step = 76f * scale;
+        shapes.setColor(0.1f, 0.78f, 0.9f, 0.06f);
+        for (float x = 0; x <= width; x += step) {
+            shapes.rect(x, 0, 1f, height);
+        }
+        for (float y = 0; y <= height; y += step) {
+            shapes.rect(0, y, width, 1f);
         }
     }
 
@@ -895,6 +941,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         drawTextCentered("EKSTRAKCJA CIENIA", centerX, cardY + cardH - 148f * rs, 1.16f * rs, textStrong(), true);
         drawTextCentered("Dlugie ciecie lapie kilka cieni. Bomby resetuja combo.", centerX, cardY + cardH - 184f * rs, 0.62f * rs, muted(), true);
         drawTextCentered("PROTIP: " + pickTip(), centerX, cardY + cardH - 224f * rs, 0.56f * rs, accent(), true);
+        drawTextCentered("EFEKT: " + selectedEffectName.toUpperCase() + activeBonusLabel(), centerX, cardY + cardH - 248f * rs, 0.46f * rs, muted(), true);
         drawResultTile(cardX + 20f * rs, cardY + cardH - 70f * rs, 116f * rs, 44f * rs, "BEST", String.valueOf(host.getBestScore()), rs);
         drawResultTile(cardX + cardW - 136f * rs, cardY + cardH - 70f * rs, 116f * rs, 44f * rs, "GRA LV.", String.valueOf(Math.max(1, host.getGameLevel())), rs);
         layoutReadyButtons();
@@ -959,6 +1006,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         float tipY = y + modalH - 114f * ps;
         drawText("PROTIP", x + 22f * ps, tipY, 0.46f * ps, accent(), true);
         drawText(pickTip(), x + 22f * ps, tipY - 25f * ps, 0.58f * ps, muted(), true);
+        drawText("EFEKT: " + selectedEffectName.toUpperCase() + activeBonusLabel(), x + 22f * ps, tipY - 48f * ps, 0.44f * ps, muted(), true);
         float statY = y + 76f * ps;
         float statW = (modalW - 56f * ps) / 3f;
         drawResultTile(x + 22f * ps, statY, statW, 44f * ps, "CZAS", Math.max(0, Math.round(roundTime)) + "S", ps);
@@ -1227,6 +1275,16 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (index == 1) return "Bomby wygladaja kuszaco, ale resetuja tempo.";
         if (index == 2) return "Zloto tnij po drodze, nie gon za nim na sile.";
         return "Rzadki fioletowy zegar dodaje czas do rundy.";
+    }
+
+    private String activeBonusLabel() {
+        boolean hasBonus = xpMultiplier > 1.001f
+            || scoreBonus > 0.001f
+            || targetLifetimeBonusMs > 1f
+            || hitWindowBonus > 0.001f
+            || timePenaltyResist > 0.001f;
+        if (!hasBonus) return "";
+        return "  |  BOOST AKTYWNY";
     }
 
     private String normalizeGraphicsQuality(String value) {

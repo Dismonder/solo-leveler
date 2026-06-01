@@ -68,6 +68,7 @@ import {
   canEquipItemInSlot,
   equipItem as equipPlayerItem,
   getCompatibleSlots,
+  getEquippedMiniGameBonuses,
   getEquippedItems,
   getItemSellPrice,
   normalizeEquipmentType,
@@ -92,6 +93,11 @@ import {
   type MiniGameBackgroundDefinition,
 } from "../game/miniGameBackgrounds";
 import { normalizeMiniGameGridSettings } from "../game/miniGameGrid";
+import {
+  getMiniGameShopBonuses,
+  getSelectedMiniGameShopEffect,
+  normalizeMiniGameShop,
+} from "../game/miniGameShop";
 import { getActivePenalty } from "../game/penalties";
 import { addCatalogExerciseToPlan } from "../game/workoutPlan";
 import {
@@ -937,8 +943,23 @@ export function Dashboard() {
     }
 
     if (gameId === "shadow-extraction") {
-      const launchedNative = await launchNativeMiniGame(gameId, player);
-      if (launchedNative) return;
+      const miniGameShop = normalizeMiniGameShop(player.miniGameUpgrades?.shop);
+      const shopBonuses = getMiniGameShopBonuses(miniGameShop, gameId);
+      const relicBonuses = getEquippedMiniGameBonuses(player, gameId);
+      const selectedEffect = getSelectedMiniGameShopEffect(miniGameShop, gameId);
+      const launchedNative = await launchNativeMiniGame(gameId, player, {
+        xpMultiplier: shopBonuses.xpMultiplier,
+        scoreBonus: Math.min(0.15, relicBonuses.scoreBonus + shopBonuses.scoreBonus),
+        targetLifetimeBonusMs: Math.min(520, relicBonuses.targetLifetime + shopBonuses.targetLifetime),
+        hitWindowBonus: Math.min(0.12, relicBonuses.hitWindow + shopBonuses.hitWindow),
+        timePenaltyResist: Math.min(0.18, relicBonuses.timePenaltyResist + shopBonuses.timePenaltyResist),
+        selectedEffectName: selectedEffect.name,
+        showGrid: Boolean(normalizeMiniGameGridSettings(player.settings.miniGameGridByGame)[gameId]),
+      });
+      if (launchedNative) {
+        if (shopBonuses.activeBoosterId) consumeMiniGameBooster(gameId);
+        return;
+      }
     }
 
     warmMiniGameRuntimeAssets(gameId);
