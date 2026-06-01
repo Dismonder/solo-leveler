@@ -21,6 +21,7 @@ export type NativeGameLaunchOptions = {
   selectedEffectId?: string;
   selectedEffectName?: string;
   showGrid?: boolean;
+  autoStart?: boolean;
 };
 
 export type NativeGameRuntimeBonuses = Pick<
@@ -33,6 +34,7 @@ export type NativeGameRuntimeBonuses = Pick<
   | "selectedEffectId"
   | "selectedEffectName"
   | "showGrid"
+  | "autoStart"
 >;
 
 type HunterNativeGamePlugin = {
@@ -135,6 +137,7 @@ export function createNativeGameLaunchOptions(
     selectedEffectId: runtime.selectedEffectId ?? "system-aura",
     selectedEffectName: runtime.selectedEffectName ?? "Aura Systemu",
     showGrid: Boolean(runtime.showGrid),
+    autoStart: runtime.autoStart ?? true,
   };
 }
 

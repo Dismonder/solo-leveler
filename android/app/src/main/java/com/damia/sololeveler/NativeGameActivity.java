@@ -43,6 +43,7 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     private String selectedEffectId;
     private String selectedEffectName;
     private boolean showGrid;
+    private boolean autoStart;
     private Thread.UncaughtExceptionHandler previousNativeCrashHandler;
     private Thread.UncaughtExceptionHandler nativeCrashHandler;
 
@@ -89,6 +90,7 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
             selectedEffectName = "Aura Systemu";
         }
         showGrid = getIntent().getBooleanExtra("showGrid", false);
+        autoStart = getIntent().getBooleanExtra("autoStart", true);
 
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useAccelerometer = false;
@@ -252,6 +254,11 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     @Override
     public boolean shouldShowGrid() {
         return showGrid;
+    }
+
+    @Override
+    public boolean shouldAutoStart() {
+        return autoStart;
     }
 
     @Override

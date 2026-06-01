@@ -45,6 +45,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         String getSelectedEffectId();
         String getSelectedEffectName();
         boolean shouldShowGrid();
+        boolean shouldAutoStart();
         void setNativeState(String state);
         void saveRoundResult(String resultJson);
         void exitGame();
@@ -288,6 +289,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         Gdx.input.setCatchKey(Input.Keys.BACK, true);
         resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         host.setNativeState("miniGame");
+        if (host.shouldAutoStart()) {
+            startRound();
+        }
     }
 
     @Override
@@ -400,8 +404,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             } else if (phase == Phase.RESULT) {
                 layoutResultButtons();
                 if (replayButton.contains(x, y)) {
-                    phase = Phase.READY;
-                    host.setNativeState("miniGame");
+                    startRound();
                     return;
                 }
                 if (exitButton.contains(x, y)) {

@@ -50,6 +50,7 @@ test("native launch payload carries current player and mini-game state", () => {
     selectedEffectId: "system-aura",
     selectedEffectName: "Aura Systemu",
     showGrid: false,
+    autoStart: true,
   });
 });
 
@@ -63,6 +64,7 @@ test("native launch payload carries runtime shop and relic bonuses", () => {
     selectedEffectId: "monarch-runes",
     selectedEffectName: "Runy Monarchii",
     showGrid: true,
+    autoStart: false,
   });
 
   assert.equal(payload.xpMultiplier, 1.25);
@@ -73,6 +75,7 @@ test("native launch payload carries runtime shop and relic bonuses", () => {
   assert.equal(payload.selectedEffectId, "monarch-runes");
   assert.equal(payload.selectedEffectName, "Runy Monarchii");
   assert.equal(payload.showGrid, true);
+  assert.equal(payload.autoStart, false);
 });
 
 test("native game error parser accepts guarded Android failure payloads", () => {

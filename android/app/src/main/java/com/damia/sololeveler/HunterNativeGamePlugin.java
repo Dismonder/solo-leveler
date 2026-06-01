@@ -53,6 +53,7 @@ public class HunterNativeGamePlugin extends Plugin {
                 intent.putExtra("selectedEffectId", call.getString("selectedEffectId", "system-aura"));
                 intent.putExtra("selectedEffectName", call.getString("selectedEffectName", "Aura Systemu"));
                 intent.putExtra("showGrid", call.getBoolean("showGrid", false));
+                intent.putExtra("autoStart", call.getBoolean("autoStart", true));
                 activity.startActivity(intent);
 
                 JSObject result = new JSObject();
