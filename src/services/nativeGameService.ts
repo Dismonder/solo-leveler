@@ -16,6 +16,34 @@ type NativeGameLaunchOptions = {
 type HunterNativeGamePlugin = {
   isAvailable: () => Promise<{ available: boolean; engine?: string; runtime?: string }>;
   launch: (options: NativeGameLaunchOptions) => Promise<{ launched: boolean; gameId: MiniGameId; engine?: string }>;
+  consumeLastResult: () => Promise<{ resultJson: string | null }>;
+};
+
+export type NativeMiniGameResult = {
+  id: string;
+  gameId: MiniGameId;
+  score: number;
+  won: boolean;
+  previousBest: number;
+  newBest: boolean;
+  previousGameLevel: number;
+  nextGameLevel: number;
+  xpReward: number;
+  goldReward: number;
+  lootName: string;
+  hpBefore: number;
+  hpAfter: number;
+  hpLoss: number;
+  hpRestored: number;
+  playerLevelBefore: number;
+  playerLevelAfter: number;
+  playerXpBefore: number;
+  playerXpAfter: number;
+  goldBefore: number;
+  goldAfter: number;
+  difficultyLevel: number;
+  rewardMultiplier: number;
+  penaltyApplied: boolean;
 };
 
 const HunterNativeGame = registerPlugin<HunterNativeGamePlugin>("HunterNativeGame");
@@ -45,5 +73,18 @@ export async function launchNativeMiniGame(gameId: MiniGameId, player: PlayerSta
     return Boolean(launched.launched);
   } catch {
     return false;
+  }
+}
+
+export async function consumeNativeMiniGameResult(): Promise<NativeMiniGameResult | null> {
+  if (!isNativeGameRuntimeAvailable()) return null;
+
+  try {
+    const { resultJson } = await HunterNativeGame.consumeLastResult();
+    if (!resultJson) return null;
+    const parsed = JSON.parse(resultJson) as NativeMiniGameResult;
+    return parsed?.gameId ? parsed : null;
+  } catch {
+    return null;
   }
 }

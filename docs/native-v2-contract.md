@@ -37,6 +37,7 @@ V2 ma odtworzyc bazowa aplikacje 1:1 funkcjonalnie i wizualnie:
 - V2 ma podlaczone libGDX jako osobny silnik gry w APK.
 - `Ekstrakcja Cienia` ma natywna aktywnosc `NativeGameActivity`, bridge `HunterNativeGamePlugin` i fallback do webowego runtime.
 - Natywna scena ma stan `ready/running/pause/result`, przycisk `X` przed startem, `STOP` tylko w rundzie, hitboxy ciecia, zloto, bomby, rzadkie serce HP i rzadki bonus czasu.
+- Wynik rundy natywnej jest zapisywany jako `MiniGameResult` w bridge i konsumowany po powrocie do Reacta, z aktualizacja XP, golda, HP, rekordu, levelu mini-gry i lootem.
 - `npm run lint`, `npm test -- --run`, `npm run build` i `npm run android:build` przechodza po podlaczeniu libGDX.
 - Instalacja V2 na Xiaomi jest aktualnie blokowana przez system telefonu: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`. APK buduje sie poprawnie jako `android/app/build/outputs/apk/debug/app-debug.apk`.
 

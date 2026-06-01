@@ -10,7 +10,8 @@ import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 
 public class NativeGameActivity extends AndroidApplication implements ShadowExtractionNativeGame.Host {
-    private static final String PREFS_NAME = "solo_leveler_native_game_v2";
+    static final String PREFS_NAME = "solo_leveler_native_game_v2";
+    static final String KEY_LAST_RESULT = "shadowExtractionLastResultJson";
     private static final String KEY_BEST_SCORE = "shadowExtractionBestScore";
     private static final String KEY_GAME_LEVEL = "shadowExtractionLevel";
     private static final String KEY_PLAYER_GOLD = "playerGold";
@@ -154,6 +155,12 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     @Override
     public void setNativeState(String state) {
         runOnUiThread(() -> HunterPerformancePlugin.applyNativeGameState(this, state));
+    }
+
+    @Override
+    public void saveRoundResult(String resultJson) {
+        if (prefs == null || resultJson == null || resultJson.isEmpty()) return;
+        prefs.edit().putString(KEY_LAST_RESULT, resultJson).apply();
     }
 
     @Override

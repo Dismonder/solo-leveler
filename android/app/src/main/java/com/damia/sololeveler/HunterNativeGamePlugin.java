@@ -1,7 +1,9 @@
 package com.damia.sololeveler;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -45,5 +47,18 @@ public class HunterNativeGamePlugin extends Plugin {
                 call.reject("Native game launch failed", exception);
             }
         });
+    }
+
+    @PluginMethod
+    public void consumeLastResult(PluginCall call) {
+        SharedPreferences prefs = getContext().getSharedPreferences(NativeGameActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        String resultJson = prefs.getString(NativeGameActivity.KEY_LAST_RESULT, null);
+        if (resultJson != null) {
+            prefs.edit().remove(NativeGameActivity.KEY_LAST_RESULT).apply();
+        }
+
+        JSObject result = new JSObject();
+        result.put("resultJson", resultJson);
+        call.resolve(result);
     }
 }

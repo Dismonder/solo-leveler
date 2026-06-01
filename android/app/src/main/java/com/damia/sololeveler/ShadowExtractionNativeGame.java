@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.json.JSONObject;
+
 public class ShadowExtractionNativeGame extends ApplicationAdapter {
     public interface Host {
         int getBestScore();
@@ -32,6 +34,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         int getPlayerXp();
         void setPlayerXp(int xp);
         void setNativeState(String state);
+        void saveRoundResult(String resultJson);
         void exitGame();
     }
 
@@ -424,9 +427,43 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         host.setHp(hpAfter);
         host.setPlayerLevel(playerLevelAfter);
         host.setPlayerXp(playerXpAfter);
+        host.saveRoundResult(buildResultJson());
         phase = Phase.RESULT;
         resultTimer = 0f;
         host.setNativeState("miniGame");
+    }
+
+    private String buildResultJson() {
+        try {
+            JSONObject result = new JSONObject();
+            result.put("id", "native_shadow_" + System.currentTimeMillis());
+            result.put("gameId", "shadow-extraction");
+            result.put("score", score);
+            result.put("won", won);
+            result.put("previousBest", previousBest);
+            result.put("newBest", newBest);
+            result.put("previousGameLevel", gameLevelBefore);
+            result.put("nextGameLevel", gameLevelAfter);
+            result.put("xpReward", xpReward);
+            result.put("goldReward", goldReward);
+            result.put("lootName", lootName);
+            result.put("hpBefore", hpBefore);
+            result.put("hpAfter", hpAfter);
+            result.put("hpLoss", Math.max(0, hpBefore - hpAfter));
+            result.put("hpRestored", Math.max(0, hpAfter - hpBefore));
+            result.put("playerLevelBefore", playerLevelBefore);
+            result.put("playerLevelAfter", playerLevelAfter);
+            result.put("playerXpBefore", playerXpBefore);
+            result.put("playerXpAfter", playerXpAfter);
+            result.put("goldBefore", goldBefore);
+            result.put("goldAfter", goldAfter);
+            result.put("difficultyLevel", gameLevelBefore);
+            result.put("rewardMultiplier", won ? (1f + (gameLevelAfter - 1) * 0.12f) : 0.34f);
+            result.put("penaltyApplied", hpAfter < hpBefore);
+            return result.toString();
+        } catch (Exception exception) {
+            return "";
+        }
     }
 
     private int xpToNext(int level) {
