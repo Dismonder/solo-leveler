@@ -69,6 +69,13 @@ tasks.register('copyLibgdxNatives') {
 
 tasks.register('copyNativeGameAssets') {
     def outputDir = file("$buildDir/generated/nativeGameAssets/native-game")
+    inputs.files(
+        file("../../src/assets/backgrounds/mini-games/01-solo-gate-purple.jpg"),
+        file("../../src/assets/models/monster-abyss-mage-wraith.png"),
+        file("../../src/assets/models/monster-shadow-spike-wolf.png"),
+        file("../../src/assets/models/relic-monarch-heart.png"),
+        file("../../src/assets/fonts/orbitron/Orbitron-wght.ttf")
+    )
     outputs.dir(outputDir)
     doLast {
         delete(outputDir)
@@ -91,6 +98,11 @@ tasks.register('copyNativeGameAssets') {
             from("../../src/assets/models/relic-monarch-heart.png")
             into(outputDir)
             rename { "heart-relic.png" }
+        }
+        copy {
+            from("../../src/assets/fonts/orbitron/Orbitron-wght.ttf")
+            into(outputDir)
+            rename { "Orbitron-wght.ttf" }
         }
     }
 }

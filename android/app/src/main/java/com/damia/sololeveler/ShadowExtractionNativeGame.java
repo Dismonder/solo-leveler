@@ -10,6 +10,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 
@@ -207,15 +209,31 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         }
     }
 
+    private BitmapFont createInterfaceFont() {
+        try {
+            FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("native-game/Orbitron-wght.ttf"));
+            FreeTypeFontParameter parameter = new FreeTypeFontParameter();
+            parameter.size = 34;
+            parameter.characters = FreeTypeFontGenerator.DEFAULT_CHARS + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ";
+            parameter.minFilter = Texture.TextureFilter.Linear;
+            parameter.magFilter = Texture.TextureFilter.Linear;
+            BitmapFont generatedFont = generator.generateFont(parameter);
+            generatedFont.setUseIntegerPositions(false);
+            generator.dispose();
+            return generatedFont;
+        } catch (Exception exception) {
+            BitmapFont fallback = new BitmapFont();
+            fallback.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            fallback.setUseIntegerPositions(false);
+            return fallback;
+        }
+    }
+
     @Override
     public void create() {
         shapes = new ShapeRenderer();
         batch = new SpriteBatch();
-        font = new BitmapFont();
-        font.getRegion().getTexture().setFilter(
-            com.badlogic.gdx.graphics.Texture.TextureFilter.Linear,
-            com.badlogic.gdx.graphics.Texture.TextureFilter.Linear
-        );
+        font = createInterfaceFont();
         camera = new OrthographicCamera();
         fpsOverlayEnabled = host.shouldShowFpsOverlay();
         graphicsQuality = normalizeGraphicsQuality(host.getGraphicsQuality());
