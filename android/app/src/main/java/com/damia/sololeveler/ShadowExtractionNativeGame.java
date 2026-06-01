@@ -461,9 +461,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         gameLevelAfter = won ? gameLevelBefore + 1 : gameLevelBefore;
 
         int survived = Math.round(roundDuration);
+        int collectedGoldBonus = goldReward;
         float multiplier = won ? (1f + (gameLevelAfter - 1) * 0.12f) : 0.34f;
         xpReward = Math.max(8, Math.round((90 + score / 12f + survived * 1.5f) * multiplier));
-        goldReward = won ? Math.max(1, Math.round((15 + gameLevelAfter * 2.1f) * multiplier)) : Math.max(1, gameLevelBefore / 2);
+        goldReward = (won ? Math.max(1, Math.round((15 + gameLevelAfter * 2.1f) * multiplier)) : Math.max(1, gameLevelBefore / 2)) + collectedGoldBonus;
 
         playerXpAfter = playerXpBefore + xpReward;
         playerLevelAfter = playerLevelBefore;
@@ -845,10 +846,27 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private void drawResult() {
         float progress = MathUtils.clamp(resultTimer / 4.4f, 0f, 1f);
-        int shownXp = playerXpBefore + Math.round((playerXpAfter - playerXpBefore) * smooth(progress));
         int shownGold = goldBefore + Math.round((goldAfter - goldBefore) * smooth(progress));
-        int shownLevel = progress < 0.78f ? playerLevelBefore : playerLevelAfter;
-        int xpLimit = xpToNext(playerLevelAfter);
+        boolean levelUp = playerLevelAfter > playerLevelBefore;
+        int shownLevel = playerLevelBefore;
+        int shownXp;
+        int xpLimit;
+        if (levelUp) {
+            float fillPhase = MathUtils.clamp(progress / 0.62f, 0f, 1f);
+            float resetPhase = MathUtils.clamp((progress - 0.62f) / 0.38f, 0f, 1f);
+            int beforeLimit = xpToNext(playerLevelBefore);
+            if (progress < 0.62f) {
+                xpLimit = beforeLimit;
+                shownXp = playerXpBefore + Math.round((beforeLimit - playerXpBefore) * smooth(fillPhase));
+            } else {
+                shownLevel = playerLevelAfter;
+                xpLimit = xpToNext(playerLevelAfter);
+                shownXp = Math.round(playerXpAfter * smooth(resetPhase));
+            }
+        } else {
+            shownXp = playerXpBefore + Math.round((playerXpAfter - playerXpBefore) * smooth(progress));
+            xpLimit = xpToNext(playerLevelAfter);
+        }
 
         drawCenteredTitle("RAPORT RUNDY", "Ekstrakcja Cienia", height * 0.78f);
         float cardW = Math.min(width * 0.78f, 700f * scale);
