@@ -1056,17 +1056,18 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private void drawResult() {
         float rs = resultScale();
-        float progress = MathUtils.clamp(resultTimer / 6.2f, 0f, 1f);
-        int shownGold = goldBefore + Math.round((goldAfter - goldBefore) * smooth(progress));
+        float rewardProgress = MathUtils.clamp(resultTimer / 3.8f, 0f, 1f);
+        float xpProgress = MathUtils.clamp(resultTimer / 8.8f, 0f, 1f);
+        int shownGold = goldBefore + Math.round((goldAfter - goldBefore) * smooth(rewardProgress));
         boolean levelUp = playerLevelAfter > playerLevelBefore;
         int shownLevel = playerLevelBefore;
         int shownXp;
         int xpLimit;
         if (levelUp) {
-            float fillPhase = MathUtils.clamp(progress / 0.68f, 0f, 1f);
-            float resetPhase = MathUtils.clamp((progress - 0.68f) / 0.32f, 0f, 1f);
+            float fillPhase = MathUtils.clamp(xpProgress / 0.72f, 0f, 1f);
+            float resetPhase = MathUtils.clamp((xpProgress - 0.72f) / 0.28f, 0f, 1f);
             int beforeLimit = xpToNext(playerLevelBefore);
-            if (progress < 0.68f) {
+            if (xpProgress < 0.72f) {
                 xpLimit = beforeLimit;
                 shownXp = playerXpBefore + Math.round((beforeLimit - playerXpBefore) * smooth(fillPhase));
             } else {
@@ -1075,7 +1076,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
                 shownXp = Math.round(playerXpAfter * smooth(resetPhase));
             }
         } else {
-            shownXp = playerXpBefore + Math.round((playerXpAfter - playerXpBefore) * smooth(progress));
+            shownXp = playerXpBefore + Math.round((playerXpAfter - playerXpBefore) * smooth(xpProgress));
             xpLimit = xpToNext(playerLevelAfter);
         }
 
