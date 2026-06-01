@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.damia.sololeveler",
-  appName: "Solo Leveler",
+  appId: "com.damia.sololeveler.v2",
+  appName: "Solo Leveler V2",
   webDir: "dist",
   loggingBehavior: "none",
   server: {
