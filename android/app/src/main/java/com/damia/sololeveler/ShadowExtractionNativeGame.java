@@ -915,6 +915,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void drawResult() {
+        float rs = resultScale();
         float progress = MathUtils.clamp(resultTimer / 6.2f, 0f, 1f);
         int shownGold = goldBefore + Math.round((goldAfter - goldBefore) * smooth(progress));
         boolean levelUp = playerLevelAfter > playerLevelBefore;
@@ -938,49 +939,84 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             xpLimit = xpToNext(playerLevelAfter);
         }
 
-        drawCenteredTitle("RAPORT RUNDY", "Ekstrakcja Cienia", height * 0.78f);
-        float cardW = Math.min(width * 0.78f, 700f * scale);
+        float cardW = Math.min(width - 42f * rs, 790f * rs);
         float cardX = width / 2f - cardW / 2f;
-        float cardY = height * 0.23f;
-        float cardH = height * 0.46f;
+        float cardH = Math.min(height - 44f * rs, 420f * rs);
+        float cardY = height / 2f - cardH / 2f;
+        float pad = 20f * rs;
 
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
+        shapes.setColor(0f, 0.01f, 0.04f, 0.36f);
+        shapes.rect(0f, 0f, width, height);
         shapes.setColor(panel());
-        fillRoundRect(cardX, cardY, cardW, cardH, 24f * scale);
+        fillRoundRect(cardX, cardY, cardW, cardH, 24f * rs);
         shapes.setColor(0f, 0.85f, 1f, 0.12f);
-        fillRoundRect(cardX + 18f * scale, cardY + cardH - 7f * scale, cardW - 36f * scale, 4f * scale, 3f * scale);
+        fillRoundRect(cardX + pad, cardY + cardH - 6f * rs, cardW - pad * 2f, 4f * rs, 3f * rs);
         shapes.end();
         batch.begin();
 
-        float left = cardX + 28f * scale;
-        float top = cardY + cardH - 36f * scale;
-        drawText("WYNIK " + score, left, top, 1.05f * scale, textStrong(), true);
-        drawText((newBest ? "NOWY REKORD" : "REKORD " + previousBest), left, top - 32f * scale, 0.68f * scale, newBest ? accent() : muted(), true);
-        drawText("GRA LV. " + gameLevelBefore + " -> " + gameLevelAfter, left, top - 62f * scale, 0.72f * scale, muted(), true);
-        drawText("LOWCA LV. " + shownLevel + (playerLevelAfter > playerLevelBefore ? "  AWANS" : ""), left, top - 98f * scale, 0.8f * scale, textStrong(), true);
+        float left = cardX + pad;
+        float right = cardX + cardW - pad;
+        float top = cardY + cardH - 30f * rs;
+        drawText("RAPORT RUNDY", left, top, 0.62f * rs, accent(), true);
+        drawText("EKSTRAKCJA CIENIA", left, top - 28f * rs, 1.02f * rs, textStrong(), true);
 
-        float barW = cardW - 56f * scale;
-        float barY = top - 126f * scale;
+        String recordLabel = newBest ? "NOWY REKORD" : "REKORD";
+        drawText(recordLabel, right - 150f * rs, top - 2f * rs, 0.48f * rs, newBest ? gold() : muted(), true);
+        drawText(String.valueOf(newBest ? score : previousBest), right - 150f * rs, top - 29f * rs, 0.82f * rs, textStrong(), true);
+
+        float tileY = top - 92f * rs;
+        float tileW = (cardW - pad * 2f - 16f * rs) / 3f;
+        drawResultTile(left, tileY, tileW, 54f * rs, "POPRZEDNI", String.valueOf(previousBest), rs);
+        drawResultTile(left + tileW + 8f * rs, tileY, tileW, 54f * rs, "WYNIK", String.valueOf(score), rs);
+        drawResultTile(left + (tileW + 8f * rs) * 2f, tileY, tileW, 54f * rs, "GRA LV.", gameLevelBefore + " -> " + gameLevelAfter, rs);
+
+        float xpY = tileY - 56f * rs;
+        drawText("LOWCA LV. " + shownLevel + (playerLevelAfter > playerLevelBefore ? "  AWANS" : ""), left, xpY + 18f * rs, 0.68f * rs, textStrong(), true);
+        float barW = cardW - pad * 2f;
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(progressTrack());
-        fillRoundRect(left, barY, barW, 8f * scale, 4f * scale);
+        fillRoundRect(left, xpY, barW, 8f * rs, 4f * rs);
         shapes.setColor(accent());
-        fillRoundRect(left, barY, barW * MathUtils.clamp((float) shownXp / xpLimit, 0f, 1f), 8f * scale, 4f * scale);
+        fillRoundRect(left, xpY, barW * MathUtils.clamp((float) shownXp / xpLimit, 0f, 1f), 8f * rs, 4f * rs);
         shapes.end();
         batch.begin();
-        drawText("+" + xpReward + " XP   " + shownXp + " / " + xpLimit, left, barY - 14f * scale, 0.58f * scale, muted(), true);
-        drawText("GOLD " + shownGold + "  (+" + goldReward + ")", left, barY - 42f * scale, 0.7f * scale, gold(), true);
-        drawText("HP " + hpBefore + " -> " + hpAfter + (hpDelta < 0 ? "  " + hpDelta : ""), left, barY - 68f * scale, 0.68f * scale, hpDelta < 0 ? danger() : success(), true);
+        drawText("+" + xpReward + " XP   " + shownXp + " / " + xpLimit, left, xpY - 12f * rs, 0.52f * rs, muted(), true);
+
+        float rewardY = xpY - 72f * rs;
+        drawResultTile(left, rewardY, (barW - 10f * rs) / 2f, 58f * rs, "GOLD", shownGold + "  +" + goldReward, rs, gold());
+        drawResultTile(left + (barW + 10f * rs) / 2f, rewardY, (barW - 10f * rs) / 2f, 58f * rs, "HP", hpBefore + " -> " + hpAfter, rs, hpDelta < 0 ? danger() : success());
+
+        float noteY = rewardY - 42f * rs;
         if (!lootName.isEmpty()) {
-            drawText("LOOT: " + lootName, left, barY - 96f * scale, 0.68f * scale, violet(), true);
+            drawText("LOOT: " + lootName, left, noteY, 0.58f * rs, violet(), true);
+            noteY -= 22f * rs;
         }
-        drawText(resultNote, left, cardY + 30f * scale, 0.62f * scale, muted(), true);
+        drawText(resultNote, left, noteY, 0.54f * rs, muted(), true);
+        drawText("STADIUM " + gameLevelAfter + "  |  MNOZNIK x" + Math.round((won ? (1f + (gameLevelAfter - 1) * 0.12f) : 0.34f) * 100f) / 100f, left, cardY + 82f * rs, 0.52f * rs, muted(), true);
 
         layoutResultButtons();
         drawFilledButton(replayButton, "ZAGRAJ PONOWNIE", accent(), textStrong());
         drawFilledButton(exitButton, "WYJDZ", danger(), Color.WHITE);
+    }
+
+    private void drawResultTile(float x, float y, float w, float h, String label, String value, float rs) {
+        drawResultTile(x, y, w, h, label, value, rs, textStrong());
+    }
+
+    private void drawResultTile(float x, float y, float w, float h, String label, String value, float rs, Color valueColor) {
+        batch.end();
+        shapes.begin(ShapeRenderer.ShapeType.Filled);
+        shapes.setColor(0f, 0.025f, 0.065f, 0.66f);
+        fillRoundRect(x, y, w, h, 16f * rs);
+        shapes.setColor(0f, 0.85f, 1f, 0.12f);
+        fillRoundRect(x, y + h - 2f * rs, w, 2f * rs, 1f * rs);
+        shapes.end();
+        batch.begin();
+        drawText(label, x + 12f * rs, y + h - 17f * rs, 0.42f * rs, muted(), true);
+        drawText(value, x + 12f * rs, y + 20f * rs, 0.62f * rs, valueColor, true);
     }
 
     private void updateFps(float rawDelta) {
@@ -1031,11 +1067,21 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void layoutResultButtons() {
-        float w = Math.min(260f * scale, width * 0.34f);
-        float gap = 14f * scale;
-        float y = height * 0.08f;
-        replayButton.set(width / 2f - w - gap / 2f, y, w, 50f * scale);
-        exitButton.set(width / 2f + gap / 2f, y, w, 50f * scale);
+        float rs = resultScale();
+        float cardW = Math.min(width - 42f * rs, 790f * rs);
+        float cardH = Math.min(height - 44f * rs, 420f * rs);
+        float cardX = width / 2f - cardW / 2f;
+        float cardY = height / 2f - cardH / 2f;
+        float gap = 12f * rs;
+        float y = cardY + 18f * rs;
+        float exitW = Math.min(180f * rs, cardW * 0.32f);
+        float replayW = cardW - 40f * rs - exitW - gap;
+        replayButton.set(cardX + 20f * rs, y, replayW, 48f * rs);
+        exitButton.set(cardX + 20f * rs + replayW + gap, y, exitW, 48f * rs);
+    }
+
+    private float resultScale() {
+        return MathUtils.clamp(Math.min(width / 930f, height / 520f), 0.68f, 1.08f);
     }
 
     private void drawTopButton(String label) {
