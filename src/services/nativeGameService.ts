@@ -46,6 +46,11 @@ export type NativeMiniGameResult = {
   difficultyLevel: number;
   rewardMultiplier: number;
   penaltyApplied: boolean;
+  fpsLast?: number;
+  fpsAverage?: number;
+  fpsMin?: number;
+  frameMs?: number;
+  graphicsQuality?: PlayerState["settings"]["graphicsQuality"];
 };
 
 const HunterNativeGame = registerPlugin<HunterNativeGamePlugin>("HunterNativeGame");

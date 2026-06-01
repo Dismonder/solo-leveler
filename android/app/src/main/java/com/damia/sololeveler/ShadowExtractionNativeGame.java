@@ -548,6 +548,11 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             result.put("difficultyLevel", gameLevelBefore);
             result.put("rewardMultiplier", won ? (1f + (gameLevelAfter - 1) * 0.12f) : 0.34f);
             result.put("penaltyApplied", hpAfter < hpBefore);
+            result.put("fpsLast", Math.round(fpsCurrent * 10f) / 10f);
+            result.put("fpsAverage", Math.round(fpsAverage * 10f) / 10f);
+            result.put("fpsMin", Math.round((fpsMin == 999f ? fpsCurrent : fpsMin) * 10f) / 10f);
+            result.put("frameMs", Math.round(fpsFrameMs * 10f) / 10f);
+            result.put("graphicsQuality", graphicsQuality);
             return result.toString();
         } catch (Exception exception) {
             return "";
