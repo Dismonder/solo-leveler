@@ -576,27 +576,28 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
         TargetType type = TargetType.SHADOW;
         float roll = MathUtils.random();
-        if (roll > 0.93f) type = TargetType.BOMB;
-        else if (roll > 0.86f) type = TargetType.GOLD;
-        else if (roll > 0.835f) type = TargetType.DECOY;
-        else if (roll > 0.828f) type = TargetType.HEART;
-        else if (roll > 0.824f) type = TargetType.TIME;
+        if (roll > 0.935f) type = TargetType.BOMB;
+        else if (roll > 0.865f) type = TargetType.GOLD;
+        else if (roll > 0.842f) type = TargetType.DECOY;
+        else if (roll > 0.8395f) type = TargetType.HEART;
+        else if (roll > 0.838f) type = TargetType.TIME;
 
         float radius = (type == TargetType.TIME ? 25f : type == TargetType.HEART ? 24f : 30f) * scale;
         float x;
         float y;
         float vx;
         float vy;
-        boolean bottomLaunch = MathUtils.random() < 0.72f;
+        boolean bottomLaunch = MathUtils.random() < 0.82f;
         if (bottomLaunch) {
+            boolean highArc = MathUtils.random() < 0.54f;
             x = MathUtils.random(width * 0.13f, width * 0.87f);
-            y = height * 0.12f - radius;
-            vx = MathUtils.random(-112f, 112f) * scale;
-            vy = MathUtils.random(275f, 425f) * scale;
+            y = (highArc ? height * 0.05f : height * 0.12f) - radius;
+            vx = MathUtils.random(highArc ? -150f : -112f, highArc ? 150f : 112f) * scale;
+            vy = MathUtils.random(highArc ? 385f : 275f, highArc ? 535f : 425f) * scale;
         } else {
             float side = MathUtils.randomBoolean() ? -1f : 1f;
             x = side < 0 ? radius + 8f : width - radius - 8f;
-            y = MathUtils.random(height * 0.36f, height * 0.86f);
+            y = MathUtils.random(height * 0.44f, height * 0.88f);
             vx = -side * MathUtils.random(90f, 220f) * scale;
             vy = MathUtils.random(35f, 155f) * scale;
         }
@@ -804,9 +805,12 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
                 shapes.circle(target.x + target.radius * 0.18f, target.y + target.radius * 0.08f, target.radius * 0.26f);
                 shapes.triangle(target.x - target.radius * 0.42f, target.y, target.x + target.radius * 0.42f, target.y, target.x, target.y - target.radius * 0.48f);
             } else if (target.type == TargetType.TIME) {
-                shapes.setColor(0.75f, 0.45f, 1f, 1f);
-                shapes.circle(target.x, target.y, target.radius * 0.42f);
-                shapes.setColor(1f, 1f, 1f, 0.95f);
+                shapes.setColor(0.62f, 0.24f, 1f, 0.96f);
+                shapes.circle(target.x, target.y, target.radius * 0.50f);
+                shapes.setColor(0.20f, 0.96f, 1f, 0.88f);
+                shapes.triangle(target.x, target.y + target.radius * 0.68f, target.x - target.radius * 0.58f, target.y, target.x, target.y - target.radius * 0.68f);
+                shapes.triangle(target.x, target.y + target.radius * 0.68f, target.x + target.radius * 0.58f, target.y, target.x, target.y - target.radius * 0.68f);
+                shapes.setColor(1f, 1f, 1f, 0.98f);
                 shapes.rect(target.x - target.radius * 0.04f, target.y, target.radius * 0.08f, target.radius * 0.34f);
                 shapes.rect(target.x, target.y - target.radius * 0.04f, target.radius * 0.26f, target.radius * 0.08f);
             }
