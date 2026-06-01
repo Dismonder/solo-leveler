@@ -42,12 +42,15 @@ V2 ma odtworzyc bazowa aplikacje 1:1 funkcjonalnie i wizualnie:
 - Natywna scena uzywa fontu Orbitron z lokalnego assetu `src/assets/fonts/orbitron/Orbitron-wght.ttf`, kopiowanego do `native-game/`, z licencja OFL w repozytorium.
 - Bridge uruchomienia natywnej gry przekazuje aktualny stan rundy: rekord, level mini-gry, gold, HP, bazowe HP, level gracza, XP, overlay FPS i profil jakosci. Nie wolno polegac wylacznie na starych wartosciach z `SharedPreferences`.
 - Rozliczenie wyniku natywnego jest wydzielone do testowalnego helpera `applyNativeMiniGameSettlement`, z testem loot/progress/HP.
+- Wynik natywnej rundy niesie tez dane diagnostyczne `fpsLast`, `fpsAverage`, `fpsMin`, `frameMs` i `graphicsQuality`, zeby kolejne decyzje wydajnosciowe mogly bazowac na realnych rundach.
 - Android manifest deklaruje aplikacje jako gre oraz `android.game_mode_config` z trybem performance/battery. `HunterPerformancePlugin` ustawia Game State API dla `loading/gameplay/paused`, wymusza preferowany refresh rate i raportuje Game Mode/thermal/Hz.
 - Overlay FPS dziala w WebView i w natywnej scenie libGDX. Do `NativeGameActivity` przekazywane sa `fpsOverlayEnabled` oraz `graphicsQuality`, a scena pokazuje FPS/AVG/LOW/frame time bez blokowania sterowania.
 - Profil jakosci `performance/balanced/cinematic` wplywa na koszt natywnej sceny: liczbe celow, dlugosc traila, bursty, promienie efektow i MSAA.
+- Natywna scena recyklinguje obiekty celow, traili i burstow oraz wstepnie rozgrzewa pule przy starcie sceny, zeby ograniczyc dropy FPS od GC podczas pierwszych ciec i trafien.
 - Debugowa siatka z natywnego tla `Ekstrakcji Cienia` jest usunieta; scena korzysta z tla/efektow, nie z widocznego gridu testowego.
 - `npm run lint`, `npm test -- --run`, `npm run build` i `npm run android:build` przechodza po podlaczeniu libGDX i assetow.
 - Instalacja V2 na Xiaomi jest aktualnie blokowana przez system telefonu: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`. Potwierdzone przez `adb install` oraz `pm install` po pushu APK do `/data/local/tmp`, a ponownie po checkpointach natywnej diagnostyki. APK buduje sie poprawnie jako `android/app/build/outputs/apk/debug/app-debug.apk`.
+- Aktualny lokalny checkpoint V2 po optymalizacjach natywnej sceny: `checkpoint-v2-native-pooling-20260601-150010`, z bundlem w `C:\Users\Damia\Downloads\solo-leveler-backups\solo-leveler-checkpoint-v2-native-pooling-20260601-150010.git.bundle`.
 
 ## Warunki akceptacji
 
