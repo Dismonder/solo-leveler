@@ -68,7 +68,6 @@ import {
   canEquipItemInSlot,
   equipItem as equipPlayerItem,
   getCompatibleSlots,
-  getEquippedMiniGameBonuses,
   getEquippedItems,
   getItemSellPrice,
   normalizeEquipmentType,
@@ -93,11 +92,6 @@ import {
   type MiniGameBackgroundDefinition,
 } from "../game/miniGameBackgrounds";
 import { normalizeMiniGameGridSettings } from "../game/miniGameGrid";
-import {
-  getMiniGameShopBonuses,
-  getSelectedMiniGameShopEffect,
-  normalizeMiniGameShop,
-} from "../game/miniGameShop";
 import { getActivePenalty } from "../game/penalties";
 import { addCatalogExerciseToPlan } from "../game/workoutPlan";
 import {
@@ -179,6 +173,7 @@ import {
   launchNativeMiniGame,
   type NativeMiniGameError,
   type NativeMiniGameResult,
+  type NativeGameRuntimeBonuses,
 } from "../services/nativeGameService";
 import { getGlobalVolume, getSystemAudioEnabled, setGlobalVolume, setSystemAudioEnabled } from "../utils/audio";
 import { subscribeRewardAnimations } from "../services/rewardAnimationBus";
@@ -942,30 +937,14 @@ export function Dashboard() {
       return;
     }
 
-    if (gameId === "shadow-extraction") {
-      const miniGameShop = normalizeMiniGameShop(player.miniGameUpgrades?.shop);
-      const shopBonuses = getMiniGameShopBonuses(miniGameShop, gameId);
-      const relicBonuses = getEquippedMiniGameBonuses(player, gameId);
-      const selectedEffect = getSelectedMiniGameShopEffect(miniGameShop, gameId);
-      const launchedNative = await launchNativeMiniGame(gameId, player, {
-        xpMultiplier: shopBonuses.xpMultiplier,
-        scoreBonus: Math.min(0.15, relicBonuses.scoreBonus + shopBonuses.scoreBonus),
-        targetLifetimeBonusMs: Math.min(520, relicBonuses.targetLifetime + shopBonuses.targetLifetime),
-        hitWindowBonus: Math.min(0.12, relicBonuses.hitWindow + shopBonuses.hitWindow),
-        timePenaltyResist: Math.min(0.18, relicBonuses.timePenaltyResist + shopBonuses.timePenaltyResist),
-        selectedEffectId: selectedEffect.id,
-        selectedEffectName: selectedEffect.name,
-        showGrid: Boolean(normalizeMiniGameGridSettings(player.settings.miniGameGridByGame)[gameId]),
-      });
-      if (launchedNative) {
-        if (shopBonuses.activeBoosterId) consumeMiniGameBooster(gameId);
-        return;
-      }
-    }
-
     warmMiniGameRuntimeAssets(gameId);
     setActiveGameId(gameId);
   };
+
+  const launchNativeShadowExtractionFromReady = useCallback(async (runtime: NativeGameRuntimeBonuses) => {
+    if (!player) return false;
+    return launchNativeMiniGame("shadow-extraction", player, runtime);
+  }, [player]);
 
   if (activeGameId) {
     return (
@@ -998,6 +977,7 @@ export function Dashboard() {
             onSelectMiniGameBackground={selectMiniGameBackground}
             onImportMiniGameBackground={importMiniGameBackground}
             onToggleMiniGameGrid={toggleMiniGameGrid}
+            onLaunchNativeShadowExtraction={launchNativeShadowExtractionFromReady}
           />
         </Suspense>
         <FpsOverlay enabled={Boolean(player.settings.fpsOverlayEnabled)} mode="game" />

@@ -65,6 +65,7 @@ import { isNativeOrientationAvailable, lockAppLandscape, lockAppPortrait } from 
 import { getSmoothUiIntervalMs, setNativeGameState } from "../services/performanceService";
 import { MOBILE_THEME_ASSETS, getMiniGameThemeAsset } from "../services/mobileThemeAssets";
 import { getRankForLevel, type RankLetter } from "../services/systemLogic";
+import type { NativeGameRuntimeBonuses } from "../services/nativeGameService";
 import type { MiniGameBackgroundsState, MiniGameSettlement, PlayerState } from "../types";
 import {
   playGameFailSound,
@@ -107,6 +108,7 @@ type GameRuntimeScreenProps = {
   onSelectMiniGameBackground: (gameId: MiniGameId, backgroundId: string) => void;
   onImportMiniGameBackground: (gameId: MiniGameId, file: File) => Promise<void>;
   onToggleMiniGameGrid: (gameId: MiniGameId, enabled: boolean) => void;
+  onLaunchNativeShadowExtraction?: (runtime: NativeGameRuntimeBonuses) => Promise<boolean>;
 };
 
 type ActiveGameProps = {
@@ -122,6 +124,8 @@ type ActiveGameProps = {
   stageEffect: MiniGameShopEffectDefinition;
   showGrid: boolean;
   graphicsQuality: PlayerState["settings"]["graphicsQuality"];
+  nativeRuntimeBonuses?: NativeGameRuntimeBonuses;
+  onLaunchNativeShadowExtraction?: (runtime: NativeGameRuntimeBonuses) => Promise<boolean>;
 };
 
 type ActiveMiniGameProps = ActiveGameProps & {
@@ -303,6 +307,7 @@ export function GameRuntimeScreen({
   onSelectMiniGameBackground,
   onImportMiniGameBackground,
   onToggleMiniGameGrid,
+  onLaunchNativeShadowExtraction,
 }: GameRuntimeScreenProps) {
   const definition = MINI_GAME_CATALOG.find((game) => game.id === gameId) ?? MINI_GAME_CATALOG[0];
   const progress = player.miniGames?.[definition.id] ?? createDefaultMiniGameProgress(definition.id);
@@ -344,6 +349,19 @@ export function GameRuntimeScreen({
     [relicBonuses, roundBoosterBonuses, shopBonuses]
   );
   const showGrid = isMiniGameGridEnabled(player.settings.miniGameGridByGame, definition.id);
+  const nativeRuntimeBonuses = useMemo<NativeGameRuntimeBonuses>(
+    () => ({
+      xpMultiplier: shopBonuses.xpMultiplier,
+      scoreBonus: runtimeBonuses.scoreBonus,
+      targetLifetimeBonusMs: runtimeBonuses.targetLifetime,
+      hitWindowBonus: runtimeBonuses.hitWindow,
+      timePenaltyResist: runtimeBonuses.timePenaltyResist,
+      selectedEffectId: selectedStageEffect.id,
+      selectedEffectName: selectedStageEffect.name,
+      showGrid,
+    }),
+    [runtimeBonuses, selectedStageEffect.id, selectedStageEffect.name, shopBonuses.xpMultiplier, showGrid]
+  );
   const utilityControlsVisible = runtimeState !== "running" && runtimeState !== "finished";
   const gameShopAvailable = runtimeState === "ready" || runtimeState === "finished" || paused;
   const runtimeGraphicsQuality = player.settings.graphicsQuality ?? "balanced";
@@ -555,6 +573,8 @@ export function GameRuntimeScreen({
             stageEffect={selectedStageEffect}
             showGrid={showGrid}
             graphicsQuality={runtimeGraphicsQuality}
+            nativeRuntimeBonuses={nativeRuntimeBonuses}
+            onLaunchNativeShadowExtraction={onLaunchNativeShadowExtraction}
           />
         </Fragment>
       </main>
@@ -961,6 +981,8 @@ function ActiveMiniGame({
   stageEffect,
   showGrid,
   graphicsQuality,
+  nativeRuntimeBonuses,
+  onLaunchNativeShadowExtraction,
 }: ActiveMiniGameProps) {
   switch (definition.id) {
     case "mana-memory":
@@ -970,6 +992,30 @@ function ActiveMiniGame({
     case "rune-lock":
       return <RuneLockGame definition={definition} progress={progress} paused={paused} stageBackground={stageBackground} relicBonuses={relicBonuses} stageEffect={stageEffect} showGrid={showGrid} graphicsQuality={graphicsQuality} onComplete={onComplete} onRuntimeStateChange={onRuntimeStateChange} onExit={onExit} />;
     case "shadow-extraction":
+      if (onLaunchNativeShadowExtraction && nativeRuntimeBonuses) {
+        return (
+          <NativeShadowExtractionLauncher
+            definition={definition}
+            progress={progress}
+            player={player}
+            paused={paused}
+            orientationMode={orientationMode}
+            onComplete={onComplete}
+            onRuntimeStateChange={onRuntimeStateChange}
+            onExit={onExit}
+            onBuyEffect={onBuyShadowExtractionEffect}
+            onBuyUpgrade={onBuyShadowExtractionUpgrade}
+            onSelectEffect={onSelectShadowExtractionEffect}
+            stageBackground={stageBackground}
+            relicBonuses={relicBonuses}
+            stageEffect={stageEffect}
+            showGrid={showGrid}
+            graphicsQuality={graphicsQuality}
+            nativeRuntimeBonuses={nativeRuntimeBonuses}
+            onLaunchNative={onLaunchNativeShadowExtraction}
+          />
+        );
+      }
       return (
         <ShadowExtractionGame
           definition={definition}
@@ -1688,6 +1734,102 @@ function RuneLockGame({ definition, progress, paused = false, stageBackground, r
         <Feedback text={feedback} />
         {!running && <StartOverlay finished={finished} score={score} title={finished ? "Wynik zapisany" : definition.title} text={definition.shortGoal} tips={definition.readyTips} relicBonuses={relicBonuses} onStart={start} onExit={onExit} />}
       </div>
+    </MiniGameFrame>
+  );
+}
+
+function NativeShadowExtractionLauncher({
+  definition,
+  progress,
+  player,
+  paused = false,
+  orientationMode = "portrait",
+  stageBackground,
+  relicBonuses,
+  stageEffect,
+  showGrid,
+  graphicsQuality,
+  nativeRuntimeBonuses,
+  onLaunchNative,
+  onComplete,
+  onRuntimeStateChange,
+  onExit,
+}: ActiveGameProps & {
+  player: PlayerState;
+  paused?: boolean;
+  orientationMode?: MiniGameOrientationMode;
+  onBuyEffect: (effectId: ShadowExtractionEffectId) => void;
+  onBuyUpgrade: (upgradeId: ShadowExtractionUpgradeId) => void;
+  onSelectEffect: (effectId: ShadowExtractionEffectId) => void;
+  nativeRuntimeBonuses: NativeGameRuntimeBonuses;
+  onLaunchNative: (runtime: NativeGameRuntimeBonuses) => Promise<boolean>;
+}) {
+  const [useWebFallback, setUseWebFallback] = useState(false);
+  const [launching, setLaunching] = useState(false);
+
+  const startNativeRound = useCallback(async () => {
+    if (launching) return;
+    setLaunching(true);
+
+    const launched = await onLaunchNative(nativeRuntimeBonuses);
+    if (launched) {
+      onRuntimeStateChange?.("running");
+      onExit?.();
+      return;
+    }
+
+    setLaunching(false);
+    onRuntimeStateChange?.("ready");
+    setUseWebFallback(true);
+  }, [launching, nativeRuntimeBonuses, onExit, onLaunchNative, onRuntimeStateChange]);
+
+  if (useWebFallback) {
+    return (
+      <ShadowExtractionGame
+        definition={definition}
+        progress={progress}
+        player={player}
+        paused={paused}
+        orientationMode={orientationMode}
+        onComplete={onComplete}
+        onRuntimeStateChange={onRuntimeStateChange}
+        onExit={onExit}
+        onBuyEffect={() => undefined}
+        onBuyUpgrade={() => undefined}
+        onSelectEffect={() => undefined}
+        stageBackground={stageBackground}
+        relicBonuses={relicBonuses}
+        stageEffect={stageEffect}
+        showGrid={showGrid}
+        graphicsQuality={graphicsQuality}
+      />
+    );
+  }
+
+  return (
+    <MiniGameFrame
+      definition={definition}
+      score={0}
+      combo={0}
+      remaining={GAME_SECONDS}
+      scorePopup={null}
+      finished={false}
+      showHud={false}
+      stageBackground={stageBackground}
+      stageEffect={stageEffect}
+      showGrid={showGrid}
+      graphicsQuality={graphicsQuality}
+    >
+      <StartOverlay
+        finished={false}
+        score={0}
+        title={launching ? "Uruchamianie rdzenia" : definition.title}
+        text={launching ? "System otwiera natywną arenę. Sklep i ustawienia zostały zapisane przed startem." : definition.shortGoal}
+        tips={definition.readyTips}
+        relicBonuses={relicBonuses}
+        onStart={startNativeRound}
+        onExit={onExit}
+      />
     </MiniGameFrame>
   );
 }
