@@ -617,8 +617,8 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (roll > 0.935f) type = TargetType.BOMB;
         else if (roll > 0.865f) type = TargetType.GOLD;
         else if (roll > 0.842f) type = TargetType.DECOY;
-        else if (roll > 0.8395f) type = TargetType.HEART;
-        else if (roll > 0.838f) type = TargetType.TIME;
+        else if (roll > 0.8408f) type = TargetType.HEART;
+        else if (roll > 0.8400f) type = TargetType.TIME;
 
         float radius = (type == TargetType.TIME ? 25f : type == TargetType.HEART ? 24f : 30f) * scale;
         float x;
@@ -627,11 +627,11 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         float vy;
         boolean bottomLaunch = MathUtils.random() < 0.82f;
         if (bottomLaunch) {
-            boolean highArc = MathUtils.random() < 0.54f;
+            boolean highArc = MathUtils.random() < 0.68f;
             x = MathUtils.random(width * 0.13f, width * 0.87f);
-            y = (highArc ? height * 0.05f : height * 0.12f) - radius;
-            vx = MathUtils.random(highArc ? -150f : -112f, highArc ? 150f : 112f) * scale;
-            vy = MathUtils.random(highArc ? 385f : 275f, highArc ? 535f : 425f) * scale;
+            y = (highArc ? height * 0.02f : height * 0.12f) - radius;
+            vx = MathUtils.random(highArc ? -162f : -112f, highArc ? 162f : 112f) * scale;
+            vy = MathUtils.random(highArc ? 430f : 275f, highArc ? 580f : 425f) * scale;
         } else {
             float side = MathUtils.randomBoolean() ? -1f : 1f;
             x = side < 0 ? radius + 8f : width - radius - 8f;
@@ -865,10 +865,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             Color color = colorFor(target.type);
             boolean special = target.type == TargetType.BOMB || target.type == TargetType.GOLD || target.type == TargetType.HEART || target.type == TargetType.TIME;
             float pulse = special ? 1f + MathUtils.sin((elapsed + target.age) * 8f) * 0.03f : 1f;
-            shapes.setColor(color.r, color.g, color.b, special ? 0.16f : 0.10f);
-            shapes.circle(target.x, target.y, target.radius * (special ? 1.28f : 0.92f) * pulse);
-            shapes.setColor(color.r, color.g, color.b, special ? 0.26f : 0.16f);
-            shapes.circle(target.x, target.y, target.radius * (special ? 0.92f : 0.54f));
+            if (special) {
+                shapes.setColor(color.r, color.g, color.b, 0.12f);
+                shapes.circle(target.x, target.y, target.radius * 1.14f * pulse);
+            }
 
             if (target.type == TargetType.BOMB) {
                 shapes.setColor(0.16f, 0.0f, 0.02f, 0.96f);
