@@ -863,9 +863,35 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void drawReady() {
+        float rs = menuScale();
+        float cardW = Math.min(width - 46f * rs, 720f * rs);
+        float cardH = Math.min(height - 98f * rs, 332f * rs);
+        float cardX = width / 2f - cardW / 2f;
+        float cardY = height / 2f - cardH / 2f - 4f * rs;
+        float centerX = cardX + cardW / 2f;
+
+        batch.end();
+        shapes.begin(ShapeRenderer.ShapeType.Filled);
+        shapes.setColor(0f, 0.01f, 0.04f, 0.26f);
+        shapes.rect(0f, 0f, width, height);
+        shapes.setColor(panel());
+        fillRoundRect(cardX, cardY, cardW, cardH, 28f * rs);
+        shapes.setColor(0f, 0.85f, 1f, 0.12f);
+        fillRoundRect(cardX + 18f * rs, cardY + cardH - 6f * rs, cardW - 36f * rs, 4f * rs, 3f * rs);
+        shapes.setColor(0f, 0.85f, 1f, 0.10f);
+        shapes.circle(centerX, cardY + cardH - 92f * rs, 48f * rs);
+        shapes.setColor(0f, 0.85f, 1f, 0.18f);
+        shapes.circle(centerX, cardY + cardH - 92f * rs, 32f * rs);
+        shapes.end();
+        batch.begin();
+
         drawTopButton("X");
-        drawCenteredTitle("EKSTRAKCJA CIENIA", "Tnij cienie gestem. Bomby resetuja combo, zloto daje bonus.", height * 0.58f);
-        drawTextCentered("PROTIP: " + pickTip(), width / 2f, height * 0.38f, 0.72f * scale, muted(), true);
+        drawTextCentered("GATE", centerX, cardY + cardH - 88f * rs, 0.52f * rs, accent(), true);
+        drawTextCentered("EKSTRAKCJA CIENIA", centerX, cardY + cardH - 148f * rs, 1.16f * rs, textStrong(), true);
+        drawTextCentered("Dlugie ciecie lapie kilka cieni. Bomby resetuja combo.", centerX, cardY + cardH - 184f * rs, 0.62f * rs, muted(), true);
+        drawTextCentered("PROTIP: " + pickTip(), centerX, cardY + cardH - 224f * rs, 0.56f * rs, accent(), true);
+        drawResultTile(cardX + 20f * rs, cardY + cardH - 70f * rs, 116f * rs, 44f * rs, "BEST", String.valueOf(host.getBestScore()), rs);
+        drawResultTile(cardX + cardW - 136f * rs, cardY + cardH - 70f * rs, 116f * rs, 44f * rs, "GRA LV.", String.valueOf(Math.max(1, host.getGameLevel())), rs);
         layoutReadyButtons();
         drawFilledButton(startButton, "START", accent(), textStrong());
     }
@@ -1059,8 +1085,11 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void layoutReadyButtons() {
-        float w = Math.min(240f * scale, width * 0.36f);
-        startButton.set(width / 2f - w / 2f, height * 0.19f, w, 52f * scale);
+        float rs = menuScale();
+        float cardH = Math.min(height - 98f * rs, 332f * rs);
+        float cardY = height / 2f - cardH / 2f - 4f * rs;
+        float w = Math.min(260f * rs, width * 0.42f);
+        startButton.set(width / 2f - w / 2f, cardY + 28f * rs, w, 52f * rs);
     }
 
     private void layoutPauseButtons() {
@@ -1087,6 +1116,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private float resultScale() {
         return MathUtils.clamp(Math.min(width / 930f, height / 520f), 0.68f, 1.08f);
+    }
+
+    private float menuScale() {
+        return MathUtils.clamp(Math.min(width / 920f, height / 500f), 0.68f, 1.1f);
     }
 
     private void drawTopButton(String label) {
