@@ -70,4 +70,17 @@ public class HunterNativeGamePlugin extends Plugin {
         result.put("resultJson", resultJson);
         call.resolve(result);
     }
+
+    @PluginMethod
+    public void consumeLastError(PluginCall call) {
+        SharedPreferences prefs = getContext().getSharedPreferences(NativeGameActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        String errorJson = prefs.getString(NativeGameActivity.KEY_LAST_ERROR, null);
+        if (errorJson != null) {
+            prefs.edit().remove(NativeGameActivity.KEY_LAST_ERROR).apply();
+        }
+
+        JSObject result = new JSObject();
+        result.put("errorJson", errorJson);
+        call.resolve(result);
+    }
 }

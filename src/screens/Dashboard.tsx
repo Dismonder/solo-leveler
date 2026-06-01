@@ -168,8 +168,10 @@ import {
 } from "../services/notificationService";
 import { getPerformanceStatus, type HunterPerformanceStatus } from "../services/performanceService";
 import {
+  consumeNativeMiniGameError,
   consumeNativeMiniGameResult,
   launchNativeMiniGame,
+  type NativeMiniGameError,
   type NativeMiniGameResult,
 } from "../services/nativeGameService";
 import { getGlobalVolume, getSystemAudioEnabled, setGlobalVolume, setSystemAudioEnabled } from "../utils/audio";
@@ -502,21 +504,32 @@ export function Dashboard() {
     void setPlayer(applyNativeMiniGameSettlement(player, result, today));
   }, [player, setPlayer]);
 
+  const handleNativeMiniGameError = useCallback((error: NativeMiniGameError) => {
+    if (error.gameId !== "shadow-extraction") return;
+    const stage = error.stage ? ` (${error.stage})` : "";
+    toast.error(`Natywna Ekstrakcja Cienia przerwana${stage}: ${error.message}`);
+  }, []);
+
   useEffect(() => {
     if (!player || activeGameId) return;
 
-    const consumeNativeResult = async () => {
+    const consumeNativeState = async () => {
       const result = await consumeNativeMiniGameResult();
-      if (result) applyNativeMiniGameResult(result);
+      if (result) {
+        applyNativeMiniGameResult(result);
+        return;
+      }
+      const error = await consumeNativeMiniGameError();
+      if (error) handleNativeMiniGameError(error);
     };
-    void consumeNativeResult();
+    void consumeNativeState();
 
     const handleVisibility = () => {
-      if (!document.hidden) void consumeNativeResult();
+      if (!document.hidden) void consumeNativeState();
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [activeGameId, applyNativeMiniGameResult, player]);
+  }, [activeGameId, applyNativeMiniGameResult, handleNativeMiniGameError, player]);
 
   usePenaltyFontPrankLoop(player);
 

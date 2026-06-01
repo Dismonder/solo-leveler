@@ -4,14 +4,19 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
 
+import org.json.JSONObject;
+
 public class NativeGameActivity extends AndroidApplication implements ShadowExtractionNativeGame.Host {
+    private static final String TAG = "SoloNativeGame";
     static final String PREFS_NAME = "solo_leveler_native_game_v2";
     static final String KEY_LAST_RESULT = "shadowExtractionLastResultJson";
+    static final String KEY_LAST_ERROR = "shadowExtractionLastErrorJson";
     private static final String KEY_BEST_SCORE = "shadowExtractionBestScore";
     private static final String KEY_GAME_LEVEL = "shadowExtractionLevel";
     private static final String KEY_PLAYER_GOLD = "playerGold";
@@ -30,6 +35,8 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     private int playerXp;
     private boolean fpsOverlayEnabled;
     private String graphicsQuality;
+    private Thread.UncaughtExceptionHandler previousNativeCrashHandler;
+    private Thread.UncaughtExceptionHandler nativeCrashHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +54,7 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
         HunterPerformancePlugin.applyNativeGameState(this, "loading");
 
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        installNativeCrashReporter();
         bestScore = getIntent().getIntExtra("bestScore", prefs.getInt(KEY_BEST_SCORE, 0));
         gameLevel = Math.max(1, getIntent().getIntExtra("gameLevel", prefs.getInt(KEY_GAME_LEVEL, 1)));
         playerGold = getIntent().getIntExtra("gold", prefs.getInt(KEY_PLAYER_GOLD, 0));
@@ -77,7 +85,14 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
         config.b = 8;
         config.a = 8;
 
-        initialize(new ShadowExtractionNativeGame(this), config);
+        try {
+            Log.i(TAG, "Starting libGDX shadow-extraction runtime. quality=" + graphicsQuality + " level=" + gameLevel);
+            initialize(new ShadowExtractionNativeGame(this), config);
+        } catch (Throwable throwable) {
+            saveLastError("initialize", throwable);
+            Log.e(TAG, "Native game initialization failed", throwable);
+            finish();
+        }
     }
 
     @Override
@@ -92,6 +107,14 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
         HunterPerformancePlugin.applyNativeGameState(this, "paused");
         saveState();
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (nativeCrashHandler != null && Thread.getDefaultUncaughtExceptionHandler() == nativeCrashHandler) {
+            Thread.setDefaultUncaughtExceptionHandler(previousNativeCrashHandler);
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -190,6 +213,36 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     public void exitGame() {
         saveState();
         runOnUiThread(this::finish);
+    }
+
+    private void installNativeCrashReporter() {
+        previousNativeCrashHandler = Thread.getDefaultUncaughtExceptionHandler();
+        nativeCrashHandler = (thread, throwable) -> {
+            saveLastError("uncaught:" + thread.getName(), throwable);
+            Log.e(TAG, "Uncaught native game error on " + thread.getName(), throwable);
+            if (previousNativeCrashHandler != null) {
+                previousNativeCrashHandler.uncaughtException(thread, throwable);
+            }
+        };
+        Thread.setDefaultUncaughtExceptionHandler(nativeCrashHandler);
+    }
+
+    private void saveLastError(String stage, Throwable throwable) {
+        if (prefs == null) return;
+        try {
+            JSONObject error = new JSONObject();
+            error.put("id", "native_error_" + System.currentTimeMillis());
+            error.put("gameId", "shadow-extraction");
+            error.put("stage", stage);
+            error.put("message", throwable == null || throwable.getMessage() == null ? "Unknown native game error" : throwable.getMessage());
+            error.put("type", throwable == null ? "Throwable" : throwable.getClass().getName());
+            error.put("gameLevel", gameLevel);
+            error.put("graphicsQuality", graphicsQuality);
+            error.put("timestamp", System.currentTimeMillis());
+            prefs.edit().putString(KEY_LAST_ERROR, error.toString()).commit();
+        } catch (Exception ignored) {
+            prefs.edit().putString(KEY_LAST_ERROR, "{\"gameId\":\"shadow-extraction\",\"stage\":\"" + stage + "\",\"message\":\"Native game error\"}").commit();
+        }
     }
 
     private void saveState() {
