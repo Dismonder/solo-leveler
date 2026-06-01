@@ -775,23 +775,28 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         for (Target target : targets) {
             if (!target.alive) continue;
             Color color = colorFor(target.type);
-            float pulse = 1f + MathUtils.sin((elapsed + target.age) * 8f) * 0.04f;
-            shapes.setColor(color.r, color.g, color.b, 0.18f);
-            shapes.circle(target.x, target.y, target.radius * 1.55f * pulse);
-            shapes.setColor(color.r, color.g, color.b, 0.36f);
-            shapes.circle(target.x, target.y, target.radius * 1.08f);
-            shapes.setColor(color);
-            shapes.circle(target.x, target.y, target.radius * 0.64f);
+            boolean special = target.type == TargetType.BOMB || target.type == TargetType.GOLD || target.type == TargetType.HEART || target.type == TargetType.TIME;
+            float pulse = special ? 1f + MathUtils.sin((elapsed + target.age) * 8f) * 0.03f : 1f;
+            shapes.setColor(color.r, color.g, color.b, special ? 0.16f : 0.10f);
+            shapes.circle(target.x, target.y, target.radius * (special ? 1.28f : 0.92f) * pulse);
+            shapes.setColor(color.r, color.g, color.b, special ? 0.26f : 0.16f);
+            shapes.circle(target.x, target.y, target.radius * (special ? 0.92f : 0.54f));
 
             if (target.type == TargetType.BOMB) {
+                shapes.setColor(0.16f, 0.0f, 0.02f, 0.96f);
+                shapes.circle(target.x, target.y, target.radius * 0.66f);
                 shapes.setColor(1f, 0.12f, 0.12f, 0.9f);
-                shapes.circle(target.x, target.y, target.radius * 0.3f);
-                shapes.rect(target.x - target.radius * 0.12f, target.y + target.radius * 0.36f, target.radius * 0.24f, target.radius * 0.22f);
+                shapes.circle(target.x, target.y, target.radius * 0.42f);
+                shapes.rect(target.x - target.radius * 0.13f, target.y + target.radius * 0.38f, target.radius * 0.26f, target.radius * 0.18f);
+                shapes.setColor(1f, 0.74f, 0.24f, 0.95f);
+                shapes.rectLine(target.x + target.radius * 0.05f, target.y + target.radius * 0.54f, target.x + target.radius * 0.34f, target.y + target.radius * 0.78f, 2.5f * scale);
             } else if (target.type == TargetType.GOLD) {
-                shapes.setColor(1f, 0.82f, 0.22f, 1f);
-                shapes.rect(target.x - target.radius * 0.48f, target.y - target.radius * 0.18f, target.radius * 0.96f, target.radius * 0.36f);
+                shapes.setColor(0.38f, 0.24f, 0.02f, 0.92f);
+                fillRoundRect(target.x - target.radius * 0.58f, target.y - target.radius * 0.26f, target.radius * 1.16f, target.radius * 0.52f, target.radius * 0.12f);
+                shapes.setColor(1f, 0.82f, 0.22f, 0.98f);
+                fillRoundRect(target.x - target.radius * 0.48f, target.y - target.radius * 0.18f, target.radius * 0.96f, target.radius * 0.36f, target.radius * 0.08f);
                 shapes.setColor(1f, 0.96f, 0.55f, 1f);
-                shapes.rect(target.x - target.radius * 0.28f, target.y - target.radius * 0.07f, target.radius * 0.56f, target.radius * 0.14f);
+                fillRoundRect(target.x - target.radius * 0.28f, target.y - target.radius * 0.07f, target.radius * 0.56f, target.radius * 0.14f, target.radius * 0.04f);
             } else if (target.type == TargetType.HEART) {
                 shapes.setColor(1f, 0.25f, 0.45f, 1f);
                 shapes.circle(target.x - target.radius * 0.18f, target.y + target.radius * 0.08f, target.radius * 0.26f);
