@@ -271,8 +271,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         camera.setToOrtho(false, width, height);
         shapes.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(camera.combined);
-        float pad = 18f * scale;
-        topActionButton.set(width - pad - 74f * scale, height - pad - 48f * scale, 74f * scale, 48f * scale);
+        float hs = hudScale();
+        float pad = 16f * hs;
+        topActionButton.set(width - pad - 68f * hs, height - pad - 42f * hs, 68f * hs, 42f * hs);
     }
 
     @Override
@@ -898,13 +899,17 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private void drawHud(boolean includeStop) {
         if (includeStop) drawTopButton("STOP");
-        drawPill(18f * scale, height - 58f * scale, 118f * scale, 38f * scale, "TIME " + Math.max(0, Math.round(roundTime)) + "S");
-        drawPill(width / 2f - 75f * scale, height - 58f * scale, 150f * scale, 38f * scale, "SCORE " + score);
-        drawPill(width - 250f * scale, height - 58f * scale, 130f * scale, 38f * scale, "COMBO " + combo);
+        float hs = hudScale();
+        float pad = 16f * hs;
+        float chipH = 34f * hs;
+        float chipY = height - pad - chipH - 4f * hs;
+        drawPill(18f * hs, chipY, 108f * hs, chipH, "TIME " + Math.max(0, Math.round(roundTime)) + "S", hs);
+        drawPill(width / 2f - 66f * hs, chipY, 132f * hs, chipH, "SCORE " + score, hs);
+        drawPill(topActionButton.x - 132f * hs - 12f * hs, chipY, 132f * hs, chipH, "COMBO " + combo, hs);
 
         float barW = Math.min(width * 0.58f, 520f * scale);
         float barX = width / 2f - barW / 2f;
-        float barY = height - 84f * scale;
+        float barY = chipY - 14f * hs;
         float progress = MathUtils.clamp(roundTime / roundDuration, 0f, 1f);
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
@@ -917,29 +922,44 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void drawHudLines() {
+        float hs = hudScale();
+        float pad = 16f * hs;
+        float chipH = 34f * hs;
+        float chipY = height - pad - chipH - 4f * hs;
         shapes.setColor(0.0f, 0.85f, 1f, 0.18f);
-        shapes.rect(14f * scale, height - 66f * scale, 122f * scale, 44f * scale);
-        shapes.rect(width / 2f - 77f * scale, height - 66f * scale, 154f * scale, 44f * scale);
-        shapes.rect(width - 252f * scale, height - 66f * scale, 132f * scale, 44f * scale);
+        shapes.rect(18f * hs, chipY, 108f * hs, chipH);
+        shapes.rect(width / 2f - 66f * hs, chipY, 132f * hs, chipH);
+        shapes.rect(topActionButton.x - 132f * hs - 12f * hs, chipY, 132f * hs, chipH);
     }
 
     private void drawPause() {
-        drawHud(false);
-        float modalW = Math.min(width * 0.72f, 560f * scale);
-        float modalH = Math.min(height * 0.58f, 250f * scale);
+        float ps = pauseScale();
+        float modalW = Math.min(width - 64f * ps, 620f * ps);
+        float modalH = Math.min(height - 58f * ps, 244f * ps);
         float x = width / 2f - modalW / 2f;
         float y = height / 2f - modalH / 2f;
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
-        shapes.setColor(0.0f, 0.01f, 0.04f, 0.72f);
+        shapes.setColor(0.0f, 0.01f, 0.04f, 0.60f);
         shapes.rect(0, 0, width, height);
         shapes.setColor(panel());
-        fillRoundRect(x, y, modalW, modalH, 26f * scale);
+        fillRoundRect(x, y, modalW, modalH, 24f * ps);
+        shapes.setColor(0f, 0.85f, 1f, 0.13f);
+        fillRoundRect(x + 18f * ps, y + modalH - 6f * ps, modalW - 36f * ps, 4f * ps, 3f * ps);
         shapes.end();
         batch.begin();
 
-        drawTextCentered("PAUZA", width / 2f, y + modalH - 42f * scale, 1.15f * scale, textStrong(), true);
-        drawTextCentered(pickTip(), width / 2f, y + modalH - 86f * scale, 0.74f * scale, muted(), true);
+        drawText("PAUZA", x + 22f * ps, y + modalH - 36f * ps, 1.0f * ps, textStrong(), true);
+        drawText("RUNDA WSTRZYMANA", x + 22f * ps, y + modalH - 66f * ps, 0.48f * ps, accent(), true);
+        drawResultTile(x + modalW - 176f * ps, y + modalH - 70f * ps, 154f * ps, 48f * ps, "SCORE", String.valueOf(score), ps);
+        float tipY = y + modalH - 114f * ps;
+        drawText("PROTIP", x + 22f * ps, tipY, 0.46f * ps, accent(), true);
+        drawText(pickTip(), x + 22f * ps, tipY - 25f * ps, 0.58f * ps, muted(), true);
+        float statY = y + 76f * ps;
+        float statW = (modalW - 56f * ps) / 3f;
+        drawResultTile(x + 22f * ps, statY, statW, 44f * ps, "CZAS", Math.max(0, Math.round(roundTime)) + "S", ps);
+        drawResultTile(x + 28f * ps + statW, statY, statW, 44f * ps, "COMBO", String.valueOf(combo), ps);
+        drawResultTile(x + 34f * ps + statW * 2f, statY, statW, 44f * ps, "BEST", String.valueOf(previousBest), ps);
         layoutPauseButtons();
         drawFilledButton(continueButton, "KONTYNUUJ", accent(), textStrong());
         drawFilledButton(pauseExitButton, "WYJDZ", danger(), Color.WHITE);
@@ -1093,11 +1113,17 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void layoutPauseButtons() {
-        float w = Math.min(250f * scale, width * 0.34f);
-        float gap = 14f * scale;
-        float y = height / 2f - 82f * scale;
-        continueButton.set(width / 2f - w - gap / 2f, y, w, 50f * scale);
-        pauseExitButton.set(width / 2f + gap / 2f, y, w, 50f * scale);
+        float ps = pauseScale();
+        float modalW = Math.min(width - 64f * ps, 620f * ps);
+        float modalH = Math.min(height - 58f * ps, 244f * ps);
+        float x = width / 2f - modalW / 2f;
+        float y = height / 2f - modalH / 2f;
+        float gap = 10f * ps;
+        float exitW = Math.min(160f * ps, modalW * 0.32f);
+        float continueW = modalW - 44f * ps - exitW - gap;
+        float buttonY = y + 18f * ps;
+        continueButton.set(x + 22f * ps, buttonY, continueW, 44f * ps);
+        pauseExitButton.set(x + 22f * ps + continueW + gap, buttonY, exitW, 44f * ps);
     }
 
     private void layoutResultButtons() {
@@ -1122,28 +1148,44 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         return MathUtils.clamp(Math.min(width / 920f, height / 500f), 0.68f, 1.1f);
     }
 
+    private float pauseScale() {
+        return MathUtils.clamp(Math.min(width / 920f, height / 500f), 0.64f, 1.02f);
+    }
+
+    private float hudScale() {
+        return MathUtils.clamp(Math.min(width / 1180f, height / 650f), 0.72f, 1.0f);
+    }
+
     private void drawTopButton(String label) {
-        drawFilledButton(topActionButton, label, label.equals("STOP") ? danger() : panel(), Color.WHITE);
+        drawFilledButton(topActionButton, label, label.equals("STOP") ? danger() : panel(), Color.WHITE, hudScale());
     }
 
     private void drawFilledButton(Button button, String label, Color fill, Color text) {
+        drawFilledButton(button, label, fill, text, scale);
+    }
+
+    private void drawFilledButton(Button button, String label, Color fill, Color text, float uiScale) {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(fill);
-        fillRoundRect(button.x, button.y, button.w, button.h, 16f * scale);
+        fillRoundRect(button.x, button.y, button.w, button.h, 14f * uiScale);
         shapes.end();
         batch.begin();
-        drawTextCentered(label, button.x + button.w / 2f, button.y + button.h / 2f - 7f * scale, 0.82f * scale, text, true);
+        drawTextCentered(label, button.x + button.w / 2f, button.y + button.h / 2f - 6f * uiScale, 0.76f * uiScale, text, true);
     }
 
     private void drawPill(float x, float y, float w, float h, String text) {
+        drawPill(x, y, w, h, text, scale);
+    }
+
+    private void drawPill(float x, float y, float w, float h, String text, float uiScale) {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(0f, 0.02f, 0.06f, 0.74f);
-        fillRoundRect(x, y, w, h, 18f * scale);
+        fillRoundRect(x, y, w, h, 16f * uiScale);
         shapes.end();
         batch.begin();
-        drawTextCentered(text, x + w / 2f, y + h / 2f - 6f * scale, 0.62f * scale, textStrong(), true);
+        drawTextCentered(text, x + w / 2f, y + h / 2f - 5f * uiScale, 0.56f * uiScale, textStrong(), true);
     }
 
     private void fillRoundRect(float x, float y, float w, float h, float radius) {
