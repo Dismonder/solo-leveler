@@ -39,6 +39,8 @@ V2 ma odtworzyc bazowa aplikacje 1:1 funkcjonalnie i wizualnie:
 - Natywna scena ma stan `ready/running/pause/result`, przycisk `X` przed startem, `STOP` tylko w rundzie, hitboxy ciecia, zloto, bomby, rzadkie serce HP i rzadki bonus czasu.
 - Wynik rundy natywnej jest zapisywany jako `MiniGameResult` w bridge i konsumowany po powrocie do Reacta, z aktualizacja XP, golda, HP, rekordu, levelu mini-gry i lootem.
 - Natywna `Ekstrakcja Cienia` uzywa selektywnie kopiowanych assetow z bazowej aplikacji: tlo areny, wraith, decoy i relikt serca. Assety trafiaja do APK przez task `copyNativeGameAssets`, bez kopiowania calego katalogu.
+- Natywna scena uzywa fontu Orbitron z lokalnego assetu `src/assets/fonts/orbitron/Orbitron-wght.ttf`, kopiowanego do `native-game/`, z licencja OFL w repozytorium.
+- Bridge uruchomienia natywnej gry przekazuje aktualny stan rundy: rekord, level mini-gry, gold, HP, bazowe HP, level gracza, XP, overlay FPS i profil jakosci. Nie wolno polegac wylacznie na starych wartosciach z `SharedPreferences`.
 - Rozliczenie wyniku natywnego jest wydzielone do testowalnego helpera `applyNativeMiniGameSettlement`, z testem loot/progress/HP.
 - Android manifest deklaruje aplikacje jako gre oraz `android.game_mode_config` z trybem performance/battery. `HunterPerformancePlugin` ustawia Game State API dla `loading/gameplay/paused`, wymusza preferowany refresh rate i raportuje Game Mode/thermal/Hz.
 - Overlay FPS dziala w WebView i w natywnej scenie libGDX. Do `NativeGameActivity` przekazywane sa `fpsOverlayEnabled` oraz `graphicsQuality`, a scena pokazuje FPS/AVG/LOW/frame time bez blokowania sterowania.

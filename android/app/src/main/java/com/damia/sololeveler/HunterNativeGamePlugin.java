@@ -36,6 +36,13 @@ public class HunterNativeGamePlugin extends Plugin {
                 HunterPerformancePlugin.applyNativeGameState(activity, "loading");
                 Intent intent = new Intent(activity, NativeGameActivity.class);
                 intent.putExtra("gameId", gameId);
+                intent.putExtra("bestScore", call.getInt("bestScore", 0));
+                intent.putExtra("gameLevel", call.getInt("gameLevel", 1));
+                intent.putExtra("gold", call.getInt("gold", 0));
+                intent.putExtra("hp", call.getInt("hp", 1000));
+                intent.putExtra("baseHp", call.getInt("baseHp", 1000));
+                intent.putExtra("playerLevel", call.getInt("playerLevel", 1));
+                intent.putExtra("playerXp", call.getInt("playerXp", 0));
                 intent.putExtra("fpsOverlayEnabled", call.getBoolean("fpsOverlayEnabled", false));
                 intent.putExtra("graphicsQuality", call.getString("graphicsQuality", "balanced"));
                 activity.startActivity(intent);

@@ -2,7 +2,7 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { MiniGameId } from "../game/miniGameProgress";
 import type { PlayerState } from "../types";
 
-type NativeGameLaunchOptions = {
+export type NativeGameLaunchOptions = {
   gameId: MiniGameId;
   bestScore?: number;
   gameLevel?: number;
@@ -54,6 +54,22 @@ export function isNativeGameRuntimeAvailable() {
   return Capacitor.getPlatform() === "android";
 }
 
+export function createNativeGameLaunchOptions(gameId: MiniGameId, player: PlayerState): NativeGameLaunchOptions {
+  const progress = player.miniGames?.[gameId];
+  return {
+    gameId,
+    bestScore: progress?.bestScore ?? 0,
+    gameLevel: progress?.level ?? 1,
+    gold: player.gold,
+    hp: player.hp,
+    baseHp: player.maxHp,
+    playerLevel: player.level,
+    playerXp: player.xp,
+    fpsOverlayEnabled: Boolean(player.settings.fpsOverlayEnabled),
+    graphicsQuality: player.settings.graphicsQuality ?? "balanced",
+  };
+}
+
 export async function launchNativeMiniGame(gameId: MiniGameId, player: PlayerState) {
   if (!isNativeGameRuntimeAvailable() || gameId !== "shadow-extraction") return false;
 
@@ -61,19 +77,7 @@ export async function launchNativeMiniGame(gameId: MiniGameId, player: PlayerSta
     const availability = await HunterNativeGame.isAvailable();
     if (!availability.available) return false;
 
-    const progress = player.miniGames?.[gameId];
-    const launched = await HunterNativeGame.launch({
-      gameId,
-      bestScore: progress?.bestScore ?? 0,
-      gameLevel: progress?.level ?? 1,
-      gold: player.gold,
-      hp: player.hp,
-      baseHp: player.maxHp,
-      playerLevel: player.level,
-      playerXp: player.xp,
-      fpsOverlayEnabled: Boolean(player.settings.fpsOverlayEnabled),
-      graphicsQuality: player.settings.graphicsQuality ?? "balanced",
-    });
+    const launched = await HunterNativeGame.launch(createNativeGameLaunchOptions(gameId, player));
     return Boolean(launched.launched);
   } catch {
     return false;
