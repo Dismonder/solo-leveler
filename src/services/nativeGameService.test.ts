@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createDefaultMiniGamesProgress } from "../game/miniGameProgress";
 import { INITIAL_PLAYER, type PlayerState } from "../types";
-import { createNativeGameLaunchOptions } from "./nativeGameService";
+import { createNativeGameLaunchOptions, parseNativeMiniGameError } from "./nativeGameService";
 
 function makePlayer(): PlayerState {
   const miniGames = createDefaultMiniGamesProgress();
@@ -43,4 +43,32 @@ test("native launch payload carries current player and mini-game state", () => {
     fpsOverlayEnabled: true,
     graphicsQuality: "cinematic",
   });
+});
+
+test("native game error parser accepts guarded Android failure payloads", () => {
+  const parsed = parseNativeMiniGameError(JSON.stringify({
+    id: "native_error_1",
+    gameId: "shadow-extraction",
+    stage: "initialize",
+    message: "asset missing",
+    type: "java.lang.IllegalStateException",
+    gameLevel: 24,
+    graphicsQuality: "balanced",
+  }));
+
+  assert.deepEqual(parsed, {
+    id: "native_error_1",
+    gameId: "shadow-extraction",
+    stage: "initialize",
+    message: "asset missing",
+    type: "java.lang.IllegalStateException",
+    gameLevel: 24,
+    graphicsQuality: "balanced",
+  });
+});
+
+test("native game error parser rejects malformed payloads", () => {
+  assert.equal(parseNativeMiniGameError(null), null);
+  assert.equal(parseNativeMiniGameError("{bad-json"), null);
+  assert.equal(parseNativeMiniGameError(JSON.stringify({ gameId: "shadow-extraction" })), null);
 });

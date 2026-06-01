@@ -65,6 +65,17 @@ export type NativeMiniGameError = {
   timestamp?: number;
 };
 
+export function parseNativeMiniGameError(errorJson: string | null | undefined): NativeMiniGameError | null {
+  if (!errorJson) return null;
+
+  try {
+    const parsed = JSON.parse(errorJson) as NativeMiniGameError;
+    return parsed?.gameId && parsed?.message ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 const HunterNativeGame = registerPlugin<HunterNativeGamePlugin>("HunterNativeGame");
 
 export function isNativeGameRuntimeAvailable() {
@@ -119,9 +130,7 @@ export async function consumeNativeMiniGameError(): Promise<NativeMiniGameError 
 
   try {
     const { errorJson } = await HunterNativeGame.consumeLastError();
-    if (!errorJson) return null;
-    const parsed = JSON.parse(errorJson) as NativeMiniGameError;
-    return parsed?.gameId && parsed?.message ? parsed : null;
+    return parseNativeMiniGameError(errorJson);
   } catch {
     return null;
   }
