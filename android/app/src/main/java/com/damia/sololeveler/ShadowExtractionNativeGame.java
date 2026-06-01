@@ -510,7 +510,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             lootName = createLootName(gameLevelAfter);
         }
 
-        host.setBestScore(score);
+        if (newBest) host.setBestScore(score);
         host.setGameLevel(gameLevelAfter);
         host.setGold(goldAfter);
         host.setHp(hpAfter);
@@ -572,7 +572,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private void spawnTarget() {
         int targetLimit = "performance".equals(graphicsQuality) ? 9 : "cinematic".equals(graphicsQuality) ? 15 : 12;
-        if (targets.size() > targetLimit) return;
+        if (targets.size() >= targetLimit) return;
 
         TargetType type = TargetType.SHADOW;
         float roll = MathUtils.random();
