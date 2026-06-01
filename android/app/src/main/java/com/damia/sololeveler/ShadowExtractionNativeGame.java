@@ -915,17 +915,17 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void drawResult() {
-        float progress = MathUtils.clamp(resultTimer / 4.4f, 0f, 1f);
+        float progress = MathUtils.clamp(resultTimer / 6.2f, 0f, 1f);
         int shownGold = goldBefore + Math.round((goldAfter - goldBefore) * smooth(progress));
         boolean levelUp = playerLevelAfter > playerLevelBefore;
         int shownLevel = playerLevelBefore;
         int shownXp;
         int xpLimit;
         if (levelUp) {
-            float fillPhase = MathUtils.clamp(progress / 0.62f, 0f, 1f);
-            float resetPhase = MathUtils.clamp((progress - 0.62f) / 0.38f, 0f, 1f);
+            float fillPhase = MathUtils.clamp(progress / 0.68f, 0f, 1f);
+            float resetPhase = MathUtils.clamp((progress - 0.68f) / 0.32f, 0f, 1f);
             int beforeLimit = xpToNext(playerLevelBefore);
-            if (progress < 0.62f) {
+            if (progress < 0.68f) {
                 xpLimit = beforeLimit;
                 shownXp = playerXpBefore + Math.round((beforeLimit - playerXpBefore) * smooth(fillPhase));
             } else {
