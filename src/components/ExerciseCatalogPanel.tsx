@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { BookOpen, ExternalLink, Plus, Search } from "lucide-react";
 import {
   EXERCISE_CATALOG,
@@ -185,6 +185,11 @@ function CatalogExerciseCard({
 
 function ExerciseMiniPlayer({ exercise }: { exercise: ExerciseCatalogEntry }) {
   const video = exercise.media.find((media) => media.type === "video");
+  const [videoFailed, setVideoFailed] = useState(false);
+
+  useEffect(() => {
+    setVideoFailed(false);
+  }, [video?.url]);
 
   if (!video) {
     return (
@@ -197,20 +202,31 @@ function ExerciseMiniPlayer({ exercise }: { exercise: ExerciseCatalogEntry }) {
     );
   }
 
+  const poster = createExerciseVideoPoster(exercise.name, video.sourceName);
+
   return (
     <div className="sl-input overflow-hidden rounded-2xl">
       <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] px-3 py-2">
         <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Mini odtwarzacz</span>
         <span className="sl-muted text-[9px] font-black uppercase tracking-widest">{video.sourceName}</span>
       </div>
-      <video
-        className="aspect-video w-full bg-[var(--theme-progress-track)] object-contain"
-        src={video.url}
-        controls
-        playsInline
-        poster={createExerciseVideoPoster(exercise.name, video.sourceName)}
-        preload="metadata"
-      />
+      {videoFailed ? (
+        <img
+          className="aspect-video w-full bg-[var(--theme-progress-track)] object-cover"
+          src={poster}
+          alt={`Miniatura filmu: ${exercise.name}`}
+        />
+      ) : (
+        <video
+          className="aspect-video w-full bg-[var(--theme-progress-track)] object-contain"
+          src={video.url}
+          controls
+          playsInline
+          poster={poster}
+          preload="metadata"
+          onError={() => setVideoFailed(true)}
+        />
+      )}
       {video.sourcePageUrl && (
         <a
           href={video.sourcePageUrl}

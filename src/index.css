@@ -1023,8 +1023,8 @@ body {
 }
 
 .sl-avatar-frame-status {
-  width: 5.25rem;
-  height: 6.25rem;
+  width: 5.35rem;
+  height: 6.45rem;
 }
 
 .sl-avatar-frame:focus-visible {
@@ -1033,20 +1033,20 @@ body {
 }
 
 .sl-avatar-frame-profile {
-  width: 4.5rem;
-  height: 5.5rem;
+  width: 4.65rem;
+  height: 5.65rem;
 }
 
 .sl-avatar-image {
   position: absolute;
-  inset: 5px;
+  inset: 4px;
   z-index: 1;
-  width: calc(100% - 10px);
-  height: calc(100% - 10px);
+  width: calc(100% - 8px);
+  height: calc(100% - 8px);
   clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 9px, 100% calc(100% - 9px), calc(100% - 9px) 100%, 9px 100%, 0 calc(100% - 9px), 0 9px);
   object-fit: cover;
-  object-position: 50% 12%;
-  transform: scale(0.985);
+  object-position: 50% 7%;
+  transform: scale(1.02);
 }
 
 .sl-avatar-placeholder {

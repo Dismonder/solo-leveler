@@ -355,6 +355,7 @@ function SessionTechniqueGuide({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [catalogExercise, setCatalogExercise] = useState<SessionCatalogExercise | null | undefined>(undefined);
+  const [videoFailed, setVideoFailed] = useState(false);
   const video = catalogExercise?.media.find((media) => media.type === "video") ?? null;
 
   useEffect(() => {
@@ -381,12 +382,16 @@ function SessionTechniqueGuide({
   }, [catalogExerciseId]);
 
   useEffect(() => {
-    if (!videoRef.current || !video) return;
+    setVideoFailed(false);
+  }, [video?.url]);
+
+  useEffect(() => {
+    if (!videoRef.current || !video || videoFailed) return;
     videoRef.current.currentTime = 0;
     void videoRef.current.play().catch(() => {
       // Muted autoplay can still be blocked on some WebView settings; the video remains visible.
     });
-  }, [video]);
+  }, [video, videoFailed]);
 
   if (catalogExercise === undefined) {
     return (
@@ -407,6 +412,8 @@ function SessionTechniqueGuide({
     );
   }
 
+  const poster = video ? createExerciseVideoPoster(exerciseName, video.sourceName) : "";
+
   return (
     <div className="mt-4 space-y-3">
       {video ? (
@@ -415,19 +422,28 @@ function SessionTechniqueGuide({
             <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Podgląd techniki</span>
             <span className="sl-muted text-[9px] font-black uppercase tracking-widest">{video.sourceName}</span>
           </div>
-          <video
-            key={video.url}
-            ref={videoRef}
-            className="aspect-video w-full max-h-[min(34vh,260px)] bg-[var(--theme-progress-track)] object-contain"
-            src={video.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={createExerciseVideoPoster(exerciseName, video.sourceName)}
-            preload="metadata"
-            aria-label={`Automatyczny podgląd techniki: ${exerciseName}`}
-          />
+          {videoFailed ? (
+            <img
+              className="aspect-video w-full max-h-[min(34vh,260px)] bg-[var(--theme-progress-track)] object-cover"
+              src={poster}
+              alt={`Miniatura filmu: ${exerciseName}`}
+            />
+          ) : (
+            <video
+              key={video.url}
+              ref={videoRef}
+              className="aspect-video w-full max-h-[min(34vh,260px)] bg-[var(--theme-progress-track)] object-contain"
+              src={video.url}
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={poster}
+              preload="metadata"
+              aria-label={`Automatyczny podgląd techniki: ${exerciseName}`}
+              onError={() => setVideoFailed(true)}
+            />
+          )}
           <div className="flex items-center justify-between gap-3 border-t border-[var(--theme-border)] px-3 py-2">
             <span className="sl-muted text-[9px] font-black uppercase tracking-widest">Auto loop · wyciszone</span>
             {video.sourcePageUrl && (
