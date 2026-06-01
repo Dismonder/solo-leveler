@@ -257,6 +257,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         shadowTexture = loadTexture("native-game/shadow-wraith.png");
         decoyTexture = loadTexture("native-game/shadow-decoy.png");
         heartTexture = loadTexture("native-game/heart-relic.png");
+        prewarmPools();
         Gdx.input.setCatchKey(Input.Keys.BACK, true);
         resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         host.setNativeState("miniGame");
@@ -723,6 +724,12 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private void recycleTrailAt(int index) {
         TrailPoint point = trail.remove(index);
         if (trailPool.size() < 48) trailPool.add(point);
+    }
+
+    private void prewarmPools() {
+        while (targetPool.size() < 24) targetPool.add(new Target());
+        while (burstPool.size() < 18) burstPool.add(new Burst());
+        while (trailPool.size() < 36) trailPool.add(new TrailPoint());
     }
 
     private void drawBackground() {
