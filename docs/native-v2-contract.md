@@ -40,8 +40,12 @@ V2 ma odtworzyc bazowa aplikacje 1:1 funkcjonalnie i wizualnie:
 - Wynik rundy natywnej jest zapisywany jako `MiniGameResult` w bridge i konsumowany po powrocie do Reacta, z aktualizacja XP, golda, HP, rekordu, levelu mini-gry i lootem.
 - Natywna `Ekstrakcja Cienia` uzywa selektywnie kopiowanych assetow z bazowej aplikacji: tlo areny, wraith, decoy i relikt serca. Assety trafiaja do APK przez task `copyNativeGameAssets`, bez kopiowania calego katalogu.
 - Rozliczenie wyniku natywnego jest wydzielone do testowalnego helpera `applyNativeMiniGameSettlement`, z testem loot/progress/HP.
+- Android manifest deklaruje aplikacje jako gre oraz `android.game_mode_config` z trybem performance/battery. `HunterPerformancePlugin` ustawia Game State API dla `loading/gameplay/paused`, wymusza preferowany refresh rate i raportuje Game Mode/thermal/Hz.
+- Overlay FPS dziala w WebView i w natywnej scenie libGDX. Do `NativeGameActivity` przekazywane sa `fpsOverlayEnabled` oraz `graphicsQuality`, a scena pokazuje FPS/AVG/LOW/frame time bez blokowania sterowania.
+- Profil jakosci `performance/balanced/cinematic` wplywa na koszt natywnej sceny: liczbe celow, dlugosc traila, bursty, promienie efektow i MSAA.
+- Debugowa siatka z natywnego tla `Ekstrakcji Cienia` jest usunieta; scena korzysta z tla/efektow, nie z widocznego gridu testowego.
 - `npm run lint`, `npm test -- --run`, `npm run build` i `npm run android:build` przechodza po podlaczeniu libGDX i assetow.
-- Instalacja V2 na Xiaomi jest aktualnie blokowana przez system telefonu: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`. Potwierdzone przez `adb install` oraz `pm install` po pushu APK do `/data/local/tmp`. APK buduje sie poprawnie jako `android/app/build/outputs/apk/debug/app-debug.apk`.
+- Instalacja V2 na Xiaomi jest aktualnie blokowana przez system telefonu: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`. Potwierdzone przez `adb install` oraz `pm install` po pushu APK do `/data/local/tmp`, a ponownie po checkpointach natywnej diagnostyki. APK buduje sie poprawnie jako `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Warunki akceptacji
 
