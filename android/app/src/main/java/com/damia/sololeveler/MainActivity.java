@@ -14,6 +14,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(HunterPenaltyPlugin.class);
         registerPlugin(HunterPerformancePlugin.class);
         registerPlugin(HunterNotificationsPlugin.class);
+        registerPlugin(HunterNativeGamePlugin.class);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         HunterPerformancePlugin.applyHighPerformanceWindow(this);
         super.onCreate(savedInstanceState);

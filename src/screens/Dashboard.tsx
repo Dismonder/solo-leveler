@@ -163,6 +163,7 @@ import {
   type NativeScheduledNotification,
 } from "../services/notificationService";
 import { getPerformanceStatus, type HunterPerformanceStatus } from "../services/performanceService";
+import { launchNativeMiniGame } from "../services/nativeGameService";
 import { getGlobalVolume, getSystemAudioEnabled, setGlobalVolume, setSystemAudioEnabled } from "../utils/audio";
 import { subscribeRewardAnimations } from "../services/rewardAnimationBus";
 import type { RewardAnimationEvent } from "../types";
@@ -885,11 +886,17 @@ export function Dashboard() {
     setActiveTab(tab);
   };
 
-  const launchMiniGame = (gameId: MiniGameId) => {
+  const launchMiniGame = async (gameId: MiniGameId) => {
     if (player.hp <= 0 && gameId !== "shadow-extraction") {
       toast.error("Brak HP. Ekstrakcja Cienia może uratować Cię legendarną bańką serca.");
       return;
     }
+
+    if (gameId === "shadow-extraction") {
+      const launchedNative = await launchNativeMiniGame(gameId, player);
+      if (launchedNative) return;
+    }
+
     warmMiniGameRuntimeAssets(gameId);
     setActiveGameId(gameId);
   };

@@ -21,6 +21,11 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    sourceSets {
+        main {
+            jniLibs.srcDirs += ["$buildDir/generated/libgdxNatives"]
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -35,6 +40,34 @@ repositories {
     }
 }
 
+configurations {
+    natives
+}
+
+tasks.register('copyLibgdxNatives') {
+    def outputDir = file("$buildDir/generated/libgdxNatives")
+    outputs.dir(outputDir)
+    doLast {
+        delete(outputDir)
+        configurations.natives.files.each { jarFile ->
+            def abi = null
+            if (jarFile.name.endsWith('natives-armeabi-v7a.jar')) abi = 'armeabi-v7a'
+            if (jarFile.name.endsWith('natives-arm64-v8a.jar')) abi = 'arm64-v8a'
+            if (jarFile.name.endsWith('natives-x86.jar')) abi = 'x86'
+            if (jarFile.name.endsWith('natives-x86_64.jar')) abi = 'x86_64'
+            if (abi != null) {
+                copy {
+                    from(zipTree(jarFile))
+                    into("$outputDir/$abi")
+                    include('*.so')
+                }
+            }
+        }
+    }
+}
+
+preBuild.dependsOn(copyLibgdxNatives)
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
@@ -44,6 +77,17 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "androidx.health.connect:connect-client:$healthConnectVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesAndroidVersion"
+    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86"
+    natives "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-x86_64"
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
