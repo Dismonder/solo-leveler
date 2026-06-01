@@ -69,8 +69,51 @@ test("native shadow extraction settlement updates player, progress and typed loo
   assert.equal(progress.lastPlayedDate, "2026-06-01");
   assert.equal(next.inventory.length, 1);
   assert.equal(next.inventory[0].type, "helmet");
+  assert.equal(next.inventory[0].classificationSource, "explicit");
   assert.equal(next.inventory[0].bonusType, "VITALITY");
   assert.equal(next.inventory[0].rarity, "rare");
+});
+
+test("native settlement trusts explicit loot metadata over misleading item names", () => {
+  const next = applyNativeMiniGameSettlement(
+    makePlayer(),
+    makeResult({
+      lootName: "Relikt Cienia B",
+      lootSlot: "helmet",
+      lootRarity: "epic",
+      lootBonusType: "VITALITY",
+      lootBonusValue: 9,
+    }),
+    "2026-06-01"
+  );
+
+  assert.equal(next.inventory[0].type, "helmet");
+  assert.equal(next.inventory[0].rarity, "epic");
+  assert.equal(next.inventory[0].bonusType, "VITALITY");
+  assert.equal(next.inventory[0].bonusValue, 9);
+});
+
+test("native settlement accepts explicit mini-game relic perks", () => {
+  const next = applyNativeMiniGameSettlement(
+    makePlayer(),
+    makeResult({
+      nextGameLevel: 35,
+      lootName: "Rdzen Cienia A",
+      lootSlot: "artifact",
+      lootRarity: "epic",
+      lootBonusType: "SENSE",
+      lootBonusValue: 7,
+      lootPerkGameId: "shadow-extraction",
+      lootPerkKind: "targetLifetime",
+      lootPerkValue: 190,
+    }),
+    "2026-06-01"
+  );
+
+  assert.equal(next.inventory[0].type, "artifact");
+  assert.equal(next.inventory[0].miniGamePerk?.gameId, "shadow-extraction");
+  assert.equal(next.inventory[0].miniGamePerk?.kind, "targetLifetime");
+  assert.equal(next.inventory[0].miniGamePerk?.value, 190);
 });
 
 test("native settlement records losses without leveling the mini-game", () => {

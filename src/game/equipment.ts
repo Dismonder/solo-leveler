@@ -103,11 +103,14 @@ function createLegacyRelicPerk(item: Equipment, inferredType: EquipmentSlotId): 
 }
 
 export function normalizeEquipmentItem(item: Equipment): Equipment {
-  const inferredType = inferEquipmentTypeFromName(item);
-  const legacyType = normalizeEquipmentType(item.type) !== inferredType ? item.type : item.legacyType;
+  const explicitType = item.classificationSource === "explicit";
+  const normalizedType = normalizeEquipmentType(item.type);
+  const inferredType = explicitType ? normalizedType : inferEquipmentTypeFromName(item);
+  const legacyType = normalizedType !== inferredType ? item.type : item.legacyType;
   return {
     ...item,
     type: inferredType,
+    classificationSource: explicitType ? "explicit" : item.classificationSource,
     legacyType,
     equippedSlot: item.equippedSlot && SLOT_SET.has(item.equippedSlot) ? item.equippedSlot : undefined,
     miniGamePerk: normalizeMiniGamePerk(item.miniGamePerk) ?? createLegacyRelicPerk(item, inferredType),

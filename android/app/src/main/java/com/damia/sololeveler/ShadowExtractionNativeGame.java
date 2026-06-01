@@ -67,6 +67,28 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         DECOY
     }
 
+    private static class LootDrop {
+        final String name;
+        final String slot;
+        final String rarity;
+        final String bonusType;
+        final int bonusValue;
+        final String perkGameId;
+        final String perkKind;
+        final float perkValue;
+
+        LootDrop(String name, String slot, String rarity, String bonusType, int bonusValue, String perkGameId, String perkKind, float perkValue) {
+            this.name = name;
+            this.slot = slot;
+            this.rarity = rarity;
+            this.bonusType = bonusType;
+            this.bonusValue = bonusValue;
+            this.perkGameId = perkGameId;
+            this.perkKind = perkKind;
+            this.perkValue = perkValue;
+        }
+    }
+
     private static class Button {
         float x;
         float y;
@@ -208,6 +230,13 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private boolean won;
     private boolean newBest;
     private String lootName = "";
+    private String lootSlot = "";
+    private String lootRarity = "";
+    private String lootBonusType = "";
+    private int lootBonusValue;
+    private String lootPerkGameId = "";
+    private String lootPerkKind = "";
+    private float lootPerkValue;
     private String resultNote = "";
     private String tip = "Tnij dlugim gestem przez srodek cienia.";
     private String graphicsQuality = "balanced";
@@ -485,6 +514,13 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         won = false;
         newBest = false;
         lootName = "";
+        lootSlot = "";
+        lootRarity = "";
+        lootBonusType = "";
+        lootBonusValue = 0;
+        lootPerkGameId = "";
+        lootPerkKind = "";
+        lootPerkValue = 0f;
         resultNote = "";
         recycleActiveTargets();
         recycleActiveBursts();
@@ -537,7 +573,15 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         }
 
         if (won && MathUtils.random() < Math.min(0.18f, 0.04f + gameLevelAfter * 0.003f)) {
-            lootName = createLootName(gameLevelAfter);
+            LootDrop drop = createLootDrop(gameLevelAfter);
+            lootName = drop.name;
+            lootSlot = drop.slot;
+            lootRarity = drop.rarity;
+            lootBonusType = drop.bonusType;
+            lootBonusValue = drop.bonusValue;
+            lootPerkGameId = drop.perkGameId;
+            lootPerkKind = drop.perkKind;
+            lootPerkValue = drop.perkValue;
         }
 
         if (newBest) host.setBestScore(score);
@@ -566,6 +610,17 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             result.put("xpReward", xpReward);
             result.put("goldReward", goldReward);
             result.put("lootName", lootName);
+            if (!lootName.isEmpty()) {
+                result.put("lootSlot", lootSlot);
+                result.put("lootRarity", lootRarity);
+                result.put("lootBonusType", lootBonusType);
+                result.put("lootBonusValue", lootBonusValue);
+                if (!lootPerkKind.isEmpty() && lootPerkValue > 0f) {
+                    result.put("lootPerkGameId", lootPerkGameId);
+                    result.put("lootPerkKind", lootPerkKind);
+                    result.put("lootPerkValue", lootPerkValue);
+                }
+            }
             result.put("hpBefore", hpBefore);
             result.put("hpAfter", hpAfter);
             result.put("hpLoss", Math.max(0, hpBefore - hpAfter));
@@ -602,10 +657,30 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         return 900 + Math.max(1, level) * 70;
     }
 
-    private String createLootName(int level) {
-        String rank = level >= 50 ? "S" : level >= 35 ? "A" : level >= 20 ? "B" : level >= 10 ? "C" : "D";
-        String[] names = { "Ostrze Cienia ", "Helm Cienia ", "Rekawice Cienia ", "Rdzen Cienia " };
-        return names[level % names.length] + rank;
+    private LootDrop createLootDrop(int level) {
+        String rank = level >= 70 ? "SS" : level >= 50 ? "S" : level >= 35 ? "A" : level >= 20 ? "B" : level >= 10 ? "C" : level >= 5 ? "D" : "E";
+        String rarity = level >= 50 ? "legendary" : level >= 35 ? "epic" : level >= 15 ? "rare" : "common";
+        String[][] pool = {
+            { "Ostrze Cienia ", "weapon", "STR" },
+            { "Helm Cienia ", "helmet", "VITALITY" },
+            { "Rekawice Cienia ", "gloves", "AGILITY" },
+            { "Buty Cienia ", "boots", "AGILITY" },
+            { "Naszyjnik Cienia ", "necklace", "INTELLIGENCE" },
+            { "Rdzen Cienia ", "artifact", "SENSE" }
+        };
+        String[] selected = pool[Math.abs(level) % pool.length];
+        int bonusValue = Math.max(1, level / 8 + 1);
+        String perkGameId = "";
+        String perkKind = "";
+        float perkValue = 0f;
+
+        if ("artifact".equals(selected[1]) && !"common".equals(rarity)) {
+            perkGameId = "shadow-extraction";
+            perkKind = "targetLifetime";
+            perkValue = "legendary".equals(rarity) ? 250f : "epic".equals(rarity) ? 190f : 120f;
+        }
+
+        return new LootDrop(selected[0] + rank, selected[1], rarity, selected[2], bonusValue, perkGameId, perkKind, perkValue);
     }
 
     private void spawnTarget() {

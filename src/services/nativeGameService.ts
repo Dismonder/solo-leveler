@@ -1,6 +1,6 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { MiniGameId } from "../game/miniGameProgress";
-import type { PlayerState } from "../types";
+import type { Equipment, EquipmentSlotId, MiniGameRelicPerk, PlayerState } from "../types";
 
 export type NativeGameLaunchOptions = {
   gameId: MiniGameId;
@@ -56,6 +56,13 @@ export type NativeMiniGameResult = {
   xpReward: number;
   goldReward: number;
   lootName: string;
+  lootSlot?: EquipmentSlotId;
+  lootRarity?: Equipment["rarity"];
+  lootBonusType?: keyof PlayerState["stats"];
+  lootBonusValue?: number;
+  lootPerkGameId?: MiniGameRelicPerk["gameId"];
+  lootPerkKind?: MiniGameRelicPerk["kind"];
+  lootPerkValue?: number;
   hpBefore: number;
   hpAfter: number;
   hpLoss: number;

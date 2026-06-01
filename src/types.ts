@@ -280,6 +280,7 @@ export interface Equipment {
   id: string;
   name: string;
   type: EquipmentType;
+  classificationSource?: "explicit" | "name";
   equippedSlot?: EquipmentSlotId;
   legacyType?: EquipmentType;
   miniGamePerk?: MiniGameRelicPerk;

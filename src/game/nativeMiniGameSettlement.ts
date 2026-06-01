@@ -5,7 +5,18 @@ import {
   type MiniGameId,
 } from "./miniGameProgress";
 import type { NativeMiniGameResult } from "../services/nativeGameService";
-import type { Equipment, EquipmentSlotId, PlayerState } from "../types";
+import { EQUIPMENT_SLOT_IDS } from "../types";
+import type { Equipment, EquipmentSlotId, MiniGameRelicPerk, PlayerState } from "../types";
+
+const SLOT_SET = new Set<EquipmentSlotId>(EQUIPMENT_SLOT_IDS);
+const RARITY_SET = new Set<NonNullable<Equipment["rarity"]>>(["common", "rare", "epic", "legendary"]);
+const STAT_SET = new Set<keyof PlayerState["stats"]>(["STR", "VITALITY", "AGILITY", "INTELLIGENCE", "SENSE"]);
+const PERK_KIND_SET = new Set<MiniGameRelicPerk["kind"]>([
+  "scoreBonus",
+  "targetLifetime",
+  "hitWindow",
+  "timePenaltyResist",
+]);
 
 function rarityForLevel(level: number): Equipment["rarity"] {
   if (level >= 50) return "legendary";
@@ -37,14 +48,32 @@ function statForSlot(slot: EquipmentSlotId): keyof PlayerState["stats"] {
 function createNativeLoot(result: NativeMiniGameResult, level: number): Equipment | null {
   if (!result.lootName) return null;
 
-  const slot = inferLootSlot(result.lootName);
+  const slot = result.lootSlot && SLOT_SET.has(result.lootSlot) ? result.lootSlot : inferLootSlot(result.lootName);
+  const rarity = result.lootRarity && RARITY_SET.has(result.lootRarity) ? result.lootRarity : rarityForLevel(level);
+  const bonusType = result.lootBonusType && STAT_SET.has(result.lootBonusType) ? result.lootBonusType : statForSlot(slot);
+  const nativeBonus = Math.floor(Number(result.lootBonusValue));
+  const miniGamePerk =
+    result.lootPerkGameId &&
+    result.lootPerkKind &&
+    PERK_KIND_SET.has(result.lootPerkKind) &&
+    Number.isFinite(Number(result.lootPerkValue)) &&
+    Number(result.lootPerkValue) > 0
+      ? {
+          gameId: result.lootPerkGameId,
+          kind: result.lootPerkKind,
+          value: Number(result.lootPerkValue),
+        }
+      : undefined;
+
   return {
     id: `native_${result.id}`,
     name: result.lootName,
+    classificationSource: "explicit",
     type: slot,
-    rarity: rarityForLevel(level),
-    bonusType: statForSlot(slot),
-    bonusValue: Math.max(1, Math.floor(level / 8) + 1),
+    rarity,
+    bonusType,
+    bonusValue: nativeBonus > 0 ? nativeBonus : Math.max(1, Math.floor(level / 8) + 1),
+    miniGamePerk,
     durability: 100,
     maxDurability: 100,
   };
