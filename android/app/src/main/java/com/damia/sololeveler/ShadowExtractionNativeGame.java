@@ -417,7 +417,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             target.age += delta;
             target.x += target.vx * delta;
             target.y += target.vy * delta;
-            target.vy -= 52f * delta * scale;
+            target.vy -= 255f * delta * scale;
             if (target.age > target.life || target.x < -80f || target.x > width + 80f || target.y < -80f) {
                 if (target.type == TargetType.SHADOW) {
                     missed += 1;
@@ -578,23 +578,32 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (roll > 0.93f) type = TargetType.BOMB;
         else if (roll > 0.86f) type = TargetType.GOLD;
         else if (roll > 0.835f) type = TargetType.DECOY;
-        else if (roll > 0.825f) type = TargetType.HEART;
-        else if (roll > 0.815f) type = TargetType.TIME;
+        else if (roll > 0.828f) type = TargetType.HEART;
+        else if (roll > 0.824f) type = TargetType.TIME;
 
         float radius = (type == TargetType.TIME ? 25f : type == TargetType.HEART ? 24f : 30f) * scale;
-        float side = MathUtils.randomBoolean() ? -1f : 1f;
-        float x = side < 0 ? radius + 8f : width - radius - 8f;
-        float minY = height * 0.24f;
-        float maxY = height * 0.72f;
-        if (MathUtils.random() < 0.35f) {
-            minY = height * 0.45f;
-            maxY = height * 0.84f;
+        float x;
+        float y;
+        float vx;
+        float vy;
+        boolean bottomLaunch = MathUtils.random() < 0.72f;
+        if (bottomLaunch) {
+            x = MathUtils.random(width * 0.13f, width * 0.87f);
+            y = height * 0.12f - radius;
+            vx = MathUtils.random(-112f, 112f) * scale;
+            vy = MathUtils.random(275f, 425f) * scale;
+        } else {
+            float side = MathUtils.randomBoolean() ? -1f : 1f;
+            x = side < 0 ? radius + 8f : width - radius - 8f;
+            y = MathUtils.random(height * 0.36f, height * 0.86f);
+            vx = -side * MathUtils.random(90f, 220f) * scale;
+            vy = MathUtils.random(35f, 155f) * scale;
         }
-        float y = MathUtils.random(minY, maxY);
-        float vx = -side * MathUtils.random(65f, 180f) * scale;
-        float vy = MathUtils.random(-16f, 72f) * scale;
-        float life = MathUtils.clamp(2.4f - gameLevelBefore * 0.012f, 1.45f, 2.35f);
-        if (type == TargetType.TIME || type == TargetType.HEART) life += 0.4f;
+        float life = bottomLaunch
+            ? MathUtils.clamp(3.15f - gameLevelBefore * 0.01f, 2.25f, 3.15f)
+            : MathUtils.clamp(2.25f - gameLevelBefore * 0.01f, 1.45f, 2.25f);
+        if (type == TargetType.TIME) life += 0.55f;
+        if (type == TargetType.HEART) life += 0.28f;
 
         Target target = obtainTarget();
         target.reset(type, x, y, vx, vy, radius, life);
