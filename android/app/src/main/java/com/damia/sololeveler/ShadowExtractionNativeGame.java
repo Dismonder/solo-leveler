@@ -140,6 +140,18 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private final List<Burst> bursts = new ArrayList<>();
     private final List<TrailPoint> trail = new ArrayList<>();
     private final GlyphLayout layout = new GlyphLayout();
+    private final Color colorBgDark = new Color(0.005f, 0.01f, 0.03f, 1f);
+    private final Color colorPanel = new Color(0.02f, 0.055f, 0.09f, 0.92f);
+    private final Color colorTextStrong = new Color(0.94f, 0.98f, 1f, 1f);
+    private final Color colorMuted = new Color(0.62f, 0.70f, 0.82f, 1f);
+    private final Color colorAccent = new Color(0.09f, 0.78f, 0.88f, 1f);
+    private final Color colorCyan = new Color(0.20f, 0.92f, 1f, 1f);
+    private final Color colorGold = new Color(1f, 0.72f, 0.12f, 1f);
+    private final Color colorDanger = new Color(0.72f, 0.12f, 0.18f, 1f);
+    private final Color colorSuccess = new Color(0.20f, 0.95f, 0.58f, 1f);
+    private final Color colorViolet = new Color(0.62f, 0.26f, 1f, 1f);
+    private final Color colorDecoy = new Color(0.8f, 0.16f, 0.2f, 1f);
+    private final Color colorProgressTrack = new Color(0.0f, 0.0f, 0.0f, 0.52f);
 
     private ShapeRenderer shapes;
     private SpriteBatch batch;
@@ -241,6 +253,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         shadowTexture = loadTexture("native-game/shadow-wraith.png");
         decoyTexture = loadTexture("native-game/shadow-decoy.png");
         heartTexture = loadTexture("native-game/heart-relic.png");
+        Gdx.input.setCatchKey(Input.Keys.BACK, true);
         resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         host.setNativeState("miniGame");
     }
@@ -1043,52 +1056,52 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (type == TargetType.BOMB) return danger();
         if (type == TargetType.HEART) return success();
         if (type == TargetType.TIME) return violet();
-        if (type == TargetType.DECOY) return new Color(0.8f, 0.16f, 0.2f, 1f);
+        if (type == TargetType.DECOY) return colorDecoy;
         return cyan();
     }
 
     private Color bgDark() {
-        return new Color(0.005f, 0.01f, 0.03f, 1f);
+        return colorBgDark;
     }
 
     private Color panel() {
-        return new Color(0.02f, 0.055f, 0.09f, 0.92f);
+        return colorPanel;
     }
 
     private Color textStrong() {
-        return new Color(0.94f, 0.98f, 1f, 1f);
+        return colorTextStrong;
     }
 
     private Color muted() {
-        return new Color(0.62f, 0.70f, 0.82f, 1f);
+        return colorMuted;
     }
 
     private Color accent() {
-        return new Color(0.09f, 0.78f, 0.88f, 1f);
+        return colorAccent;
     }
 
     private Color cyan() {
-        return new Color(0.20f, 0.92f, 1f, 1f);
+        return colorCyan;
     }
 
     private Color gold() {
-        return new Color(1f, 0.72f, 0.12f, 1f);
+        return colorGold;
     }
 
     private Color danger() {
-        return new Color(0.72f, 0.12f, 0.18f, 1f);
+        return colorDanger;
     }
 
     private Color success() {
-        return new Color(0.20f, 0.95f, 0.58f, 1f);
+        return colorSuccess;
     }
 
     private Color violet() {
-        return new Color(0.62f, 0.26f, 1f, 1f);
+        return colorViolet;
     }
 
     private Color progressTrack() {
-        return new Color(0.0f, 0.0f, 0.0f, 0.52f);
+        return colorProgressTrack;
     }
 
     @Override
