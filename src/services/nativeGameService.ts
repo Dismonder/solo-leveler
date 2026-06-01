@@ -18,6 +18,7 @@ export type NativeGameLaunchOptions = {
   targetLifetimeBonusMs?: number;
   hitWindowBonus?: number;
   timePenaltyResist?: number;
+  selectedEffectId?: string;
   selectedEffectName?: string;
   showGrid?: boolean;
 };
@@ -29,6 +30,7 @@ export type NativeGameRuntimeBonuses = Pick<
   | "targetLifetimeBonusMs"
   | "hitWindowBonus"
   | "timePenaltyResist"
+  | "selectedEffectId"
   | "selectedEffectName"
   | "showGrid"
 >;
@@ -71,6 +73,7 @@ export type NativeMiniGameResult = {
   targetLifetimeBonusMs?: number;
   hitWindowBonus?: number;
   timePenaltyResist?: number;
+  selectedEffectId?: string;
   selectedEffectName?: string;
   fpsLast?: number;
   fpsAverage?: number;
@@ -129,6 +132,7 @@ export function createNativeGameLaunchOptions(
     targetLifetimeBonusMs: runtime.targetLifetimeBonusMs ?? 0,
     hitWindowBonus: runtime.hitWindowBonus ?? 0,
     timePenaltyResist: runtime.timePenaltyResist ?? 0,
+    selectedEffectId: runtime.selectedEffectId ?? "system-aura",
     selectedEffectName: runtime.selectedEffectName ?? "Aura Systemu",
     showGrid: Boolean(runtime.showGrid),
   };

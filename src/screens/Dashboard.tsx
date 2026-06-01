@@ -953,6 +953,7 @@ export function Dashboard() {
         targetLifetimeBonusMs: Math.min(520, relicBonuses.targetLifetime + shopBonuses.targetLifetime),
         hitWindowBonus: Math.min(0.12, relicBonuses.hitWindow + shopBonuses.hitWindow),
         timePenaltyResist: Math.min(0.18, relicBonuses.timePenaltyResist + shopBonuses.timePenaltyResist),
+        selectedEffectId: selectedEffect.id,
         selectedEffectName: selectedEffect.name,
         showGrid: Boolean(normalizeMiniGameGridSettings(player.settings.miniGameGridByGame)[gameId]),
       });

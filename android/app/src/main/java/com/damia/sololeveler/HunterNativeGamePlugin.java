@@ -50,6 +50,7 @@ public class HunterNativeGamePlugin extends Plugin {
                 intent.putExtra("targetLifetimeBonusMs", call.getDouble("targetLifetimeBonusMs", 0.0));
                 intent.putExtra("hitWindowBonus", call.getDouble("hitWindowBonus", 0.0));
                 intent.putExtra("timePenaltyResist", call.getDouble("timePenaltyResist", 0.0));
+                intent.putExtra("selectedEffectId", call.getString("selectedEffectId", "system-aura"));
                 intent.putExtra("selectedEffectName", call.getString("selectedEffectName", "Aura Systemu"));
                 intent.putExtra("showGrid", call.getBoolean("showGrid", false));
                 activity.startActivity(intent);

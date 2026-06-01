@@ -47,6 +47,7 @@ test("native launch payload carries current player and mini-game state", () => {
     targetLifetimeBonusMs: 0,
     hitWindowBonus: 0,
     timePenaltyResist: 0,
+    selectedEffectId: "system-aura",
     selectedEffectName: "Aura Systemu",
     showGrid: false,
   });
@@ -59,6 +60,7 @@ test("native launch payload carries runtime shop and relic bonuses", () => {
     targetLifetimeBonusMs: 420,
     hitWindowBonus: 0.09,
     timePenaltyResist: 0.14,
+    selectedEffectId: "monarch-runes",
     selectedEffectName: "Runy Monarchii",
     showGrid: true,
   });
@@ -68,6 +70,7 @@ test("native launch payload carries runtime shop and relic bonuses", () => {
   assert.equal(payload.targetLifetimeBonusMs, 420);
   assert.equal(payload.hitWindowBonus, 0.09);
   assert.equal(payload.timePenaltyResist, 0.14);
+  assert.equal(payload.selectedEffectId, "monarch-runes");
   assert.equal(payload.selectedEffectName, "Runy Monarchii");
   assert.equal(payload.showGrid, true);
 });

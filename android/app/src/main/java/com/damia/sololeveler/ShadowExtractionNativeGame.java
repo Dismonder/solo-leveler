@@ -42,6 +42,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         float getTargetLifetimeBonusMs();
         float getHitWindowBonus();
         float getTimePenaltyResist();
+        String getSelectedEffectId();
         String getSelectedEffectName();
         boolean shouldShowGrid();
         void setNativeState(String state);
@@ -209,6 +210,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private String resultNote = "";
     private String tip = "Tnij dlugim gestem przez srodek cienia.";
     private String graphicsQuality = "balanced";
+    private String selectedEffectId = "system-aura";
     private String selectedEffectName = "Aura Systemu";
     private float xpMultiplier = 1f;
     private float scoreBonus = 0f;
@@ -272,8 +274,11 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         targetLifetimeBonusMs = MathUtils.clamp(host.getTargetLifetimeBonusMs(), 0f, 520f);
         hitWindowBonus = MathUtils.clamp(host.getHitWindowBonus(), 0f, 0.12f);
         timePenaltyResist = MathUtils.clamp(host.getTimePenaltyResist(), 0f, 0.18f);
+        selectedEffectId = host.getSelectedEffectId();
+        if (selectedEffectId == null || selectedEffectId.isEmpty()) selectedEffectId = "system-aura";
         selectedEffectName = host.getSelectedEffectName();
         if (selectedEffectName == null || selectedEffectName.isEmpty()) selectedEffectName = "Aura Systemu";
+        applySelectedEffectPalette();
         showGrid = host.shouldShowGrid();
         backgroundTexture = loadTexture("native-game/shadow-extraction-bg.jpg");
         shadowTexture = loadTexture("native-game/shadow-wraith.png");
@@ -577,6 +582,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             result.put("targetLifetimeBonusMs", Math.round(targetLifetimeBonusMs));
             result.put("hitWindowBonus", Math.round(hitWindowBonus * 1000f) / 1000f);
             result.put("timePenaltyResist", Math.round(timePenaltyResist * 1000f) / 1000f);
+            result.put("selectedEffectId", selectedEffectId);
             result.put("selectedEffectName", selectedEffectName);
             result.put("fpsLast", Math.round(fpsCurrent * 10f) / 10f);
             result.put("fpsAverage", Math.round(fpsAverage * 10f) / 10f);
@@ -794,7 +800,38 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             float cx = width * (0.12f + i * 0.14f) + MathUtils.sin(elapsed * 0.18f + i) * 14f;
             shapes.circle(cx, height * 0.48f + MathUtils.cos(elapsed * 0.12f + i) * 28f, 80f * scale + i * 9f);
         }
+        drawEffectAmbient();
         if (showGrid) drawOptionalGrid();
+    }
+
+    private void drawEffectAmbient() {
+        if ("monarch-runes".equals(selectedEffectId)) {
+            shapes.setColor(accent().r, accent().g, accent().b, 0.12f);
+            for (int i = 0; i < 9; i++) {
+                float x = width * (0.08f + i * 0.105f);
+                float y = (height + (elapsed * 46f + i * 91f) % (height + 160f)) - 150f;
+                shapes.rect(x, y, 2f * scale, 70f * scale);
+                shapes.rect(x - 9f * scale, y + 16f * scale, 20f * scale, 2f * scale);
+                shapes.rect(x - 6f * scale, y + 42f * scale, 14f * scale, 2f * scale);
+            }
+        } else if ("void-pulse".equals(selectedEffectId)) {
+            shapes.setColor(accent().r, accent().g, accent().b, 0.10f + MathUtils.sin(elapsed * 1.4f) * 0.04f);
+            shapes.circle(width * 0.5f, height * 0.48f, (210f + MathUtils.sin(elapsed * 1.8f) * 34f) * scale);
+        } else if ("gold-trace".equals(selectedEffectId)) {
+            shapes.setColor(1f, 0.72f, 0.12f, 0.10f);
+            for (int i = 0; i < 6; i++) {
+                float y = height * (0.18f + i * 0.12f);
+                float x = (elapsed * 76f + i * 145f) % (width + 180f) - 90f;
+                shapes.rectLine(x, y, x + 78f * scale, y + 18f * scale, 2.4f * scale);
+            }
+        } else if ("blood-sparks".equals(selectedEffectId)) {
+            shapes.setColor(0.96f, 0.20f, 0.32f, 0.08f);
+            for (int i = 0; i < 7; i++) {
+                float x = width * (0.12f + i * 0.13f);
+                float y = height * (0.22f + 0.58f * MathUtils.sin((elapsed * 0.6f + i) % 1f));
+                shapes.circle(x, y, (12f + i * 2f) * scale);
+            }
+        }
     }
 
     private void drawOptionalGrid() {
@@ -1290,6 +1327,25 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private String normalizeGraphicsQuality(String value) {
         if ("performance".equals(value) || "cinematic".equals(value)) return value;
         return "balanced";
+    }
+
+    private void applySelectedEffectPalette() {
+        if ("monarch-runes".equals(selectedEffectId)) {
+            colorAccent.set(0.64f, 0.42f, 1f, 1f);
+            colorCyan.set(0.64f, 0.42f, 1f, 1f);
+        } else if ("blood-sparks".equals(selectedEffectId)) {
+            colorAccent.set(0.96f, 0.20f, 0.32f, 1f);
+            colorCyan.set(0.96f, 0.20f, 0.32f, 1f);
+        } else if ("gold-trace".equals(selectedEffectId)) {
+            colorAccent.set(1f, 0.72f, 0.12f, 1f);
+            colorCyan.set(1f, 0.72f, 0.12f, 1f);
+        } else if ("void-pulse".equals(selectedEffectId)) {
+            colorAccent.set(0.18f, 0.68f, 1f, 1f);
+            colorCyan.set(0.18f, 0.68f, 1f, 1f);
+        } else {
+            colorAccent.set(0.09f, 0.78f, 0.88f, 1f);
+            colorCyan.set(0.20f, 0.92f, 1f, 1f);
+        }
     }
 
     private float smooth(float t) {

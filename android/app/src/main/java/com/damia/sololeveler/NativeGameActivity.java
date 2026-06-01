@@ -40,6 +40,7 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     private float targetLifetimeBonusMs;
     private float hitWindowBonus;
     private float timePenaltyResist;
+    private String selectedEffectId;
     private String selectedEffectName;
     private boolean showGrid;
     private Thread.UncaughtExceptionHandler previousNativeCrashHandler;
@@ -79,6 +80,10 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
         targetLifetimeBonusMs = clampFloat((float) getIntent().getDoubleExtra("targetLifetimeBonusMs", 0.0), 0f, 520f);
         hitWindowBonus = clampFloat((float) getIntent().getDoubleExtra("hitWindowBonus", 0.0), 0f, 0.12f);
         timePenaltyResist = clampFloat((float) getIntent().getDoubleExtra("timePenaltyResist", 0.0), 0f, 0.18f);
+        selectedEffectId = getIntent().getStringExtra("selectedEffectId");
+        if (selectedEffectId == null || selectedEffectId.isEmpty()) {
+            selectedEffectId = "system-aura";
+        }
         selectedEffectName = getIntent().getStringExtra("selectedEffectName");
         if (selectedEffectName == null || selectedEffectName.isEmpty()) {
             selectedEffectName = "Aura Systemu";
@@ -232,6 +237,11 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     @Override
     public float getTimePenaltyResist() {
         return timePenaltyResist;
+    }
+
+    @Override
+    public String getSelectedEffectId() {
+        return selectedEffectId;
     }
 
     @Override
