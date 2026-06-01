@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -140,6 +141,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private SpriteBatch batch;
     private BitmapFont font;
     private OrthographicCamera camera;
+    private Texture backgroundTexture;
+    private Texture shadowTexture;
+    private Texture decoyTexture;
+    private Texture heartTexture;
     private Phase phase = Phase.READY;
 
     private float width;
@@ -181,6 +186,16 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         this.host = host;
     }
 
+    private Texture loadTexture(String path) {
+        try {
+            Texture texture = new Texture(Gdx.files.internal(path));
+            texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+            return texture;
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
     @Override
     public void create() {
         shapes = new ShapeRenderer();
@@ -191,6 +206,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             com.badlogic.gdx.graphics.Texture.TextureFilter.Linear
         );
         camera = new OrthographicCamera();
+        backgroundTexture = loadTexture("native-game/shadow-extraction-bg.jpg");
+        shadowTexture = loadTexture("native-game/shadow-wraith.png");
+        decoyTexture = loadTexture("native-game/shadow-decoy.png");
+        heartTexture = loadTexture("native-game/heart-relic.png");
         resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         host.setNativeState("miniGame");
     }
@@ -216,10 +235,25 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         Gdx.gl.glClearColor(0.008f, 0.016f, 0.038f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        batch.begin();
+        drawBackgroundTexture();
+        batch.end();
+
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         drawBackground();
         if (phase == Phase.RUNNING || phase == Phase.PAUSED) {
             drawTargets();
+        }
+        shapes.end();
+
+        batch.begin();
+        if (phase == Phase.RUNNING || phase == Phase.PAUSED) {
+            drawTargetSprites();
+        }
+        batch.end();
+
+        shapes.begin(ShapeRenderer.ShapeType.Filled);
+        if (phase == Phase.RUNNING || phase == Phase.PAUSED) {
             drawTrail();
             drawBursts();
         }
@@ -407,11 +441,12 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         }
 
         goldAfter = goldBefore + goldReward;
-        hpAfter = hpBefore;
-        hpDelta = 0;
+        hpAfter = Math.max(0, Math.min(host.getBaseHp(), host.getHp()));
+        hpDelta = hpAfter - hpBefore;
         if (!won && score < minScore) {
-            hpDelta = -Math.max(10, Math.round(host.getBaseHp() * 0.04f));
-            hpAfter = Math.max(0, hpBefore + hpDelta);
+            int loss = Math.max(10, Math.round(host.getBaseHp() * 0.04f));
+            hpAfter = Math.max(0, hpAfter - loss);
+            hpDelta = hpAfter - hpBefore;
             resultNote = "Za niski wynik. System zabral HP.";
         } else {
             resultNote = won ? "Proba zaliczona. Poziom symulacji wzrosl." : "Proba zakonczona bez awansu.";
@@ -549,7 +584,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             addBurst(target.x, target.y, danger(), true);
         } else if (target.type == TargetType.HEART) {
             int restore = Math.max(1, Math.round(host.getBaseHp() * 0.05f));
-            hpAfter = Math.min(host.getBaseHp(), host.getHp() + restore);
+            hpAfter = Math.min(host.getBaseHp(), Math.max(0, host.getHp()) + restore);
             host.setHp(hpAfter);
             addBurst(target.x, target.y, success(), false);
         } else if (target.type == TargetType.TIME) {
@@ -604,19 +639,32 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void drawBackground() {
-        shapes.setColor(bgDark());
-        shapes.rect(0, 0, width, height);
-        shapes.setColor(0.02f, 0.13f, 0.19f, 0.72f);
+        if (backgroundTexture == null) {
+            shapes.setColor(bgDark());
+            shapes.rect(0, 0, width, height);
+        }
+        shapes.setColor(0.01f, 0.03f, 0.08f, backgroundTexture == null ? 0.68f : 0.58f);
         shapes.rect(0, 0, width, height);
         shapes.setColor(0.18f, 0.06f, 0.38f, 0.18f);
         for (int i = 0; i < 7; i++) {
             float cx = width * (0.12f + i * 0.14f) + MathUtils.sin(elapsed * 0.18f + i) * 14f;
             shapes.circle(cx, height * 0.48f + MathUtils.cos(elapsed * 0.12f + i) * 28f, 80f * scale + i * 9f);
         }
-        shapes.setColor(0.0f, 0.85f, 1f, 0.035f);
+        shapes.setColor(0.0f, 0.85f, 1f, 0.02f);
         float step = 62f * scale;
         for (float x = 0; x < width; x += step) shapes.rect(x, 0, 1f, height);
         for (float y = 0; y < height; y += step) shapes.rect(0, y, width, 1f);
+    }
+
+    private void drawBackgroundTexture() {
+        if (backgroundTexture == null) return;
+        float textureW = backgroundTexture.getWidth();
+        float textureH = backgroundTexture.getHeight();
+        float cover = Math.max(width / textureW, height / textureH);
+        float drawW = textureW * cover;
+        float drawH = textureH * cover;
+        batch.setColor(1f, 1f, 1f, 1f);
+        batch.draw(backgroundTexture, (width - drawW) / 2f, (height - drawH) / 2f, drawW, drawH);
     }
 
     private void drawTargets() {
@@ -653,6 +701,26 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
                 shapes.rect(target.x, target.y - target.radius * 0.04f, target.radius * 0.26f, target.radius * 0.08f);
             }
         }
+    }
+
+    private void drawTargetSprites() {
+        for (Target target : targets) {
+            if (!target.alive) continue;
+            Texture texture = textureForTarget(target.type);
+            if (texture == null) continue;
+            float size = target.radius * (target.type == TargetType.HEART ? 1.62f : 1.86f);
+            float alpha = target.type == TargetType.DECOY ? 0.62f : 0.92f;
+            batch.setColor(1f, 1f, 1f, alpha);
+            batch.draw(texture, target.x - size / 2f, target.y - size / 2f, size, size);
+        }
+        batch.setColor(Color.WHITE);
+    }
+
+    private Texture textureForTarget(TargetType type) {
+        if (type == TargetType.SHADOW) return shadowTexture;
+        if (type == TargetType.DECOY) return decoyTexture;
+        if (type == TargetType.HEART) return heartTexture;
+        return null;
     }
 
     private void drawTrail() {
@@ -926,5 +994,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (shapes != null) shapes.dispose();
         if (batch != null) batch.dispose();
         if (font != null) font.dispose();
+        if (backgroundTexture != null) backgroundTexture.dispose();
+        if (shadowTexture != null) shadowTexture.dispose();
+        if (decoyTexture != null) decoyTexture.dispose();
+        if (heartTexture != null) heartTexture.dispose();
     }
 }

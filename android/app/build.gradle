@@ -24,6 +24,7 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs += ["$buildDir/generated/libgdxNatives"]
+            assets.srcDirs += ["$buildDir/generated/nativeGameAssets"]
         }
     }
     buildTypes {
@@ -66,7 +67,35 @@ tasks.register('copyLibgdxNatives') {
     }
 }
 
-preBuild.dependsOn(copyLibgdxNatives)
+tasks.register('copyNativeGameAssets') {
+    def outputDir = file("$buildDir/generated/nativeGameAssets/native-game")
+    outputs.dir(outputDir)
+    doLast {
+        delete(outputDir)
+        copy {
+            from("../../src/assets/backgrounds/mini-games/01-solo-gate-purple.jpg")
+            into(outputDir)
+            rename { "shadow-extraction-bg.jpg" }
+        }
+        copy {
+            from("../../src/assets/models/monster-abyss-mage-wraith.png")
+            into(outputDir)
+            rename { "shadow-wraith.png" }
+        }
+        copy {
+            from("../../src/assets/models/monster-shadow-spike-wolf.png")
+            into(outputDir)
+            rename { "shadow-decoy.png" }
+        }
+        copy {
+            from("../../src/assets/models/relic-monarch-heart.png")
+            into(outputDir)
+            rename { "heart-relic.png" }
+        }
+    }
+}
+
+preBuild.dependsOn(copyLibgdxNatives, copyNativeGameAssets)
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')

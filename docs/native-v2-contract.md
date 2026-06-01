@@ -38,8 +38,10 @@ V2 ma odtworzyc bazowa aplikacje 1:1 funkcjonalnie i wizualnie:
 - `Ekstrakcja Cienia` ma natywna aktywnosc `NativeGameActivity`, bridge `HunterNativeGamePlugin` i fallback do webowego runtime.
 - Natywna scena ma stan `ready/running/pause/result`, przycisk `X` przed startem, `STOP` tylko w rundzie, hitboxy ciecia, zloto, bomby, rzadkie serce HP i rzadki bonus czasu.
 - Wynik rundy natywnej jest zapisywany jako `MiniGameResult` w bridge i konsumowany po powrocie do Reacta, z aktualizacja XP, golda, HP, rekordu, levelu mini-gry i lootem.
-- `npm run lint`, `npm test -- --run`, `npm run build` i `npm run android:build` przechodza po podlaczeniu libGDX.
-- Instalacja V2 na Xiaomi jest aktualnie blokowana przez system telefonu: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`. APK buduje sie poprawnie jako `android/app/build/outputs/apk/debug/app-debug.apk`.
+- Natywna `Ekstrakcja Cienia` uzywa selektywnie kopiowanych assetow z bazowej aplikacji: tlo areny, wraith, decoy i relikt serca. Assety trafiaja do APK przez task `copyNativeGameAssets`, bez kopiowania calego katalogu.
+- Rozliczenie wyniku natywnego jest wydzielone do testowalnego helpera `applyNativeMiniGameSettlement`, z testem loot/progress/HP.
+- `npm run lint`, `npm test -- --run`, `npm run build` i `npm run android:build` przechodza po podlaczeniu libGDX i assetow.
+- Instalacja V2 na Xiaomi jest aktualnie blokowana przez system telefonu: `INSTALL_FAILED_USER_RESTRICTED: Install canceled by user`. Potwierdzone przez `adb install` oraz `pm install` po pushu APK do `/data/local/tmp`. APK buduje sie poprawnie jako `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Warunki akceptacji
 

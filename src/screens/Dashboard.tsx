@@ -49,10 +49,9 @@ import type { ExerciseCatalogEntry } from "../data/exerciseCatalog";
 import { QUEST_TARGETS } from "../game/gameConfig";
 import {
   createDefaultMiniGameProgress,
-  getMiniGameLootChance,
-  getMiniGameRewardMultiplier,
   type MiniGameId,
 } from "../game/miniGameProgress";
+import { applyNativeMiniGameSettlement } from "../game/nativeMiniGameSettlement";
 import { MINI_GAME_CATALOG } from "../game/miniGameCatalog";
 import {
   formatResetCountdown,
@@ -500,46 +499,7 @@ export function Dashboard() {
     if (!player || result.gameId !== "shadow-extraction") return;
 
     const today = getLocalDateKey();
-    const currentProgress = player.miniGames["shadow-extraction"] || createDefaultMiniGameProgress("shadow-extraction");
-    const nextLevel = Math.max(1, Math.floor(result.nextGameLevel || currentProgress.level));
-    const nextWinStreak = result.won ? currentProgress.winStreak + 1 : 0;
-    const lootRarity: Equipment["rarity"] =
-      nextLevel >= 50 ? "legendary" : nextLevel >= 35 ? "epic" : nextLevel >= 15 ? "rare" : "common";
-    const loot: Equipment | null = result.lootName
-      ? {
-          id: `native_${result.id}`,
-          name: result.lootName,
-          type: "artifact",
-          rarity: lootRarity,
-          bonusType: "SENSE",
-          bonusValue: Math.max(1, Math.floor(nextLevel / 8) + 1),
-          durability: 100,
-          maxDurability: 100,
-        }
-      : null;
-
-    void setPlayer({
-      ...player,
-      level: Math.max(1, result.playerLevelAfter || player.level),
-      xp: Math.max(0, result.playerXpAfter ?? player.xp),
-      gold: Math.max(0, result.goldAfter ?? player.gold),
-      hp: Math.max(0, Math.min(player.maxHp, result.hpAfter ?? player.hp)),
-      inventory: loot ? [...player.inventory, loot] : player.inventory,
-      miniGames: {
-        ...player.miniGames,
-        "shadow-extraction": {
-          ...currentProgress,
-          level: nextLevel,
-          wins: currentProgress.wins + (result.won ? 1 : 0),
-          losses: currentProgress.losses + (result.won ? 0 : 1),
-          bestScore: Math.max(currentProgress.bestScore, Math.floor(result.score || 0)),
-          winStreak: nextWinStreak,
-          lastPlayedDate: today,
-          rewardMultiplier: getMiniGameRewardMultiplier(nextLevel, nextWinStreak),
-          lootChance: getMiniGameLootChance(nextLevel, nextWinStreak),
-        },
-      },
-    });
+    void setPlayer(applyNativeMiniGameSettlement(player, result, today));
   }, [player, setPlayer]);
 
   useEffect(() => {
