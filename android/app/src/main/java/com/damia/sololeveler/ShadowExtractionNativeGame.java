@@ -16,7 +16,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONObject;
@@ -106,13 +105,14 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         float y;
         float age;
         float life;
-        Color color;
+        final Color color = new Color();
         boolean bomb;
 
-        Burst(float x, float y, Color color, boolean bomb) {
+        void reset(float x, float y, Color color, boolean bomb) {
             this.x = x;
             this.y = y;
-            this.color = new Color(color);
+            this.age = 0f;
+            this.color.set(color);
             this.bomb = bomb;
             this.life = bomb ? 0.52f : 0.34f;
         }
@@ -123,9 +123,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         float y;
         float age;
 
-        TrailPoint(float x, float y) {
+        void reset(float x, float y) {
             this.x = x;
             this.y = y;
+            this.age = 0f;
         }
     }
 
@@ -137,8 +138,11 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private final Button continueButton = new Button();
     private final Button pauseExitButton = new Button();
     private final List<Target> targets = new ArrayList<>();
+    private final List<Target> targetPool = new ArrayList<>();
     private final List<Burst> bursts = new ArrayList<>();
+    private final List<Burst> burstPool = new ArrayList<>();
     private final List<TrailPoint> trail = new ArrayList<>();
+    private final List<TrailPoint> trailPool = new ArrayList<>();
     private final GlyphLayout layout = new GlyphLayout();
     private final Color colorBgDark = new Color(0.005f, 0.01f, 0.03f, 1f);
     private final Color colorPanel = new Color(0.02f, 0.055f, 0.09f, 0.92f);
@@ -450,9 +454,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         newBest = false;
         lootName = "";
         resultNote = "";
-        targets.clear();
-        bursts.clear();
-        trail.clear();
+        recycleActiveTargets();
+        recycleActiveBursts();
+        recycleActiveTrail();
         resultTimer = 0f;
         roundDuration = MathUtils.clamp(31f + gameLevelBefore * 0.25f, 32f, 46f);
         roundTime = roundDuration;
@@ -591,18 +595,18 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private Target obtainTarget() {
-        for (Target target : targets) {
-            if (!target.alive) return target;
-        }
-        Target target = new Target();
+        Target target = targetPool.isEmpty() ? new Target() : targetPool.remove(targetPool.size() - 1);
         targets.add(target);
         return target;
     }
 
     private void compactTargets() {
-        Iterator<Target> iterator = targets.iterator();
-        while (iterator.hasNext()) {
-            if (!iterator.next().alive) iterator.remove();
+        for (int i = targets.size() - 1; i >= 0; i--) {
+            Target target = targets.get(i);
+            if (!target.alive) {
+                targets.remove(i);
+                if (targetPool.size() < 36) targetPool.add(target);
+            }
         }
     }
 
@@ -660,33 +664,65 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void addTrail(float x, float y) {
-        trail.add(new TrailPoint(x, y));
+        TrailPoint point = trailPool.isEmpty() ? new TrailPoint() : trailPool.remove(trailPool.size() - 1);
+        point.reset(x, y);
+        trail.add(point);
         int trailLimit = "performance".equals(graphicsQuality) ? 12 : "cinematic".equals(graphicsQuality) ? 24 : 18;
-        while (trail.size() > trailLimit) trail.remove(0);
+        while (trail.size() > trailLimit) recycleTrailAt(0);
     }
 
     private void updateTrail(float delta) {
-        Iterator<TrailPoint> iterator = trail.iterator();
-        while (iterator.hasNext()) {
-            TrailPoint point = iterator.next();
+        for (int i = trail.size() - 1; i >= 0; i--) {
+            TrailPoint point = trail.get(i);
             point.age += delta;
-            if (point.age > 0.28f) iterator.remove();
+            if (point.age > 0.28f) recycleTrailAt(i);
         }
     }
 
     private void addBurst(float x, float y, Color color, boolean bomb) {
-        bursts.add(new Burst(x, y, color, bomb));
+        Burst burst = burstPool.isEmpty() ? new Burst() : burstPool.remove(burstPool.size() - 1);
+        burst.reset(x, y, color, bomb);
+        bursts.add(burst);
         int burstLimit = "performance".equals(graphicsQuality) ? 7 : "cinematic".equals(graphicsQuality) ? 14 : 10;
-        while (bursts.size() > burstLimit) bursts.remove(0);
+        while (bursts.size() > burstLimit) recycleBurstAt(0);
     }
 
     private void updateBursts(float delta) {
-        Iterator<Burst> iterator = bursts.iterator();
-        while (iterator.hasNext()) {
-            Burst burst = iterator.next();
+        for (int i = bursts.size() - 1; i >= 0; i--) {
+            Burst burst = bursts.get(i);
             burst.age += delta;
-            if (burst.age > burst.life) iterator.remove();
+            if (burst.age > burst.life) recycleBurstAt(i);
         }
+    }
+
+    private void recycleActiveTargets() {
+        for (int i = targets.size() - 1; i >= 0; i--) {
+            Target target = targets.remove(i);
+            target.alive = false;
+            if (targetPool.size() < 36) targetPool.add(target);
+        }
+    }
+
+    private void recycleActiveBursts() {
+        for (int i = bursts.size() - 1; i >= 0; i--) {
+            recycleBurstAt(i);
+        }
+    }
+
+    private void recycleActiveTrail() {
+        for (int i = trail.size() - 1; i >= 0; i--) {
+            recycleTrailAt(i);
+        }
+    }
+
+    private void recycleBurstAt(int index) {
+        Burst burst = bursts.remove(index);
+        if (burstPool.size() < 28) burstPool.add(burst);
+    }
+
+    private void recycleTrailAt(int index) {
+        TrailPoint point = trail.remove(index);
+        if (trailPool.size() < 48) trailPool.add(point);
     }
 
     private void drawBackground() {
