@@ -36,6 +36,8 @@ public class HunterNativeGamePlugin extends Plugin {
                 HunterPerformancePlugin.applyNativeGameState(activity, "loading");
                 Intent intent = new Intent(activity, NativeGameActivity.class);
                 intent.putExtra("gameId", gameId);
+                intent.putExtra("fpsOverlayEnabled", call.getBoolean("fpsOverlayEnabled", false));
+                intent.putExtra("graphicsQuality", call.getString("graphicsQuality", "balanced"));
                 activity.startActivity(intent);
 
                 JSObject result = new JSObject();

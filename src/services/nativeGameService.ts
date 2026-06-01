@@ -11,6 +11,8 @@ type NativeGameLaunchOptions = {
   baseHp?: number;
   playerLevel?: number;
   playerXp?: number;
+  fpsOverlayEnabled?: boolean;
+  graphicsQuality?: PlayerState["settings"]["graphicsQuality"];
 };
 
 type HunterNativeGamePlugin = {
@@ -69,6 +71,8 @@ export async function launchNativeMiniGame(gameId: MiniGameId, player: PlayerSta
       baseHp: player.maxHp,
       playerLevel: player.level,
       playerXp: player.xp,
+      fpsOverlayEnabled: Boolean(player.settings.fpsOverlayEnabled),
+      graphicsQuality: player.settings.graphicsQuality ?? "balanced",
     });
     return Boolean(launched.launched);
   } catch {

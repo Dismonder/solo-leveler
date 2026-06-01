@@ -34,6 +34,8 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         void setPlayerLevel(int level);
         int getPlayerXp();
         void setPlayerXp(int xp);
+        boolean shouldShowFpsOverlay();
+        String getGraphicsQuality();
         void setNativeState(String state);
         void saveRoundResult(String resultJson);
         void exitGame();
@@ -181,6 +183,15 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     private String lootName = "";
     private String resultNote = "";
     private String tip = "Tnij dlugim gestem przez srodek cienia.";
+    private String graphicsQuality = "balanced";
+    private boolean fpsOverlayEnabled;
+    private float fpsSampleTimer;
+    private int fpsSampleFrames;
+    private float fpsCurrent;
+    private float fpsAverage;
+    private float fpsMin = 999f;
+    private float fpsFrameMs;
+    private int fpsSampleCount;
 
     public ShadowExtractionNativeGame(Host host) {
         this.host = host;
@@ -206,6 +217,8 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             com.badlogic.gdx.graphics.Texture.TextureFilter.Linear
         );
         camera = new OrthographicCamera();
+        fpsOverlayEnabled = host.shouldShowFpsOverlay();
+        graphicsQuality = normalizeGraphicsQuality(host.getGraphicsQuality());
         backgroundTexture = loadTexture("native-game/shadow-extraction-bg.jpg");
         shadowTexture = loadTexture("native-game/shadow-wraith.png");
         decoyTexture = loadTexture("native-game/shadow-decoy.png");
@@ -228,7 +241,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     @Override
     public void render() {
-        float delta = Math.min(Gdx.graphics.getDeltaTime(), 1f / 30f);
+        float rawDelta = Math.max(0.0001f, Gdx.graphics.getDeltaTime());
+        float delta = Math.min(rawDelta, 1f / 30f);
+        updateFps(rawDelta);
         handleInput();
         update(delta);
 
@@ -264,6 +279,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (phase == Phase.RUNNING) drawHud(true);
         if (phase == Phase.PAUSED) drawPause();
         if (phase == Phase.RESULT) drawResult();
+        if (fpsOverlayEnabled) drawFpsOverlay();
         batch.end();
 
         shapes.begin(ShapeRenderer.ShapeType.Line);
@@ -512,7 +528,8 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void spawnTarget() {
-        if (targets.size() > 12) return;
+        int targetLimit = "performance".equals(graphicsQuality) ? 9 : "cinematic".equals(graphicsQuality) ? 15 : 12;
+        if (targets.size() > targetLimit) return;
 
         TargetType type = TargetType.SHADOW;
         float roll = MathUtils.random();
@@ -612,7 +629,8 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private void addTrail(float x, float y) {
         trail.add(new TrailPoint(x, y));
-        while (trail.size() > 18) trail.remove(0);
+        int trailLimit = "performance".equals(graphicsQuality) ? 12 : "cinematic".equals(graphicsQuality) ? 24 : 18;
+        while (trail.size() > trailLimit) trail.remove(0);
     }
 
     private void updateTrail(float delta) {
@@ -626,7 +644,8 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
 
     private void addBurst(float x, float y, Color color, boolean bomb) {
         bursts.add(new Burst(x, y, color, bomb));
-        while (bursts.size() > 10) bursts.remove(0);
+        int burstLimit = "performance".equals(graphicsQuality) ? 7 : "cinematic".equals(graphicsQuality) ? 14 : 10;
+        while (bursts.size() > burstLimit) bursts.remove(0);
     }
 
     private void updateBursts(float delta) {
@@ -650,10 +669,6 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             float cx = width * (0.12f + i * 0.14f) + MathUtils.sin(elapsed * 0.18f + i) * 14f;
             shapes.circle(cx, height * 0.48f + MathUtils.cos(elapsed * 0.12f + i) * 28f, 80f * scale + i * 9f);
         }
-        shapes.setColor(0.0f, 0.85f, 1f, 0.02f);
-        float step = 62f * scale;
-        for (float x = 0; x < width; x += step) shapes.rect(x, 0, 1f, height);
-        for (float y = 0; y < height; y += step) shapes.rect(0, y, width, 1f);
     }
 
     private void drawBackgroundTexture() {
@@ -742,7 +757,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
             shapes.setColor(burst.color.r, burst.color.g, burst.color.b, alpha * 0.64f);
             float radius = (burst.bomb ? 92f : 50f) * scale * (0.25f + t);
             shapes.circle(burst.x, burst.y, radius);
-            int rays = burst.bomb ? 12 : 7;
+            int rays = "performance".equals(graphicsQuality) ? (burst.bomb ? 8 : 5) : "cinematic".equals(graphicsQuality) ? (burst.bomb ? 16 : 10) : (burst.bomb ? 12 : 7);
             shapes.setColor(burst.color.r, burst.color.g, burst.color.b, alpha);
             for (int i = 0; i < rays; i++) {
                 float angle = i * 360f / rays + t * 80f;
@@ -862,6 +877,40 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         drawFilledButton(exitButton, "WYJDZ", danger(), Color.WHITE);
     }
 
+    private void updateFps(float rawDelta) {
+        fpsFrameMs = rawDelta * 1000f;
+        fpsSampleTimer += rawDelta;
+        fpsSampleFrames += 1;
+        if (fpsSampleTimer < 0.25f) return;
+
+        fpsCurrent = fpsSampleFrames / fpsSampleTimer;
+        fpsMin = Math.min(fpsMin, fpsCurrent);
+        fpsSampleCount += 1;
+        fpsAverage += (fpsCurrent - fpsAverage) / Math.max(1, fpsSampleCount);
+        fpsSampleTimer = 0f;
+        fpsSampleFrames = 0;
+    }
+
+    private void drawFpsOverlay() {
+        float boxW = 156f * scale;
+        float boxH = 68f * scale;
+        float x = 16f * scale;
+        float y = 16f * scale;
+
+        batch.end();
+        shapes.begin(ShapeRenderer.ShapeType.Filled);
+        shapes.setColor(0f, 0.018f, 0.045f, 0.72f);
+        fillRoundRect(x, y, boxW, boxH, 14f * scale);
+        shapes.setColor(0f, 0.85f, 1f, 0.24f);
+        fillRoundRect(x, y + boxH - 3f * scale, boxW, 3f * scale, 2f * scale);
+        shapes.end();
+        batch.begin();
+
+        drawText("FPS " + Math.round(fpsCurrent), x + 10f * scale, y + boxH - 18f * scale, 0.48f * scale, accent(), true);
+        drawText("AVG " + Math.round(fpsAverage) + "  LOW " + Math.round(fpsMin == 999f ? fpsCurrent : fpsMin), x + 10f * scale, y + boxH - 38f * scale, 0.43f * scale, textStrong(), true);
+        drawText(Math.round(fpsFrameMs * 10f) / 10f + "MS  " + graphicsQuality.toUpperCase(), x + 10f * scale, y + boxH - 56f * scale, 0.38f * scale, muted(), true);
+    }
+
     private void layoutReadyButtons() {
         float w = Math.min(240f * scale, width * 0.36f);
         startButton.set(width / 2f - w / 2f, height * 0.19f, w, 52f * scale);
@@ -942,6 +991,11 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         if (index == 1) return "Bomby wygladaja kuszaco, ale resetuja tempo.";
         if (index == 2) return "Zloto tnij po drodze, nie gon za nim na sile.";
         return "Rzadki fioletowy zegar dodaje czas do rundy.";
+    }
+
+    private String normalizeGraphicsQuality(String value) {
+        if ("performance".equals(value) || "cinematic".equals(value)) return value;
+        return "balanced";
     }
 
     private float smooth(float t) {

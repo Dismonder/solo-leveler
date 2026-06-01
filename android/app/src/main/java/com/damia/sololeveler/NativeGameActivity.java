@@ -28,6 +28,8 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     private int playerBaseHp;
     private int playerLevel;
     private int playerXp;
+    private boolean fpsOverlayEnabled;
+    private String graphicsQuality;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,13 +54,24 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
         playerBaseHp = Math.max(1, getIntent().getIntExtra("baseHp", prefs.getInt(KEY_PLAYER_BASE_HP, Math.max(1, playerHp))));
         playerLevel = Math.max(1, getIntent().getIntExtra("playerLevel", prefs.getInt(KEY_PLAYER_LEVEL, 1)));
         playerXp = Math.max(0, getIntent().getIntExtra("playerXp", prefs.getInt(KEY_PLAYER_XP, 0)));
+        fpsOverlayEnabled = getIntent().getBooleanExtra("fpsOverlayEnabled", false);
+        graphicsQuality = getIntent().getStringExtra("graphicsQuality");
+        if (graphicsQuality == null || graphicsQuality.isEmpty()) {
+            graphicsQuality = "balanced";
+        }
 
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
         config.useAccelerometer = false;
         config.useCompass = false;
         config.useImmersiveMode = true;
         config.useWakelock = true;
-        config.numSamples = 2;
+        if ("cinematic".equals(graphicsQuality)) {
+            config.numSamples = 4;
+        } else if ("performance".equals(graphicsQuality)) {
+            config.numSamples = 0;
+        } else {
+            config.numSamples = 2;
+        }
         config.r = 8;
         config.g = 8;
         config.b = 8;
@@ -144,6 +157,16 @@ public class NativeGameActivity extends AndroidApplication implements ShadowExtr
     @Override
     public int getPlayerXp() {
         return playerXp;
+    }
+
+    @Override
+    public boolean shouldShowFpsOverlay() {
+        return fpsOverlayEnabled;
+    }
+
+    @Override
+    public String getGraphicsQuality() {
+        return graphicsQuality;
     }
 
     @Override
