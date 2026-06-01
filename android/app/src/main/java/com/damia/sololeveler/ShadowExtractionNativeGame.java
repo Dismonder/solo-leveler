@@ -774,9 +774,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(0f, 0f, 0f, 0.45f);
-        shapes.rect(barX, barY, barW, 5f * scale);
+        fillRoundRect(barX, barY, barW, 5f * scale, 2.5f * scale);
         shapes.setColor(accent());
-        shapes.rect(barX, barY, barW * progress, 5f * scale);
+        fillRoundRect(barX, barY, barW * progress, 5f * scale, 2.5f * scale);
         shapes.end();
         batch.begin();
     }
@@ -799,7 +799,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         shapes.setColor(0.0f, 0.01f, 0.04f, 0.72f);
         shapes.rect(0, 0, width, height);
         shapes.setColor(panel());
-        shapes.rect(x, y, modalW, modalH);
+        fillRoundRect(x, y, modalW, modalH, 26f * scale);
         shapes.end();
         batch.begin();
 
@@ -811,10 +811,10 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
     }
 
     private void drawResult() {
-        float progress = MathUtils.clamp(resultTimer / 2.2f, 0f, 1f);
+        float progress = MathUtils.clamp(resultTimer / 4.4f, 0f, 1f);
         int shownXp = playerXpBefore + Math.round((playerXpAfter - playerXpBefore) * smooth(progress));
         int shownGold = goldBefore + Math.round((goldAfter - goldBefore) * smooth(progress));
-        int shownLevel = progress < 0.82f ? playerLevelBefore : playerLevelAfter;
+        int shownLevel = progress < 0.78f ? playerLevelBefore : playerLevelAfter;
         int xpLimit = xpToNext(playerLevelAfter);
 
         drawCenteredTitle("RAPORT RUNDY", "Ekstrakcja Cienia", height * 0.78f);
@@ -826,9 +826,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(panel());
-        shapes.rect(cardX, cardY, cardW, cardH);
+        fillRoundRect(cardX, cardY, cardW, cardH, 24f * scale);
         shapes.setColor(0f, 0.85f, 1f, 0.12f);
-        shapes.rect(cardX, cardY + cardH - 5f * scale, cardW, 5f * scale);
+        fillRoundRect(cardX + 18f * scale, cardY + cardH - 7f * scale, cardW - 36f * scale, 4f * scale, 3f * scale);
         shapes.end();
         batch.begin();
 
@@ -844,9 +844,9 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(progressTrack());
-        shapes.rect(left, barY, barW, 8f * scale);
+        fillRoundRect(left, barY, barW, 8f * scale, 4f * scale);
         shapes.setColor(accent());
-        shapes.rect(left, barY, barW * MathUtils.clamp((float) shownXp / xpLimit, 0f, 1f), 8f * scale);
+        fillRoundRect(left, barY, barW * MathUtils.clamp((float) shownXp / xpLimit, 0f, 1f), 8f * scale, 4f * scale);
         shapes.end();
         batch.begin();
         drawText("+" + xpReward + " XP   " + shownXp + " / " + xpLimit, left, barY - 14f * scale, 0.58f * scale, muted(), true);
@@ -891,7 +891,7 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(fill);
-        shapes.rect(button.x, button.y, button.w, button.h);
+        fillRoundRect(button.x, button.y, button.w, button.h, 16f * scale);
         shapes.end();
         batch.begin();
         drawTextCentered(label, button.x + button.w / 2f, button.y + button.h / 2f - 7f * scale, 0.82f * scale, text, true);
@@ -901,10 +901,22 @@ public class ShadowExtractionNativeGame extends ApplicationAdapter {
         batch.end();
         shapes.begin(ShapeRenderer.ShapeType.Filled);
         shapes.setColor(0f, 0.02f, 0.06f, 0.74f);
-        shapes.rect(x, y, w, h);
+        fillRoundRect(x, y, w, h, 18f * scale);
         shapes.end();
         batch.begin();
         drawTextCentered(text, x + w / 2f, y + h / 2f - 6f * scale, 0.62f * scale, textStrong(), true);
+    }
+
+    private void fillRoundRect(float x, float y, float w, float h, float radius) {
+        if (w <= 0f || h <= 0f) return;
+        float r = MathUtils.clamp(radius, 0f, Math.min(w, h) / 2f);
+        shapes.rect(x + r, y, w - 2f * r, h);
+        shapes.rect(x, y + r, r, h - 2f * r);
+        shapes.rect(x + w - r, y + r, r, h - 2f * r);
+        shapes.circle(x + r, y + r, r);
+        shapes.circle(x + w - r, y + r, r);
+        shapes.circle(x + r, y + h - r, r);
+        shapes.circle(x + w - r, y + h - r, r);
     }
 
     private void drawCenteredTitle(String title, String subtitle, float y) {
