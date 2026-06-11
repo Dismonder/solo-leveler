@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { AnimatePresence, motion } from "motion/react";
@@ -2568,7 +2568,7 @@ function MiniGameStageEffectLayer({
   return <div className="pointer-events-none absolute inset-0 opacity-28" style={{ background: "radial-gradient(circle at 50% 50%, rgba(56,189,248,0.12), transparent 36%), radial-gradient(circle at 50% 50%, rgba(2,6,23,0.28), transparent 72%)" }} />;
 }
 
-function GameHud({
+const GameHud = memo(function GameHud({
   score,
   combo,
   remaining,
@@ -2604,9 +2604,9 @@ function GameHud({
       </span>
     </div>
   );
-}
+});
 
-function ShadowSliceToken({
+const ShadowSliceToken = memo(function ShadowSliceToken({
   object,
   graphicsQuality,
 }: {
@@ -2683,7 +2683,7 @@ function ShadowSliceToken({
       {object.kind === "time" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-cyan-100" />}
     </motion.div>
   );
-}
+});
 
 function SliceImpactLayer({
   effects,
@@ -2703,7 +2703,7 @@ function SliceImpactLayer({
   );
 }
 
-function SliceImpactBurst({
+const SliceImpactBurst = memo(function SliceImpactBurst({
   effect,
   graphicsQuality,
 }: {
@@ -2820,9 +2820,9 @@ function SliceImpactBurst({
       </motion.span>
     </motion.div>
   );
-}
+});
 
-function SlicedHalf({
+const SlicedHalf = memo(function SlicedHalf({
   asset,
   effect,
   side,
@@ -2857,9 +2857,9 @@ function SlicedHalf({
       )}
     </motion.div>
   );
-}
+});
 
-function ShadowExtractionChanceMeter({ remaining, signalPercent }: { remaining: number; signalPercent: number }) {
+const ShadowExtractionChanceMeter = memo(function ShadowExtractionChanceMeter({ remaining, signalPercent }: { remaining: number; signalPercent: number }) {
   return (
     <div
       className="pointer-events-none absolute z-30 w-[min(17rem,42vw)] rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] px-3 py-2 font-mono text-[9px] font-black uppercase tracking-widest text-[var(--theme-game-hud-text)] shadow-[0_0_20px_var(--theme-shadow)]"
@@ -2882,9 +2882,9 @@ function ShadowExtractionChanceMeter({ remaining, signalPercent }: { remaining: 
       </div>
     </div>
   );
-}
+});
 
-function SliceTrail({ points, effect }: { points: SliceTrailPoint[]; effect: ReturnType<typeof getShadowExtractionEffect> }) {
+const SliceTrail = memo(function SliceTrail({ points, effect }: { points: SliceTrailPoint[]; effect: ReturnType<typeof getShadowExtractionEffect> }) {
   if (points.length < 2) return null;
   const stroke = getTrailColor(effect.id);
   return (
@@ -2935,7 +2935,7 @@ function SliceTrail({ points, effect }: { points: SliceTrailPoint[]; effect: Ret
       })}
     </svg>
   );
-}
+});
 
 function StartOverlay({
   finished,
