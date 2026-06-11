@@ -65,6 +65,11 @@ import { isNativeOrientationAvailable, lockAppLandscape, lockAppPortrait } from 
 import { getSmoothUiIntervalMs, setNativeGameState } from "../services/performanceService";
 import { MOBILE_THEME_ASSETS, getMiniGameThemeAsset } from "../services/mobileThemeAssets";
 import { getRankForLevel, type RankLetter } from "../services/systemLogic";
+import {
+  getShadowExtractionImpactBudget,
+  getShadowExtractionImpactLifetimeMs,
+  getShadowExtractionObjectBudget,
+} from "../gameRuntime/miniGamePerformance";
 import type { MiniGameBackgroundsState, MiniGameSettlement, PlayerState } from "../types";
 import {
   playGameFailSound,
@@ -1783,12 +1788,12 @@ function ShadowExtractionGame({
       label,
     };
     const underFramePressure = framePressureUntilRef.current > performance.now();
-    const maxEffects = underFramePressure ? 1 : graphicsQuality === "cinematic" ? 3 : 2;
+    const maxEffects = getShadowExtractionImpactBudget(graphicsQuality, underFramePressure);
     setImpactEffects((current) => [...current.slice(-(maxEffects - 1)), effect]);
     const timer = window.setTimeout(() => {
       setImpactEffects((current) => current.filter((item) => item.id !== effect.id));
       impactTimersRef.current = impactTimersRef.current.filter((item) => item !== timer);
-    }, graphicsQuality === "cinematic" ? 760 : 560);
+    }, getShadowExtractionImpactLifetimeMs(graphicsQuality, underFramePressure));
     impactTimersRef.current.push(timer);
   }, [graphicsQuality, selectedEffect.id]);
 
@@ -1823,11 +1828,16 @@ function ShadowExtractionGame({
   const spawnObject = useCallback((now: number) => {
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 14);
     const batch = 1 + (difficulty >= 5 ? 1 : 0) + (difficulty >= 10 && Math.random() > 0.55 ? 1 : 0);
-    const nextObjects = objectsRef.current.length > 9 ? objectsRef.current.slice(-9) : [...objectsRef.current];
+    const underFramePressure = framePressureUntilRef.current > now;
+    const objectBudget = getShadowExtractionObjectBudget(graphicsQuality, underFramePressure);
+    const nextObjects = objectsRef.current.length > objectBudget
+      ? objectsRef.current.slice(-objectBudget)
+      : [...objectsRef.current];
     const spawnCircles: SpawnCircle[] = nextObjects
       .map((object) => ({ x: object.x, y: object.y, radius: object.radiusPct }));
 
     for (let index = 0; index < batch; index += 1) {
+      if (nextObjects.length >= objectBudget) break;
       const object = createShadowSliceObject({
         difficulty,
         score: scoreRef.current,
@@ -1845,7 +1855,7 @@ function ShadowExtractionGame({
     }
 
     setObjectsSync(nextObjects);
-  }, [player.hp, progress.level, relicBonuses, setObjectsSync, upgrades]);
+  }, [graphicsQuality, player.hp, progress.level, relicBonuses, setObjectsSync, upgrades]);
 
   const start = useCallback(() => {
     playMiniGameStartCue();
@@ -2705,20 +2715,23 @@ function SliceImpactBurst({
   const particleCount = graphicsQuality === "cinematic"
     ? effect.kind === "trap" ? 12 : effect.kind === "time" ? 10 : effect.kind === "heart" ? 9 : 7
     : effect.kind === "trap" ? 6 : effect.kind === "time" ? 6 : effect.kind === "heart" ? 5 : 4;
-  const particles = Array.from({ length: particleCount }, (_, index) => {
-    const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 720;
-    const distance = effect.sizePx * (0.42 + (index % 4) * 0.17);
-    return {
-      id: `${effect.id}_spark_${index}`,
-      x: Math.cos(angle) * distance,
-      y: Math.sin(angle) * distance,
-      size: 3 + (index % 3) * 1.6,
-    };
-  });
+  const particles = useMemo(
+    () => Array.from({ length: particleCount }, (_, index) => {
+      const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 720;
+      const distance = effect.sizePx * (0.42 + (index % 4) * 0.17);
+      return {
+        id: `${effect.id}_spark_${index}`,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        size: 3 + (index % 3) * 1.6,
+      };
+    }),
+    [effect.id, effect.rotation, effect.sizePx, particleCount]
+  );
 
   return (
     <motion.div
-      className="absolute"
+      className="sl-slice-impact-burst absolute"
       style={{
         left: `${effect.x}%`,
         top: `${effect.y}%`,
@@ -3080,15 +3093,42 @@ function PlayfieldGrid() {
 function useFeedback() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
+  const flushRef = useRef<number | null>(null);
+  const pendingRef = useRef<string | null>(null);
+  const lastShownAtRef = useRef(0);
 
-  const showFeedback = useCallback((message: string) => {
+  const applyFeedback = useCallback((message: string) => {
+    lastShownAtRef.current = performance.now();
     setFeedback(message);
     if (timerRef.current) window.clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => setFeedback(null), 620);
   }, []);
 
+  const showFeedback = useCallback((message: string) => {
+    const now = performance.now();
+    const waitMs = 180 - (now - lastShownAtRef.current);
+    if (waitMs <= 0) {
+      pendingRef.current = null;
+      if (flushRef.current) {
+        window.clearTimeout(flushRef.current);
+        flushRef.current = null;
+      }
+      applyFeedback(message);
+      return;
+    }
+    pendingRef.current = message;
+    if (flushRef.current) return;
+    flushRef.current = window.setTimeout(() => {
+      flushRef.current = null;
+      const pending = pendingRef.current;
+      pendingRef.current = null;
+      if (pending) applyFeedback(pending);
+    }, waitMs);
+  }, [applyFeedback]);
+
   useEffect(() => () => {
     if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (flushRef.current) window.clearTimeout(flushRef.current);
   }, []);
 
   return { feedback, showFeedback };
@@ -3097,14 +3137,42 @@ function useFeedback() {
 function useScorePopup() {
   const [scorePopup, setScorePopup] = useState<ScorePopupState>(null);
   const idRef = useRef(0);
+  const pendingValueRef = useRef(0);
+  const flushRef = useRef<number | null>(null);
+  const clearRef = useRef<number | null>(null);
+  const lastShownAtRef = useRef(0);
 
-  const showScorePopup = useCallback((value: number) => {
+  const emitScorePopup = useCallback((value: number) => {
     idRef.current += 1;
     const id = idRef.current;
+    lastShownAtRef.current = performance.now();
     setScorePopup({ id, value });
-    window.setTimeout(() => {
+    if (clearRef.current) window.clearTimeout(clearRef.current);
+    clearRef.current = window.setTimeout(() => {
       setScorePopup((current) => (current?.id === id ? null : current));
+      clearRef.current = null;
     }, 760);
+  }, []);
+
+  const showScorePopup = useCallback((value: number) => {
+    const now = performance.now();
+    if (now - lastShownAtRef.current >= 130 && pendingValueRef.current === 0) {
+      emitScorePopup(value);
+      return;
+    }
+    pendingValueRef.current += value;
+    if (flushRef.current) return;
+    flushRef.current = window.setTimeout(() => {
+      flushRef.current = null;
+      const nextValue = pendingValueRef.current;
+      pendingValueRef.current = 0;
+      if (nextValue !== 0) emitScorePopup(nextValue);
+    }, 110);
+  }, [emitScorePopup]);
+
+  useEffect(() => () => {
+    if (flushRef.current) window.clearTimeout(flushRef.current);
+    if (clearRef.current) window.clearTimeout(clearRef.current);
   }, []);
 
   return { scorePopup, showScorePopup };

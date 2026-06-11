@@ -674,6 +674,13 @@ body {
   will-change: transform, opacity;
 }
 
+[data-mini-game-runtime] .sl-slice-impact-burst {
+  backface-visibility: hidden;
+  contain: layout paint;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
 [data-mini-game-runtime][data-graphics-quality="balanced"] .sl-slice-ping {
   opacity: 0.28;
 }
