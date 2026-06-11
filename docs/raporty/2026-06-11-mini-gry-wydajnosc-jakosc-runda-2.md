@@ -21,6 +21,15 @@ Zachowac jakosc efektow w mini-grach, ale ograniczyc nagle spadki FPS przez zmni
 - `SliceImpactBurst` i `SlicedHalf` sa memoizowane, zeby aktywne efekty trafienia nie renderowaly sie ponownie przez zmiany w innych warstwach sceny.
 - `ShadowExtractionChanceMeter` i `SliceTrail` sa memoizowane, co ogranicza koszt update'ow UI wokol pola gry.
 
+## Runda 3 - hot path gestu ciecia
+
+Checkpoint przed runda 3: `checkpoint-mini-games-runda-3-20260611`
+
+- Podczas jednego gestu ciecia `Ekstrakcja Cienia` cache'uje teraz `getBoundingClientRect()` pola gry. Wczesniej pointer move mogl czytac rect w `pointerToPoint()` i ponownie w `slicePath()`.
+- Hit-test dostal szybki prefilter bounding-box: obiekty lezace daleko od odcinka ciecia sa odrzucane przed dokladnym `slicePathIntersectsTarget()`.
+- Prefilter jest w `miniGameGeometry`, a nie jako ukryta logika UI, i ma test jednostkowy. To ogranicza ryzyko, ze optymalizacja zacznie gubic prawidlowe trafienia.
+- Jakosc efektow nie zostala obnizona: zmiana dotyczy tylko ilosci pracy obliczeniowej przy szybkim ruchu palca.
+
 ## Rekomendacje na kolejny etap
 
 1. Zmierzyc 60 sekund `Ekstrakcji Cienia` na telefonie przez overlay FPS i `dumpsys gfxinfo`.

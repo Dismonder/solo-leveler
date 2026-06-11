@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   applyCappedTimeBonus,
   circlesOverlap,
+  pathBoundsCouldIntersectCircle,
   randomPointAwayFrom,
   segmentIntersectsCircle,
   slicePathIntersectsTarget,
@@ -34,6 +35,25 @@ test("segmentIntersectsCircle detects a slice through target", () => {
   assert.equal(
     segmentIntersectsCircle({ x: 0, y: 0 }, { x: 20, y: 0 }, { x: 50, y: 50, radius: 8 }),
     false
+  );
+});
+
+test("pathBoundsCouldIntersectCircle rejects targets far away from a slice", () => {
+  assert.equal(
+    pathBoundsCouldIntersectCircle(
+      [{ x: 8, y: 8 }, { x: 28, y: 12 }],
+      { x: 82, y: 86, radius: 7 },
+      10
+    ),
+    false
+  );
+  assert.equal(
+    pathBoundsCouldIntersectCircle(
+      [{ x: 8, y: 8 }, { x: 88, y: 88 }],
+      { x: 50, y: 50, radius: 7 },
+      10
+    ),
+    true
   );
 });
 

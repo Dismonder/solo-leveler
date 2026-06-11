@@ -140,6 +140,34 @@ export function segmentIntersectsCircle(
   return Math.hypot(circle.x - closest.x, circle.y - closest.y) <= circle.radius;
 }
 
+export function pathBoundsCouldIntersectCircle(
+  path: SegmentPoint[],
+  circle: SpawnCircle,
+  padding = 0
+) {
+  if (path.length === 0) return false;
+
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  for (const point of path) {
+    minX = Math.min(minX, point.x);
+    maxX = Math.max(maxX, point.x);
+    minY = Math.min(minY, point.y);
+    maxY = Math.max(maxY, point.y);
+  }
+
+  const expandedRadius = Math.max(0, circle.radius + padding);
+  return !(
+    circle.x < minX - expandedRadius ||
+    circle.x > maxX + expandedRadius ||
+    circle.y < minY - expandedRadius ||
+    circle.y > maxY + expandedRadius
+  );
+}
+
 export function slicePathIntersectsTarget(
   path: SegmentPoint[],
   target: SpawnCircle,

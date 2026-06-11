@@ -21,6 +21,7 @@ import {
 } from "../game/miniGameProgress";
 import {
   applyCappedTimeBonus,
+  pathBoundsCouldIntersectCircle,
   randomPointAwayFrom,
   slicePathIntersectsTarget,
   spawnNonOverlappingObjects,
@@ -1734,6 +1735,7 @@ function ShadowExtractionGame({
   const [impactEffects, setImpactEffects] = useState<SliceImpactEffect[]>([]);
   const [signalPercent, setSignalPercent] = useState(100);
   const playfieldRef = useRef<HTMLDivElement | null>(null);
+  const playfieldRectRef = useRef<DOMRect | null>(null);
   const objectsRef = useRef<ShadowSliceObject[]>([]);
   const trailRef = useRef<SliceTrailPoint[]>([]);
   const scoreRef = useRef(0);
@@ -2096,7 +2098,7 @@ function ShadowExtractionGame({
   }, [emitSliceImpact, player.maxHp, progress.level, relicBonuses.scoreBonus, relicBonuses.timePenaltyResist, scheduleHudSync, showFeedback, showScorePopup, upgrades.upgrades.flow, upgrades.upgrades.ward]);
 
   const slicePath = useCallback((path: SliceTrailPoint[]) => {
-    const rect = playfieldRef.current?.getBoundingClientRect();
+    const rect = playfieldRectRef.current ?? playfieldRef.current?.getBoundingClientRect();
     if (!rect || path.length === 0) return;
 
     const pathPx = path.map((point) => pointToPixels(point, rect));
@@ -2109,6 +2111,9 @@ function ShadowExtractionGame({
         y: (object.y / 100) * rect.height,
         radius: getShadowSliceHitRadius(object, orientationMode),
       };
+      if (!pathBoundsCouldIntersectCircle(pathPx, center, bladeWidth)) {
+        continue;
+      }
       if (slicePathIntersectsTarget(pathPx, center, { bladeWidth, maxSegmentLength: 8 })) {
         hitIds.add(object.id);
       }
@@ -2139,7 +2144,7 @@ function ShadowExtractionGame({
   }, [graphicsQuality, slicePath]);
 
   const pointerToPoint = useCallback((event: PointerEvent<HTMLDivElement>): SliceTrailPoint | null => {
-    const rect = playfieldRef.current?.getBoundingClientRect();
+    const rect = playfieldRectRef.current ?? playfieldRef.current?.getBoundingClientRect();
     if (!rect) return null;
     return {
       x: Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100)),
@@ -2151,6 +2156,7 @@ function ShadowExtractionGame({
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!running || paused) return;
     event.currentTarget.setPointerCapture(event.pointerId);
+    playfieldRectRef.current = event.currentTarget.getBoundingClientRect();
     slicingRef.current = true;
     const point = pointerToPoint(event);
     if (point) {
@@ -2172,6 +2178,7 @@ function ShadowExtractionGame({
       if (point) addTrailPoint(point);
     }
     slicingRef.current = false;
+    playfieldRectRef.current = null;
     window.setTimeout(() => {
       trailRef.current = [];
       setTrail([]);
