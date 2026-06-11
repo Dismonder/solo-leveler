@@ -383,6 +383,18 @@ body {
   color: var(--theme-text);
 }
 
+@supports (content-visibility: auto) {
+  .sl-main-scroll > .space-y-4 > :is(.sl-section, .sl-card, .sl-accordion) {
+    content-visibility: auto;
+    contain-intrinsic-size: 280px;
+    contain: layout paint style;
+  }
+
+  .sl-main-scroll > .space-y-4 > .sl-section:first-child {
+    contain-intrinsic-size: 220px;
+  }
+}
+
 .sl-progress-track {
   background: var(--theme-progress-track) !important;
 }

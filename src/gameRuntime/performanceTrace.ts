@@ -86,8 +86,8 @@ export function createFrameTraceBuffer(capacity = DEFAULT_TRACE_CAPACITY): Frame
         worstFrameMs: Math.max(...samples.map((sample) => sample.frameMs)),
         p95FrameMs: Math.max(...samples.map((sample) => sample.p95Ms)),
         p99FrameMs: Math.max(...samples.map((sample) => sample.p99Ms)),
-        stutters25: samples[samples.length - 1].stutters25,
-        stutters33: samples[samples.length - 1].stutters33,
+        stutters25: Math.max(...samples.map((sample) => sample.stutters25)),
+        stutters33: Math.max(...samples.map((sample) => sample.stutters33)),
       };
     },
     clear() {
@@ -103,4 +103,3 @@ export function getGlobalFrameTraceBuffer() {
   }
   return globalWithTrace.__soloFrameTrace;
 }
-

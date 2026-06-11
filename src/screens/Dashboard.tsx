@@ -39,9 +39,6 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { FpsOverlay } from "../components/FpsOverlay";
-import { BonusMiniGamesPanel, GameRuntimeScreen } from "../components/BonusMiniGames";
-import { MotionTracker } from "../components/MotionTracker";
 import { RewardAnimationLayer } from "../components/RewardAnimationLayer";
 import { WorkoutStartCountdown } from "../components/WorkoutStartCountdown";
 import { usePlayer } from "../context/PlayerContext";
@@ -222,6 +219,22 @@ const WorkoutSessionRunner = React.lazy(() =>
   import("../components/WorkoutSessionRunner").then((module) => ({ default: module.WorkoutSessionRunner }))
 );
 
+const BonusMiniGamesPanel = React.lazy(() =>
+  import("../components/BonusMiniGames").then((module) => ({ default: module.BonusMiniGamesPanel }))
+);
+
+const GameRuntimeScreen = React.lazy(() =>
+  import("../components/BonusMiniGames").then((module) => ({ default: module.GameRuntimeScreen }))
+);
+
+const MotionTracker = React.lazy(() =>
+  import("../components/MotionTracker").then((module) => ({ default: module.MotionTracker }))
+);
+
+const FpsOverlay = React.lazy(() =>
+  import("../components/FpsOverlay").then((module) => ({ default: module.FpsOverlay }))
+);
+
 const TRAINING_COPY: Record<TrainingView, { kicker: string; title: string; text: string }> = {
   quest: {
     kicker: "Daily quest",
@@ -300,14 +313,17 @@ export function Dashboard() {
   const [finishedWorkoutSession, setFinishedWorkoutSession] = useState<WorkoutPlanSession | null>(null);
   const [hunterProfileOpen, setHunterProfileOpen] = useState(false);
   const [workoutCountdownOpen, setWorkoutCountdownOpen] = useState(false);
-  const [bonusPanelPrepared, setBonusPanelPrepared] = useState(false);
   const [penaltyExerciseAttempt, setPenaltyExerciseAttempt] = useState<{ penaltyId: string; openedAt: number; message: string | null } | null>(null);
   const [rewardEvents, setRewardEvents] = useState<RewardAnimationEvent[]>([]);
   const healthAutoSyncRef = useRef({ lastDateKey: "", lastRunAt: 0 });
   const contentScrollRef = useRef<HTMLElement | null>(null);
   const musicTracks = useMemo(() => getLocalMusicTracks(), []);
   const resetCountdown = useDailyResetCountdown();
-  const progress = player ? getDailyProgress(player) : { percent: 0, completedCount: 0 };
+  const progress = useMemo(() => player ? getDailyProgress(player) : { percent: 0, completedCount: 0 }, [player?.dailyQuest]);
+  const incompleteDailyQuestItems = useMemo(
+    () => player ? getIncompleteDailyQuestItems(EXERCISES, player.dailyQuest) : [],
+    [player?.dailyQuest],
+  );
   const dailyCompleted = player ? progress.completedCount === EXERCISES.length : false;
   const dailyReminderEnabled = Boolean(
     player && !activeGameId && activeTab !== "training" && progress.completedCount < EXERCISES.length && !player.dailyQuest.completedAt
@@ -328,7 +344,6 @@ export function Dashboard() {
   useEffect(() => {
     const warmMiniGames = () => {
       warmMiniGameHubAssets();
-      setBonusPanelPrepared(true);
     };
     const idleWindow = window as IdlePreloadWindow;
     if (idleWindow.requestIdleCallback) {
@@ -341,6 +356,7 @@ export function Dashboard() {
 
   useEffect(() => {
     return subscribeRewardAnimations((event) => {
+      if (event.source === "mini-game") return;
       setRewardEvents((events) => [...events.slice(-3), event]);
       window.setTimeout(() => {
         setRewardEvents((events) => events.filter((item) => item.id !== event.id));
@@ -488,10 +504,11 @@ export function Dashboard() {
 
   usePenaltyFontPrankLoop(player);
 
+  const activePenalty = useMemo(() => player ? getActivePenalty(player.penalties) : null, [player?.penalties]);
+  const cp = useMemo(() => player ? getCombatPower(player) : 0, [player]);
+
   if (!player) return null;
 
-  const activePenalty = getActivePenalty(player.penalties);
-  const cp = getCombatPower(player);
   const xpTarget = Math.max(100, player.level * 100);
   const xpPercent = Math.min(100, (player.xp / xpTarget) * 100);
   const bonusUnlocked = progress.percent >= 50 || Boolean(player.dailyQuest.completedAt);
@@ -927,7 +944,11 @@ export function Dashboard() {
             onToggleMiniGameGrid={toggleMiniGameGrid}
           />
         </Suspense>
-        <FpsOverlay enabled={Boolean(player.settings.fpsOverlayEnabled)} mode="game" />
+        {player.settings.fpsOverlayEnabled && (
+          <Suspense fallback={null}>
+            <FpsOverlay enabled mode="game" />
+          </Suspense>
+        )}
       </>
     );
   }
@@ -950,10 +971,14 @@ export function Dashboard() {
         reducedMotion={player.settings.reducedMotion}
         graphicsQuality={player.settings.graphicsQuality ?? "balanced"}
       />
-      <FpsOverlay enabled={Boolean(player.settings.fpsOverlayEnabled)} mode="app" />
+      {player.settings.fpsOverlayEnabled && (
+        <Suspense fallback={null}>
+          <FpsOverlay enabled mode="app" />
+        </Suspense>
+      )}
 
       <main className="sl-theme-shell relative z-10 mx-auto flex h-full w-full max-w-[520px] flex-col overflow-hidden border-x shadow-2xl shadow-sky-950/35">
-        <section ref={contentScrollRef} className="relative flex-1 overflow-y-auto px-4 pb-[calc(max(env(safe-area-inset-bottom),0.75rem)+8.75rem)] pt-[max(env(safe-area-inset-top),1rem)] custom-scrollbar">
+        <section ref={contentScrollRef} className="sl-main-scroll relative flex-1 overflow-y-auto px-4 pb-[calc(max(env(safe-area-inset-bottom),0.75rem)+8.75rem)] pt-[max(env(safe-area-inset-top),1rem)] custom-scrollbar">
           {activePenalty && activeTab !== "bonus" && <PenaltyBanner penalty={activePenalty} onPerform={openPenaltyExercise} />}
 
           <>
@@ -974,8 +999,8 @@ export function Dashboard() {
                 />
                 <TrainingViewSwitch value={trainingView} onChange={setTrainingView} />
                 {trainingView === "quest" ? (
-                  getIncompleteDailyQuestItems(EXERCISES, player.dailyQuest).length > 0 ? (
-                    getIncompleteDailyQuestItems(EXERCISES, player.dailyQuest).map((exercise) => (
+                  incompleteDailyQuestItems.length > 0 ? (
+                    incompleteDailyQuestItems.map((exercise) => (
                       <React.Fragment key={exercise.id}>
                         <WorkoutCard exercise={exercise} player={player} onAdd={addExercise} onTrack={() => setTrackingQuest({ id: exercise.id, name: exercise.label })} />
                       </React.Fragment>
@@ -1001,15 +1026,8 @@ export function Dashboard() {
               </div>
             )}
 
-            {(bonusPanelPrepared || activeTab === "bonus") && (
-              <div
-                aria-hidden={activeTab !== "bonus"}
-                className={
-                  activeTab === "bonus"
-                    ? "space-y-4"
-                    : "pointer-events-none absolute inset-x-4 top-4 -z-10 space-y-4 opacity-[0.001] [transform:translateZ(0)] [will-change:opacity,transform]"
-                }
-              >
+            {activeTab === "bonus" && (
+              <div className="space-y-4">
                 <Suspense fallback={<CatalogLoading />}>
                   <BonusMiniGamesPanel
                     player={player}
@@ -1089,13 +1107,15 @@ export function Dashboard() {
 
       <AnimatePresence>
         {trackingQuest && (
-          <MotionTracker
-            exerciseId={trackingQuest.id}
-            exerciseName={trackingQuest.name}
-            onClose={() => setTrackingQuest(null)}
-            onAddReps={(value) => updateDailyQuest(trackingQuest.id, value, "phoneSensor")}
-            onWearableSample={addWearableSample}
-          />
+          <Suspense fallback={null}>
+            <MotionTracker
+              exerciseId={trackingQuest.id}
+              exerciseName={trackingQuest.name}
+              onClose={() => setTrackingQuest(null)}
+              onAddReps={(value) => updateDailyQuest(trackingQuest.id, value, "phoneSensor")}
+              onWearableSample={addWearableSample}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 

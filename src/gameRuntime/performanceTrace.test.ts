@@ -15,6 +15,19 @@ test("trace buffer keeps recent frame samples and reports worst frame", () => {
   assert.equal(summary.minFps, 30);
   assert.equal(summary.worstFrameMs, 33.4);
   assert.equal(summary.latestFps, 90);
+  assert.equal(summary.stutters25, 1);
+  assert.equal(summary.stutters33, 1);
+});
+
+test("trace summary keeps worst stutter counts even after recovery", () => {
+  const buffer = createFrameTraceBuffer(4);
+  buffer.push({ timestamp: 1, fps: 120, averageFps: 120, minFps: 120, frameMs: 8.3, p95Ms: 8.3, p99Ms: 8.3, stutters25: 0, stutters33: 0, mode: "game" });
+  buffer.push({ timestamp: 2, fps: 34, averageFps: 70, minFps: 34, frameMs: 29.4, p95Ms: 29.4, p99Ms: 29.4, stutters25: 3, stutters33: 0, mode: "game" });
+  buffer.push({ timestamp: 3, fps: 120, averageFps: 100, minFps: 120, frameMs: 8.3, p95Ms: 8.3, p99Ms: 8.3, stutters25: 1, stutters33: 0, mode: "game" });
+
+  const summary = buffer.summary();
+  assert.equal(summary.latestFps, 120);
+  assert.equal(summary.stutters25, 3);
 });
 
 test("trace buffer ignores invalid samples and can be cleared", () => {
@@ -28,4 +41,3 @@ test("trace buffer ignores invalid samples and can be cleared", () => {
   buffer.clear();
   assert.equal(buffer.summary().samples, 0);
 });
-
