@@ -175,12 +175,12 @@ export function WorkoutSessionRunner({
           <div className="sl-progress-fill h-full rounded-full shadow-[0_0_20px_color-mix(in_srgb,var(--theme-accent)_55%,transparent)]" style={{ width: `${progress}%` }} />
         </div>
 
-        <main className="sl-card mt-4 flex-1 overflow-y-auto rounded-[28px] p-4 custom-scrollbar landscape:overflow-hidden">
+        <main className="sl-card mt-4 flex min-h-0 flex-1 overflow-hidden rounded-[28px] p-4">
           {summary ? (
             <SessionSummary summary={summary} />
           ) : exercise ? (
-            <div className="flex min-h-full flex-col landscape:grid landscape:grid-cols-[1.05fr_0.95fr] landscape:gap-5">
-              <div className="min-w-0">
+            <div className="flex h-full min-h-0 flex-col landscape:grid landscape:grid-cols-[1.05fr_0.95fr] landscape:gap-5">
+              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-1 custom-scrollbar landscape:h-full">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.26em]">{exercise.category}</p>
@@ -208,7 +208,7 @@ export function WorkoutSessionRunner({
               )}
               </div>
 
-              <div className="flex min-h-0 flex-col">
+              <div className="flex min-h-0 shrink-0 flex-col landscape:h-full">
               {session.status === "resting" && (
                 <div className="sl-alert-warning mt-5 rounded-[24px] p-4 text-center">
                   <Timer className="sl-alert-icon mx-auto h-8 w-8" />
@@ -231,7 +231,7 @@ export function WorkoutSessionRunner({
                 </div>
               )}
 
-              <div className="mt-auto pt-6">
+              <div className="mt-4 landscape:mt-auto landscape:pt-6">
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"

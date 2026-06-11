@@ -1,4 +1,4 @@
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
 import {
@@ -24,6 +24,7 @@ import {
   Minus,
   Plus,
   RotateCcw,
+  Search,
   Settings,
   Shield,
   ShoppingBag,
@@ -34,6 +35,7 @@ import {
   Type,
   Trophy,
   Volume2,
+  VolumeX,
   Wallpaper,
   Watch,
   X,
@@ -42,15 +44,23 @@ import {
 import { RewardAnimationLayer } from "../components/RewardAnimationLayer";
 import { WorkoutStartCountdown } from "../components/WorkoutStartCountdown";
 import { usePlayer } from "../context/PlayerContext";
-import type { ExerciseCatalogEntry } from "../data/exerciseCatalog";
-import { QUEST_TARGETS } from "../game/gameConfig";
+import { EXERCISE_CATALOG, type ExerciseCatalogEntry } from "../data/exerciseCatalog";
 import { createDefaultMiniGameProgress, type MiniGameId } from "../game/miniGameProgress";
 import { MINI_GAME_CATALOG } from "../game/miniGameCatalog";
+import { formatResetCountdown, getMsUntilNextLocalDay } from "../game/dailyQuestUi";
 import {
-  formatResetCountdown,
+  completeDailyQuestProgress,
+  createDailyQuestItemFromCatalog,
+  deriveDailyQuestItemFields,
+  findDailyQuestItemByTrackable,
+  getDailyQuestItemProgress,
+  getDailyQuestProgress,
+  getEnabledDailyQuestItems,
   getIncompleteDailyQuestItems,
-  getMsUntilNextLocalDay,
-} from "../game/dailyQuestUi";
+  resetDailyQuestProgress,
+  updateDailyQuestItems,
+} from "../game/dailyQuest";
+import { searchExercises } from "../game/exerciseSearch";
 import {
   createWearableSampleFromHealthSummary,
   getWearableDailyAnalysis,
@@ -134,7 +144,7 @@ import {
 import { getRankProgressForLevel } from "../services/systemLogic";
 import { getLocalMusicTracks } from "../services/systemThemeAssets";
 import { isNativeBluetoothAvailable, isWearableBluetoothAvailable } from "../services/xiaomiBandService";
-import type { DailyPenalty, Equipment, EquipmentSlotId, MusicTrackSettings, PenaltyIntensity, PlayerState, WearableSample, WorkoutPlanExercise, WorkoutPlanSession } from "../types";
+import type { DailyPenalty, DailyQuestItem, Equipment, EquipmentSlotId, MusicTrackSettings, PenaltyIntensity, PlayerState, WearableSample, WorkoutPlanExercise, WorkoutPlanSession } from "../types";
 import type { LocalMusicTrack } from "../assets/music/solo-leveling-local/manifest";
 import {
   getBackgroundMusicEnabled,
@@ -253,23 +263,6 @@ const TRAINING_COPY: Record<TrainingView, { kicker: string; title: string; text:
   },
 };
 
-type ExerciseConfig = {
-  id: TrackableExerciseId;
-  label: string;
-  shortLabel: string;
-  target: number;
-  manualSmall: number;
-  manualLarge: number;
-  stat: keyof PlayerState["stats"];
-};
-
-const EXERCISES: ExerciseConfig[] = [
-  { id: "pushups", label: "Pompki", shortLabel: "Pompki", target: QUEST_TARGETS.pushups, manualSmall: 1, manualLarge: 10, stat: "STR" },
-  { id: "situps", label: "Brzuszki", shortLabel: "Brzuch", target: QUEST_TARGETS.situps, manualSmall: 1, manualLarge: 10, stat: "VITALITY" },
-  { id: "squats", label: "Przysiady", shortLabel: "Nogi", target: QUEST_TARGETS.squats, manualSmall: 1, manualLarge: 10, stat: "AGILITY" },
-  { id: "runningKm", label: "Bieganie", shortLabel: "Bieg", target: QUEST_TARGETS.runningKm, manualSmall: 0.1, manualLarge: 1, stat: "SENSE" },
-];
-
 const NAV_ITEMS: Array<{ id: AppTab; label: string; icon: React.ReactNode }> = [
   { id: "status", label: "Status", icon: <Home className="h-5 w-5" /> },
   { id: "training", label: "Trening", icon: <Dumbbell className="h-5 w-5" /> },
@@ -303,7 +296,7 @@ export function Dashboard() {
     resetAllData,
   } = usePlayer();
   const [activeTab, setActiveTab] = useState<AppTab>("status");
-  const [trackingQuest, setTrackingQuest] = useState<{ id: TrackableExerciseId; name: string } | null>(null);
+  const [trackingQuest, setTrackingQuest] = useState<{ itemId: string; trackableId: TrackableExerciseId; name: string } | null>(null);
   const [volume, setVolume] = useState(() => getGlobalVolume());
   const [systemAudioEnabled, setSystemAudioEnabledState] = useState(() => getSystemAudioEnabled());
   const [musicVolume, setMusicVolume] = useState(() => getGlobalMusicVolume());
@@ -312,6 +305,7 @@ export function Dashboard() {
   const [activeGameId, setActiveGameId] = useState<MiniGameId | null>(null);
   const [finishedWorkoutSession, setFinishedWorkoutSession] = useState<WorkoutPlanSession | null>(null);
   const [hunterProfileOpen, setHunterProfileOpen] = useState(false);
+  const [dailyEditorOpen, setDailyEditorOpen] = useState(false);
   const [workoutCountdownOpen, setWorkoutCountdownOpen] = useState(false);
   const [penaltyExerciseAttempt, setPenaltyExerciseAttempt] = useState<{ penaltyId: string; openedAt: number; message: string | null } | null>(null);
   const [rewardEvents, setRewardEvents] = useState<RewardAnimationEvent[]>([]);
@@ -319,14 +313,15 @@ export function Dashboard() {
   const contentScrollRef = useRef<HTMLElement | null>(null);
   const musicTracks = useMemo(() => getLocalMusicTracks(), []);
   const resetCountdown = useDailyResetCountdown();
-  const progress = useMemo(() => player ? getDailyProgress(player) : { percent: 0, completedCount: 0 }, [player?.dailyQuest]);
+  const progress = useMemo(() => player ? getDailyQuestProgress(player.dailyQuest) : { percent: 0, completedCount: 0, totalCount: 0 }, [player?.dailyQuest]);
+  const dailyQuestItems = useMemo(() => player ? getEnabledDailyQuestItems(player.dailyQuest) : [], [player?.dailyQuest]);
   const incompleteDailyQuestItems = useMemo(
-    () => player ? getIncompleteDailyQuestItems(EXERCISES, player.dailyQuest) : [],
+    () => player ? getIncompleteDailyQuestItems(player.dailyQuest) : [],
     [player?.dailyQuest],
   );
-  const dailyCompleted = player ? progress.completedCount === EXERCISES.length : false;
+  const dailyCompleted = player ? progress.totalCount > 0 && progress.completedCount >= progress.totalCount : false;
   const dailyReminderEnabled = Boolean(
-    player && !activeGameId && activeTab !== "training" && progress.completedCount < EXERCISES.length && !player.dailyQuest.completedAt
+    player && !activeGameId && activeTab !== "training" && progress.completedCount < progress.totalCount && !player.dailyQuest.completedAt
   );
   const [dailyReminderMode, hideDailyReminder] = useSmartDailyQuestReminder(dailyReminderEnabled);
 
@@ -407,7 +402,9 @@ export function Dashboard() {
     const now = Date.now();
     const dateKey = getLocalDateKey();
     const throttled = reason !== "notification" && healthAutoSyncRef.current.lastDateKey === dateKey && now - healthAutoSyncRef.current.lastRunAt < 15 * 60 * 1000;
-    if (throttled || player.dailyQuest.runningKm >= QUEST_TARGETS.runningKm) return;
+    const runningItem = findDailyQuestItemByTrackable(player.dailyQuest, "runningKm");
+    const runningProgress = runningItem ? getDailyQuestItemProgress(player.dailyQuest, runningItem.id) : 0;
+    if (throttled || !runningItem || runningProgress >= runningItem.target) return;
 
     healthAutoSyncRef.current = { lastDateKey: dateKey, lastRunAt: now };
     try {
@@ -421,12 +418,12 @@ export function Dashboard() {
       const delta = Number(Math.max(0, km - lastImported).toFixed(2));
       if (delta > 0) {
         saveLastHealthConnectImport(dateKey, km);
-        updateDailyQuest("runningKm", delta, "healthConnect");
+        updateDailyQuest(runningItem.id, delta, "healthConnect");
       }
     } catch {
       // Health Connect is optional; failed sync must never block the app.
     }
-  }, [addWearableSample, player?.settings.healthAutoSync, player?.dailyQuest.runningKm, updateDailyQuest]);
+  }, [addWearableSample, player?.settings.healthAutoSync, player?.dailyQuest, updateDailyQuest]);
 
   useEffect(() => {
     if (!player?.settings.healthAutoSync) return;
@@ -522,8 +519,12 @@ export function Dashboard() {
     setPenaltyExerciseAttempt({ penaltyId: activePenalty.id, openedAt: Date.now(), message: null });
   };
 
-  const addExercise = (exercise: TrackableExerciseId, amount: number, source: "manual" | "phoneSensor" = "manual") => {
-    updateDailyQuest(exercise, amount, source);
+  const updateDailyQuestList = (items: DailyQuestItem[]) => {
+    void setPlayer({ ...player, dailyQuest: updateDailyQuestItems(player.dailyQuest, items) });
+  };
+
+  const addExercise = (itemId: string, amount: number, source: "manual" | "phoneSensor" = "manual") => {
+    updateDailyQuest(itemId, amount, source);
   };
 
   const updateWorkoutPlan = (nextPlan: WorkoutPlanExercise[]) => {
@@ -817,14 +818,8 @@ export function Dashboard() {
     void setPlayer({
       ...player,
       dailyQuest: {
-        pushups: 0,
-        situps: 0,
-        squats: 0,
-        runningKm: 0,
-        completedAt: null,
+        ...resetDailyQuestProgress(player.dailyQuest, player.dailyQuest.streak || 0),
         penaltyGiven: Boolean(activePenalty),
-        miniGamesPlayed: 0,
-        streak: player.dailyQuest.streak || 0,
       },
     });
   };
@@ -832,14 +827,7 @@ export function Dashboard() {
   const devCompleteDailyQuest = () => {
     void setPlayer({
       ...player,
-      dailyQuest: {
-        ...player.dailyQuest,
-        pushups: QUEST_TARGETS.pushups,
-        situps: QUEST_TARGETS.situps,
-        squats: QUEST_TARGETS.squats,
-        runningKm: QUEST_TARGETS.runningKm,
-        completedAt: new Date().toISOString(),
-      },
+      dailyQuest: completeDailyQuestProgress(player.dailyQuest),
     });
   };
 
@@ -953,7 +941,7 @@ export function Dashboard() {
     );
   }
 
-  const uiSurfaceOpacity = Math.min(1, Math.max(0.58, player.settings.uiSurfaceOpacity ?? 0.84));
+  const uiSurfaceOpacity = Math.min(1, Math.max(0.55, player.settings.uiSurfaceOpacity ?? 0.84));
 
   return (
     <div
@@ -986,7 +974,18 @@ export function Dashboard() {
               <div className="space-y-4">
                 <HeaderCard player={player} cp={cp} xpPercent={xpPercent} xpTarget={xpTarget} onOpenTraining={() => selectTab("training")} onOpenProfile={() => setHunterProfileOpen(true)} />
                 <StatusPanel player={player} progress={progress} bonusUnlocked={bonusUnlocked} onStartTraining={() => selectTab("training")} onOpenBonus={() => selectTab("bonus")} />
-                <TodayPreview player={player} resetCountdown={resetCountdown} onTrack={(id, name) => setTrackingQuest({ id, name })} onAdd={addExercise} />
+                <TodayPreview
+                  player={player}
+                  items={dailyQuestItems}
+                  resetCountdown={resetCountdown}
+                  onTrack={(item) => item.trackableExerciseId && setTrackingQuest({ itemId: item.id, trackableId: item.trackableExerciseId, name: item.label })}
+                  onAdd={addExercise}
+                  onEdit={() => {
+                    setActiveTab("training");
+                    setTrainingView("quest");
+                    setDailyEditorOpen(true);
+                  }}
+                />
               </div>
             )}
 
@@ -1000,19 +999,31 @@ export function Dashboard() {
                 <TrainingViewSwitch value={trainingView} onChange={setTrainingView} />
                 {trainingView === "quest" ? (
                   incompleteDailyQuestItems.length > 0 ? (
-                    incompleteDailyQuestItems.map((exercise) => (
-                      <React.Fragment key={exercise.id}>
-                        <WorkoutCard exercise={exercise} player={player} onAdd={addExercise} onTrack={() => setTrackingQuest({ id: exercise.id, name: exercise.label })} />
-                      </React.Fragment>
-                    ))
+                    <>
+                      <DailyQuestToolbar onEdit={() => setDailyEditorOpen(true)} completedCount={progress.completedCount} totalCount={progress.totalCount} />
+                      {incompleteDailyQuestItems.map((exercise) => (
+                        <React.Fragment key={exercise.id}>
+                          <WorkoutCard
+                            exercise={exercise}
+                            player={player}
+                            onAdd={addExercise}
+                            onTrack={() => exercise.trackableExerciseId && setTrackingQuest({ itemId: exercise.id, trackableId: exercise.trackableExerciseId, name: exercise.label })}
+                          />
+                        </React.Fragment>
+                      ))}
+                    </>
                   ) : (
-                    <DailyCompleteCard resetCountdown={resetCountdown} />
+                    <>
+                      <DailyQuestToolbar onEdit={() => setDailyEditorOpen(true)} completedCount={progress.completedCount} totalCount={progress.totalCount} />
+                      <DailyCompleteCard resetCountdown={resetCountdown} />
+                    </>
                   )
                 ) : trainingView === "plan" ? (
                   <Suspense fallback={<CatalogLoading />}>
                     <WorkoutPlanPanel
                       plan={workoutPlan}
                       sessions={player.workoutSessions || []}
+                      workoutHistory={player.workoutHistory || []}
                       activeSession={player.activeWorkoutSession}
                       onChange={updateWorkoutPlan}
                       onStartSession={requestWorkoutPlanStart}
@@ -1058,7 +1069,11 @@ export function Dashboard() {
                   onUpdateMusicTrackSettings={updateMusicTrackSettings}
                   onRandomizeMusicTrack={randomizeBackgroundTrack}
                   onReset={resetAllData}
-                  onImportHealthDistance={(km) => updateDailyQuest("runningKm", km, "healthConnect")}
+                  onImportHealthDistance={(km) => {
+                    const runningItem = findDailyQuestItemByTrackable(player.dailyQuest, "runningKm");
+                    if (runningItem) updateDailyQuest(runningItem.id, km, "healthConnect");
+                    else toast.error("Daily nie ma aktywnego zadania biegania.");
+                  }}
                   onToggleMiniGamesUnlock={toggleMiniGamesUnlock}
                   onUpdateNotificationSettings={updateNotificationSettings}
                   onUpdatePenaltySettings={updatePenaltySettings}
@@ -1077,7 +1092,14 @@ export function Dashboard() {
                   onDevAddGold={devAddGold}
                   onDevClearPenalty={devClearPenalty}
                   onDevResetMiniGames={devResetMiniGames}
-                  onOpenWearableSensor={() => setTrackingQuest({ id: "pushups", name: "Pompki" })}
+                  onOpenWearableSensor={() => {
+                    const firstTrackable = dailyQuestItems.find((item) => item.trackableExerciseId);
+                    if (firstTrackable?.trackableExerciseId) {
+                      setTrackingQuest({ itemId: firstTrackable.id, trackableId: firstTrackable.trackableExerciseId, name: firstTrackable.label });
+                    } else {
+                      toast.error("Daily nie ma ćwiczenia obsługiwanego przez sensor.");
+                    }
+                  }}
                 />
               </div>
             )}
@@ -1089,7 +1111,7 @@ export function Dashboard() {
           mode={dailyReminderMode}
           progress={progress.percent}
           completedCount={progress.completedCount}
-          totalCount={EXERCISES.length}
+          totalCount={progress.totalCount}
           resetCountdown={resetCountdown}
           onOpenTraining={() => {
             hideDailyReminder();
@@ -1106,13 +1128,23 @@ export function Dashboard() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {dailyEditorOpen && (
+          <DailyQuestEditorModal
+            player={player}
+            onClose={() => setDailyEditorOpen(false)}
+            onUpdateItems={updateDailyQuestList}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {trackingQuest && (
           <Suspense fallback={null}>
             <MotionTracker
-              exerciseId={trackingQuest.id}
+              exerciseId={trackingQuest.trackableId}
               exerciseName={trackingQuest.name}
               onClose={() => setTrackingQuest(null)}
-              onAddReps={(value) => updateDailyQuest(trackingQuest.id, value, "phoneSensor")}
+              onAddReps={(value) => updateDailyQuest(trackingQuest.itemId, value, "phoneSensor")}
               onWearableSample={addWearableSample}
             />
           </Suspense>
@@ -1255,6 +1287,7 @@ function HunterProfileModal({
 }) {
   const [view, setView] = useState<"stats" | "skills" | "equipment" | "bag">("stats");
   const [focusedSlot, setFocusedSlot] = useState<EquipmentSlotId | null>(null);
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const abilityRows = getHunterAbilityRows(player);
   const equippedItems = getEquippedItems(player);
   const equipmentBonus = equippedItems.reduce((acc, item) => {
@@ -1298,17 +1331,23 @@ function HunterProfileModal({
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="sl-avatar-frame sl-avatar-frame-profile shrink-0">
+            <button
+              type="button"
+              onClick={() => setAvatarPreviewOpen(true)}
+              className="sl-avatar-frame sl-avatar-frame-profile shrink-0 active:scale-[0.98]"
+              aria-label="Powiększ awatar i ekwipunek"
+            >
               {player.avatarUrl && player.avatarUrl !== "fallback" ? (
                 <img src={player.avatarUrl} alt="" className="sl-avatar-image" referrerPolicy="no-referrer" />
               ) : (
                 <div className="sl-avatar-placeholder">?</div>
               )}
-            </div>
+            </button>
             <div className="min-w-0">
               <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme-accent)]">Profil łowcy</p>
               <h2 className="truncate text-2xl font-black uppercase tracking-[0.06em] text-[var(--theme-text)]">{player.name}</h2>
               <p className="sl-muted mt-1 font-mono text-xs font-black uppercase tracking-widest">Lv.{player.level} · {player.rank} · CP {cp}</p>
+              <p className="sl-muted mt-1 text-[10px] font-bold">Dotknij avatara, aby zobaczyć sylwetkę.</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="sl-button-secondary grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-xl active:scale-95" aria-label="Zamknij profil">
@@ -1433,8 +1472,142 @@ function HunterProfileModal({
             )}
           </div>
         )}
+
+        <AnimatePresence>
+          {avatarPreviewOpen && (
+            <HunterAvatarEquipmentPreview
+              player={player}
+              cp={cp}
+              onClose={() => setAvatarPreviewOpen(false)}
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
+  );
+}
+
+function HunterAvatarEquipmentPreview({
+  player,
+  cp,
+  onClose,
+}: {
+  player: PlayerState;
+  cp: number;
+  onClose: () => void;
+}) {
+  const leftSlots: EquipmentSlotId[] = ["helmet", "weapon", "gloves", "ring1", "artifact"];
+  const rightSlots: EquipmentSlotId[] = ["armor", "boots", "ring2", "necklace"];
+  const equippedCount = EQUIPMENT_SLOT_DEFINITIONS.filter((slot) => player.equipment[slot.id]).length;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[970] grid place-items-center bg-[color-mix(in_srgb,var(--theme-bg)_78%,transparent)] p-3 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Podgląd sylwetki łowcy"
+    >
+      <motion.div
+        className="sl-modal w-full max-w-[620px] overflow-hidden rounded-[30px] border p-4 shadow-[0_0_48px_color-mix(in_srgb,var(--theme-accent)_22%,transparent)]"
+        initial={{ y: 18, scale: 0.97 }}
+        animate={{ y: 0, scale: 1 }}
+        exit={{ y: 14, scale: 0.98 }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.28em]">Sylwetka łowcy</p>
+            <h3 className="mt-1 truncate text-2xl font-black uppercase tracking-[0.06em] text-[var(--theme-text-strong)]">{player.name}</h3>
+            <p className="sl-muted mt-1 font-mono text-[10px] font-black uppercase tracking-widest">
+              Lv.{player.level} · {player.rank} · CP {cp} · Ekw. {equippedCount}/{EQUIPMENT_SLOT_DEFINITIONS.length}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="sl-button-secondary grid h-11 w-11 shrink-0 place-items-center rounded-2xl active:scale-95"
+            aria-label="Zamknij podgląd sylwetki"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-[minmax(78px,0.82fr)_minmax(150px,1.2fr)_minmax(78px,0.82fr)] gap-2 sm:gap-3">
+          <div className="grid content-center gap-2">
+            {leftSlots.map((slot) => (
+              <AvatarEquipmentSideSlot key={slot} slot={slot} item={player.equipment[slot]} side="left" />
+            ))}
+          </div>
+
+          <div className="relative min-h-[360px] overflow-hidden rounded-[28px] border border-[var(--theme-border)] bg-[var(--theme-panel)] shadow-inner">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,color-mix(in_srgb,var(--theme-accent)_24%,transparent),transparent_38%),linear-gradient(180deg,color-mix(in_srgb,var(--theme-panel)_50%,transparent),var(--theme-bg))]" />
+            <div className="absolute inset-x-6 top-6 h-24 rounded-full bg-[color-mix(in_srgb,var(--theme-accent)_16%,transparent)] blur-3xl" />
+            {player.avatarUrl && player.avatarUrl !== "fallback" ? (
+              <img
+                src={player.avatarUrl}
+                alt=""
+                className="relative z-10 h-full min-h-[360px] w-full object-cover object-top"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="relative z-10 grid min-h-[360px] place-items-center text-6xl font-black text-[var(--theme-muted)]">?</div>
+            )}
+            <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-[color-mix(in_srgb,var(--theme-bg)_92%,transparent)] via-[color-mix(in_srgb,var(--theme-bg)_54%,transparent)] to-transparent p-4 pt-16 text-center">
+              <p className="font-mono text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme-accent)]">Profil bojowy</p>
+              <p className="mt-1 text-xl font-black uppercase tracking-[0.08em] text-[var(--theme-text-strong)]">{player.rank}</p>
+            </div>
+          </div>
+
+          <div className="grid content-center gap-2">
+            {rightSlots.map((slot) => (
+              <AvatarEquipmentSideSlot key={slot} slot={slot} item={player.equipment[slot]} side="right" />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function AvatarEquipmentSideSlot({
+  slot,
+  item,
+  side,
+}: {
+  key?: React.Key;
+  slot: EquipmentSlotId;
+  item: Equipment | null;
+  side: "left" | "right";
+}) {
+  const rarity = item?.rarity || "common";
+
+  return (
+    <div className={`min-h-[64px] rounded-2xl border p-2 ${item ? EQUIPMENT_RARITY_CLASSES[rarity] : "border-[var(--theme-border)] bg-[var(--theme-input)] text-[var(--theme-muted)]"}`}>
+      <div className={`flex items-center gap-2 ${side === "right" ? "flex-row-reverse text-right" : ""}`}>
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-current/20 bg-[var(--theme-input)] text-[var(--theme-accent)]">
+          {item ? (
+            <img src={getItemModelSrc(item)} alt="" className="h-8 w-8 object-contain drop-shadow-[0_0_10px_color-mix(in_srgb,var(--theme-accent)_26%,transparent)]" />
+          ) : (
+            getProfileSlotIcon(slot)
+          )}
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate font-mono text-[8px] font-black uppercase tracking-widest opacity-80">{getEquipmentSlotLabel(slot)}</span>
+          <span className="mt-0.5 block truncate text-[10px] font-black uppercase tracking-wide">
+            {item ? item.name : "Pusty"}
+          </span>
+          {item && (
+            <span className="mt-0.5 block truncate font-mono text-[8px] font-black uppercase tracking-widest opacity-80">
+              +{item.bonusValue} {item.bonusType}
+            </span>
+          )}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -1599,7 +1772,7 @@ function StatusPanel({
   onOpenBonus,
 }: {
   player: PlayerState;
-  progress: ReturnType<typeof getDailyProgress>;
+  progress: { percent: number; completedCount: number; totalCount: number };
   bonusUnlocked: boolean;
   onStartTraining: () => void;
   onOpenBonus: () => void;
@@ -1773,27 +1946,245 @@ function PenaltyExerciseModal({
   );
 }
 
+function DailyQuestEditorModal({
+  player,
+  onClose,
+  onUpdateItems,
+}: {
+  player: PlayerState;
+  onClose: () => void;
+  onUpdateItems: (items: DailyQuestItem[]) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const items = player.dailyQuest.items;
+  const plannedCatalogIds = new Set(items.map((item) => item.catalogExerciseId).filter(Boolean));
+  const searchResults = useMemo(
+    () => searchExercises(EXERCISE_CATALOG, deferredQuery, { limit: deferredQuery.trim() ? 6 : 4 }),
+    [deferredQuery],
+  );
+
+  const updateItem = (itemId: string, patch: Partial<DailyQuestItem>) => {
+    onUpdateItems(items.map((item) => item.id === itemId ? { ...item, ...patch } : item));
+  };
+
+  const moveItem = (itemId: string, direction: -1 | 1) => {
+    const index = items.findIndex((item) => item.id === itemId);
+    const targetIndex = index + direction;
+    if (index < 0 || targetIndex < 0 || targetIndex >= items.length) return;
+    const next = [...items];
+    const [item] = next.splice(index, 1);
+    next.splice(targetIndex, 0, item);
+    onUpdateItems(next);
+  };
+
+  const removeItem = (itemId: string) => {
+    if (items.length <= 1) return;
+    onUpdateItems(items.filter((item) => item.id !== itemId));
+  };
+
+  const addFromCatalog = (exercise: ExerciseCatalogEntry) => {
+    if (plannedCatalogIds.has(exercise.id)) return;
+    onUpdateItems([...items, createDailyQuestItemFromCatalog(exercise, items)]);
+    setQuery("");
+  };
+
+  return (
+    <motion.div
+      className="sl-modal-backdrop fixed inset-0 z-[955] grid place-items-end p-3 text-[var(--theme-text)] sm:place-items-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      role="dialog"
+      aria-modal="true"
+    >
+      <motion.div
+        className="sl-modal flex max-h-[88dvh] w-full max-w-[560px] flex-col overflow-hidden rounded-[28px] border shadow-[0_0_44px_color-mix(in_srgb,var(--theme-accent)_18%,transparent)]"
+        initial={{ y: 26, scale: 0.98 }}
+        animate={{ y: 0, scale: 1 }}
+        exit={{ y: 18, scale: 0.98 }}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-[var(--theme-border)] p-4">
+          <div>
+            <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.28em]">Daily custom</p>
+            <h2 className="mt-1 text-2xl font-black uppercase tracking-[0.06em] text-[var(--theme-text-strong)]">Szablon dnia</h2>
+          </div>
+          <button type="button" onClick={onClose} className="sl-icon-button grid h-11 w-11 shrink-0 place-items-center rounded-2xl active:scale-95" aria-label="Zamknij edytor daily">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
+          <div className="grid gap-3">
+            {items.map((item, index) => (
+              <div key={item.id} className="sl-card rounded-[22px] p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <label className="min-w-0 flex-1">
+                    <span className="sl-muted text-[9px] font-black uppercase tracking-widest">Nazwa</span>
+                    <input
+                      value={item.label}
+                      onChange={(event) => updateItem(item.id, { label: event.target.value })}
+                      className="mt-1 w-full bg-transparent text-base font-black text-[var(--theme-text-strong)] outline-none"
+                    />
+                  </label>
+                  <div className="flex gap-1">
+                    <button type="button" onClick={() => moveItem(item.id, -1)} disabled={index === 0} className="sl-icon-button grid h-9 w-9 place-items-center rounded-xl disabled:opacity-35" aria-label="Przesuń wyżej">
+                      <ChevronDown className="h-4 w-4 rotate-180" />
+                    </button>
+                    <button type="button" onClick={() => moveItem(item.id, 1)} disabled={index === items.length - 1} className="sl-icon-button grid h-9 w-9 place-items-center rounded-xl disabled:opacity-35" aria-label="Przesuń niżej">
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    <button type="button" onClick={() => removeItem(item.id)} disabled={items.length <= 1} className="grid h-9 w-9 place-items-center rounded-xl border border-[color-mix(in_srgb,var(--theme-danger)_34%,transparent)] bg-[var(--theme-danger-soft)] text-[var(--theme-danger-text)] disabled:opacity-35" aria-label="Usuń zadanie">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid gap-2">
+                  <DailyEditorNumber label="Cel" value={item.target} min={1} max={10000} onChange={(target) => updateItem(item.id, { target })} />
+                  <DailyAutoAssignment item={item} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="sl-card mt-4 rounded-[22px] p-3">
+            <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Dodaj z katalogu</p>
+            <label className="sl-input mt-3 flex min-h-12 items-center gap-2 rounded-2xl px-3">
+              <Search className="h-4 w-4 text-[var(--theme-muted)]" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Szukaj: brzuch, klata, bez sprzętu..."
+                className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
+              />
+            </label>
+            <div className="mt-3 grid gap-2">
+              {searchResults.map(({ exercise }) => {
+                const planned = plannedCatalogIds.has(exercise.id);
+                return (
+                  <button
+                    key={exercise.id}
+                    type="button"
+                    disabled={planned}
+                    onClick={() => addFromCatalog(exercise)}
+                    className="sl-input flex min-h-12 items-center justify-between gap-3 rounded-2xl px-3 text-left active:scale-[0.99] disabled:opacity-70"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-black text-[var(--theme-text-strong)]">{exercise.name}</span>
+                      <span className="sl-muted block truncate text-[10px] font-black uppercase tracking-widest">{exercise.category}</span>
+                    </span>
+                    <span className={planned ? "sl-chip rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest" : "sl-button-primary shrink-0 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest"}>
+                      {planned ? "Dodane" : "Dodaj"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function DailyEditorNumber({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="sl-input rounded-2xl p-3">
+      <span className="sl-muted text-[9px] font-black uppercase tracking-widest">{label}</span>
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="mt-2 w-full bg-transparent text-sm font-black text-[var(--theme-text)] outline-none"
+      />
+    </label>
+  );
+}
+
+const DAILY_STAT_LABELS: Record<DailyQuestItem["stat"], string> = {
+  STR: "Siła",
+  VITALITY: "Wytrzymałość",
+  AGILITY: "Zwinność",
+  INTELLIGENCE: "Technika",
+  SENSE: "Refleks",
+};
+
+function DailyAutoAssignment({ item }: { item: DailyQuestItem }) {
+  const assignment = deriveDailyQuestItemFields(item);
+
+  return (
+    <div className="sl-input rounded-2xl p-3">
+      <p className="sl-muted text-[9px] font-black uppercase tracking-widest">System przypisał automatycznie</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        <span className="sl-chip rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest">
+          {assignment.unit}
+        </span>
+        <span className="sl-chip rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest">
+          +{assignment.manualSmall} / +{assignment.manualLarge}
+        </span>
+        <span className="sl-chip-active rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest">
+          {DAILY_STAT_LABELS[assignment.stat]}
+        </span>
+      </div>
+      <p className="sl-muted mt-2 text-xs leading-relaxed">
+        Powtórzenia są domyślne dla ćwiczeń. Kilometry pojawiają się tylko przy pozycjach powiązanych z bieganiem.
+      </p>
+    </div>
+  );
+}
+
 function TodayPreview({
   player,
+  items,
   resetCountdown,
   onAdd,
   onTrack,
+  onEdit,
 }: {
   player: PlayerState;
+  items: DailyQuestItem[];
   resetCountdown: string;
-  onAdd: (exercise: TrackableExerciseId, amount: number) => void;
-  onTrack: (id: TrackableExerciseId, name: string) => void;
+  onAdd: (itemId: string, amount: number) => void;
+  onTrack: (item: DailyQuestItem) => void;
+  onEdit: () => void;
 }) {
-  const visibleExercises = getIncompleteDailyQuestItems(EXERCISES, player.dailyQuest);
+  const visibleExercises = getIncompleteDailyQuestItems(player.dailyQuest);
 
   return (
     <div className="sl-section rounded-[22px] p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Daily</p>
+          <p className="sl-muted mt-1 text-xs font-bold">{items.length} aktywne zadania</p>
+        </div>
+        <button type="button" onClick={onEdit} className="sl-button-secondary rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest">
+          Edytuj
+        </button>
+      </div>
       {visibleExercises.length === 0 ? (
         <DailyCompleteCard resetCountdown={resetCountdown} compact />
       ) : (
         <div className="space-y-3">
           {visibleExercises.map((exercise) => {
-          const current = Number(player.dailyQuest[exercise.id] || 0);
+          const current = getDailyQuestItemProgress(player.dailyQuest, exercise.id);
           const percent = Math.min(100, (current / exercise.target) * 100);
           return (
             <div key={exercise.id} className="sl-stat-tile rounded-2xl p-3">
@@ -1801,17 +2192,42 @@ function TodayPreview({
                 <span className="text-sm font-bold text-[var(--theme-text)]">{exercise.label}</span>
                 <span className="font-mono text-xs text-[var(--theme-muted)]">{formatValue(current, exercise)} / {exercise.target}</span>
               </div>
-              <Meter value={percent} label={exercise.shortLabel} color="cyan" compact />
+              <Meter value={percent} label={exercise.label} color="cyan" compact />
               <div className="mt-3 grid grid-cols-3 gap-2">
                 <SmallButton onClick={() => onAdd(exercise.id, exercise.manualSmall)} icon={<Plus className="h-3.5 w-3.5" />} label={`+${exercise.manualSmall}`} />
                 <SmallButton onClick={() => onAdd(exercise.id, exercise.manualLarge)} icon={<Plus className="h-3.5 w-3.5" />} label={`+${exercise.manualLarge}`} />
-                <SmallButton onClick={() => onTrack(exercise.id, exercise.label)} icon={<Smartphone className="h-3.5 w-3.5" />} label="Sensor" muted />
+                <SmallButton
+                  onClick={() => {
+                    if (exercise.trackableExerciseId) {
+                      onTrack(exercise);
+                      return;
+                    }
+                    onAdd(exercise.id, exercise.manualSmall);
+                  }}
+                  icon={exercise.trackableExerciseId ? <Smartphone className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                  label={exercise.trackableExerciseId ? "Sensor" : `+${exercise.manualSmall}`}
+                  muted={false}
+                />
               </div>
             </div>
           );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function DailyQuestToolbar({ completedCount, totalCount, onEdit }: { completedCount: number; totalCount: number; onEdit: () => void }) {
+  return (
+    <div className="sl-card flex items-center justify-between gap-3 rounded-[22px] p-3">
+      <div>
+        <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Szablon dzienny</p>
+        <p className="sl-muted mt-1 text-xs font-bold">{completedCount}/{totalCount} zadań ukończonych</p>
+      </div>
+      <button type="button" onClick={onEdit} className="sl-button-primary min-h-10 rounded-xl px-3 text-[10px] font-black uppercase tracking-widest">
+        Edytuj
+      </button>
     </div>
   );
 }
@@ -1920,26 +2336,28 @@ function WorkoutCard({
   onAdd,
   onTrack,
 }: {
-  exercise: ExerciseConfig;
+  exercise: DailyQuestItem;
   player: PlayerState;
-  onAdd: (exercise: TrackableExerciseId, amount: number) => void;
+  onAdd: (itemId: string, amount: number) => void;
   onTrack: () => void;
 }) {
-  const current = Number(player.dailyQuest[exercise.id] || 0);
-  const profile = MOTION_TRACKER_PROFILES[exercise.id];
+  const current = getDailyQuestItemProgress(player.dailyQuest, exercise.id);
+  const profile = exercise.trackableExerciseId ? MOTION_TRACKER_PROFILES[exercise.trackableExerciseId] : null;
   const percent = Math.min(100, (current / exercise.target) * 100);
   const complete = current >= exercise.target;
-  const abilityLevel = getDailyExerciseAbilityLevel(player, exercise.id);
+  const abilityLevel = exercise.trackableExerciseId ? getDailyExerciseAbilityLevel(player, exercise.trackableExerciseId) : 0;
 
   return (
     <div className={`rounded-[22px] p-4 ${complete ? "sl-alert-success" : "sl-card"}`}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="sl-muted text-[10px] font-black uppercase tracking-[0.24em]">{profile.unit} · {exercise.stat} · skill Lv.{abilityLevel}</p>
+          <p className="sl-muted text-[10px] font-black uppercase tracking-[0.24em]">
+            {exercise.unit} · {exercise.stat}{profile ? ` · skill Lv.${abilityLevel}` : " · manual"}
+          </p>
           <h3 className="mt-1 text-xl font-black uppercase tracking-[0.04em] text-[var(--theme-text-strong)]">{exercise.label}</h3>
         </div>
         <div className="sl-chip-active rounded-full px-3 py-1 font-mono text-xs font-black">
-          {formatTrackedValue(current, profile)} / {exercise.target}
+          {formatValue(current, exercise)} / {exercise.target}
         </div>
       </div>
 
@@ -1950,7 +2368,11 @@ function WorkoutCard({
       <div className="mt-4 grid grid-cols-[1fr_1fr_1.2fr] gap-2">
         <ActionButton onClick={() => onAdd(exercise.id, exercise.manualSmall)} icon={<Plus className="h-4 w-4" />} label={`+${exercise.manualSmall}`} />
         <ActionButton onClick={() => onAdd(exercise.id, exercise.manualLarge)} icon={<Plus className="h-4 w-4" />} label={`+${exercise.manualLarge}`} />
-        <ActionButton onClick={onTrack} icon={<Activity className="h-4 w-4" />} label="Sensor" accent />
+        {profile ? (
+          <ActionButton onClick={onTrack} icon={<Activity className="h-4 w-4" />} label="Sensor" accent />
+        ) : (
+          <ActionButton onClick={() => onAdd(exercise.id, exercise.manualSmall)} icon={<Plus className="h-4 w-4" />} label="Manual" accent />
+        )}
       </div>
     </div>
   );
@@ -2385,7 +2807,7 @@ function SystemPanel({
         <div className="grid grid-cols-4 gap-2">
           <SystemQuickAction icon={<ShoppingBag className="h-4 w-4" />} label="Sklep" onClick={() => setActiveSheet("shop")} />
           <SystemQuickAction icon={<Wallpaper className="h-4 w-4" />} label="Wygląd" onClick={() => setActiveSheet("appearance")} />
-          <SystemQuickAction icon={<Volume2 className="h-4 w-4" />} label="Audio" onClick={() => setActiveSheet("audio")} />
+          <SystemQuickAction icon={systemAudioEnabled || backgroundMusicEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />} label="Audio" onClick={() => setActiveSheet("audio")} />
           <SystemQuickAction
             icon={<Crown className="h-4 w-4" />}
             label="Dev"
@@ -2542,12 +2964,28 @@ function SystemPanel({
             className="sl-icon-button grid h-11 w-11 shrink-0 place-items-center rounded-2xl active:scale-[0.98]"
             aria-label="Otwórz ustawienia audio"
           >
-            <Volume2 className="h-5 w-5" />
+            {systemAudioEnabled || backgroundMusicEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
           </button>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <MiniStat icon={<Volume2 className="h-4 w-4" />} label="SFX" value={`${Math.round(volume * 100)}%`} />
-          <MiniStat icon={<Music2 className="h-4 w-4" />} label="Muzyka" value={`${Math.round(musicVolume * 100)}%`} />
+          <AudioQuickTile
+            activeIcon={Volume2}
+            mutedIcon={VolumeX}
+            label="SFX"
+            value={`${Math.round(volume * 100)}%`}
+            enabled={systemAudioEnabled}
+            onOpen={() => setActiveSheet("audio")}
+            onToggle={() => onToggleSystemAudio(!systemAudioEnabled)}
+          />
+          <AudioQuickTile
+            activeIcon={Music2}
+            mutedIcon={VolumeX}
+            label="Muzyka"
+            value={`${Math.round(musicVolume * 100)}%`}
+            enabled={backgroundMusicEnabled}
+            onOpen={() => setActiveSheet("audio")}
+            onToggle={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
+          />
         </div>
       </div>
 
@@ -2698,7 +3136,7 @@ function SystemPanel({
               <input
                 className="mt-4 w-full accent-cyan-400"
                 type="range"
-                min="0.58"
+                min="0.55"
                 max="1"
                 step="0.01"
                 value={player.settings.uiSurfaceOpacity ?? 0.84}
@@ -2718,7 +3156,7 @@ function SystemPanel({
       )}
 
       {activeSheet === "audio" && (
-        <SystemSheet title="Audio" icon={<Volume2 className="h-5 w-5" />} onClose={() => setActiveSheet(null)}>
+        <SystemSheet title="Audio" icon={systemAudioEnabled || backgroundMusicEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />} onClose={() => setActiveSheet(null)}>
           <div className="space-y-3">
             <div className="sl-card rounded-2xl p-4">
               <div className="flex items-center justify-between gap-4">
@@ -2729,9 +3167,11 @@ function SystemPanel({
                 <button
                   type="button"
                   onClick={() => onToggleSystemAudio(!systemAudioEnabled)}
-                  className={`min-h-10 shrink-0 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${systemAudioEnabled ? "sl-toggle-active" : "sl-toggle"}`}
+                  className={`flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${systemAudioEnabled ? "sl-toggle-active" : "sl-toggle"}`}
+                  aria-label={systemAudioEnabled ? "Wycisz efekty" : "Włącz efekty"}
                 >
-                  {systemAudioEnabled ? "ON" : "OFF"}
+                  {systemAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  <span>{systemAudioEnabled ? "ON" : "OFF"}</span>
                 </button>
               </div>
               <input className="mt-4 w-full accent-cyan-400" type="range" min="0" max="1" step="0.05" value={volume} onChange={onVolumeChange} />
@@ -2745,9 +3185,11 @@ function SystemPanel({
                 <button
                   type="button"
                   onClick={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
-                  className={`min-h-10 shrink-0 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${backgroundMusicEnabled ? "sl-toggle-active" : "sl-toggle"}`}
+                  className={`flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${backgroundMusicEnabled ? "sl-toggle-active" : "sl-toggle"}`}
+                  aria-label={backgroundMusicEnabled ? "Wycisz muzykę" : "Włącz muzykę"}
                 >
-                  {backgroundMusicEnabled ? "ON" : "OFF"}
+                  {backgroundMusicEnabled ? <Music2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  <span>{backgroundMusicEnabled ? "ON" : "OFF"}</span>
                 </button>
               </div>
               <input className="mt-4 w-full accent-violet-400" type="range" min="0" max="1" step="0.05" value={musicVolume} onChange={onMusicVolumeChange} />
@@ -3597,6 +4039,52 @@ function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string
   );
 }
 
+function AudioQuickTile({
+  activeIcon: ActiveIcon,
+  mutedIcon: MutedIcon,
+  label,
+  value,
+  enabled,
+  onOpen,
+  onToggle,
+}: {
+  activeIcon: React.ElementType<{ className?: string }>;
+  mutedIcon: React.ElementType<{ className?: string }>;
+  label: string;
+  value: string;
+  enabled: boolean;
+  onOpen: () => void;
+  onToggle: () => void;
+}) {
+  const Icon = enabled ? ActiveIcon : MutedIcon;
+
+  return (
+    <div className="sl-stat-tile flex min-h-[92px] items-start justify-between gap-3 rounded-2xl p-3">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="min-w-0 flex-1 text-left active:scale-[0.99]"
+        aria-label={`Otwórz ustawienia: ${label}`}
+      >
+        <div className="mb-2 text-[var(--theme-icon)]">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-muted)]">{label}</div>
+        <div className="mt-1 truncate text-sm font-black text-[var(--theme-text)]">{enabled ? value : "Wyciszone"}</div>
+      </button>
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border active:scale-[0.96] ${enabled ? "sl-toggle-active" : "sl-toggle"}`}
+        aria-label={enabled ? `Wycisz ${label}` : `Włącz ${label}`}
+        aria-pressed={enabled}
+      >
+        <Icon className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
 function MusicTrackSelect({
   label,
   value,
@@ -3812,15 +4300,6 @@ function getDailyReminderProfile(msLeft: number) {
   return { firstDelayMs: 45_000, intervalMs: 7 * 60_000, expanded: true, expandedMs: 3500, totalMs: 9000 };
 }
 
-function getDailyProgress(player: PlayerState) {
-  const parts = EXERCISES.map((exercise) => Math.min(1, Number(player.dailyQuest[exercise.id] || 0) / exercise.target));
-  const percent = (parts.reduce((sum, part) => sum + part, 0) / parts.length) * 100;
-  return {
-    percent,
-    completedCount: parts.filter((part) => part >= 1).length,
-  };
-}
-
 function getCombatPower(player: PlayerState) {
   const stats = { ...player.stats };
   for (const item of Object.values(player.equipment || {})) {
@@ -3833,7 +4312,8 @@ function getCombatPower(player: PlayerState) {
 function getHunterAbilityRows(player: PlayerState) {
   const totals = (player.workoutHistory || []).reduce(
     (acc, entry) => {
-      acc[entry.exercise] = (acc[entry.exercise] || 0) + Number(entry.value || 0);
+      const trackableId = entry.trackableExerciseId || (isTrackableExerciseId(entry.exercise) ? entry.exercise : null);
+      if (trackableId) acc[trackableId] = (acc[trackableId] || 0) + Number(entry.value || 0);
       return acc;
     },
     { pushups: 0, situps: 0, squats: 0, runningKm: 0 } as Record<TrackableExerciseId, number>
@@ -3896,12 +4376,18 @@ function getHunterAbilityRows(player: PlayerState) {
 
 function getDailyExerciseAbilityLevel(player: PlayerState, exerciseId: TrackableExerciseId) {
   const total = (player.workoutHistory || [])
-    .filter((entry) => entry.exercise === exerciseId)
+    .filter((entry) => entry.trackableExerciseId === exerciseId || entry.exercise === exerciseId)
     .reduce((sum, entry) => sum + Number(entry.value || 0), 0);
   const thresholds = exerciseId === "runningKm" ? [1, 5, 15, 35, 75] : [25, 100, 250, 600, 1200];
   return thresholds.filter((threshold) => total >= threshold).length;
 }
 
-function formatValue(value: number, exercise: ExerciseConfig) {
-  return exercise.id === "runningKm" ? value.toFixed(1) : String(Math.floor(value));
+function formatValue(value: number, exercise: DailyQuestItem) {
+  return exercise.trackableExerciseId === "runningKm" || exercise.unit.toLowerCase().includes("km")
+    ? value.toFixed(1)
+    : String(Math.floor(value));
+}
+
+function isTrackableExerciseId(value: string): value is TrackableExerciseId {
+  return value === "pushups" || value === "situps" || value === "squats" || value === "runningKm";
 }

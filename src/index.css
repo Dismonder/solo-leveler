@@ -346,15 +346,15 @@ body {
 
 .sl-app-root :is(.sl-section, .sl-theme-panel) {
   background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 10%, transparent), transparent 58%),
-    linear-gradient(135deg, var(--sl-panel-surface), color-mix(in srgb, var(--sl-panel-surface) 72%, transparent)) !important;
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 4%, transparent), transparent 62%),
+    linear-gradient(135deg, var(--sl-panel-surface), var(--sl-panel-surface)) !important;
   backdrop-filter: blur(var(--sl-surface-blur-panel));
 }
 
 .sl-app-root :is(.sl-card, .sl-accordion) {
   background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 8%, transparent), transparent 58%),
-    linear-gradient(135deg, var(--sl-card-surface), color-mix(in srgb, var(--sl-card-surface) 72%, transparent)) !important;
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 3%, transparent), transparent 62%),
+    linear-gradient(135deg, var(--sl-card-surface), var(--sl-card-surface)) !important;
   backdrop-filter: blur(var(--sl-surface-blur-card));
 }
 
@@ -365,15 +365,15 @@ body {
 
 .sl-app-root .sl-modal {
   background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 10%, transparent), transparent 58%),
-    linear-gradient(135deg, var(--sl-modal-surface), color-mix(in srgb, var(--sl-modal-surface) 78%, transparent)) !important;
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 5%, transparent), transparent 62%),
+    linear-gradient(135deg, var(--sl-modal-surface), var(--sl-modal-surface)) !important;
   backdrop-filter: blur(var(--sl-surface-blur-modal));
 }
 
 .sl-app-root .sl-theme-nav {
   background:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 10%, transparent), transparent 58%),
-    linear-gradient(180deg, var(--sl-nav-surface), color-mix(in srgb, var(--sl-nav-surface) 76%, transparent)) !important;
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent) 4%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--sl-nav-surface), var(--sl-nav-surface)) !important;
   backdrop-filter: blur(var(--sl-surface-blur-nav));
 }
 

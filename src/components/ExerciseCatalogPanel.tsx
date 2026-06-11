@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useDeferredValue, useMemo, useState } from "react";
 import { BookOpen, ExternalLink, Plus, Search } from "lucide-react";
 import {
   EXERCISE_CATALOG,
@@ -8,6 +8,7 @@ import {
   type ExerciseDifficulty,
 } from "../data/exerciseCatalog";
 import { createExerciseVideoPoster } from "../utils/videoPoster";
+import { searchExercises } from "../game/exerciseSearch";
 
 type ExerciseCatalogPanelProps = {
   plannedExerciseIds?: string[];
@@ -16,25 +17,23 @@ type ExerciseCatalogPanelProps = {
 
 export function ExerciseCatalogPanel({ plannedExerciseIds = [], onAddToPlan }: ExerciseCatalogPanelProps) {
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [category, setCategory] = useState("all");
   const [difficulty, setDifficulty] = useState<ExerciseDifficulty | "all">("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const plannedIds = useMemo(() => new Set(plannedExerciseIds), [plannedExerciseIds]);
 
   const filteredExercises = useMemo(() => {
-    const normalizedQuery = normalizeCatalogText(query);
-    return EXERCISE_CATALOG.filter((exercise) => {
-      const matchesQuery = !normalizedQuery || normalizeCatalogText([
-        exercise.name,
-        exercise.category,
-        exercise.equipment,
-        ...exercise.primaryMuscles,
-      ].join(" ")).includes(normalizedQuery);
+    const scopedCatalog = EXERCISE_CATALOG.filter((exercise) => {
       const matchesCategory = category === "all" || exercise.category === category;
       const matchesDifficulty = difficulty === "all" || exercise.difficulty === difficulty;
-      return matchesQuery && matchesCategory && matchesDifficulty;
+      return matchesCategory && matchesDifficulty;
     });
-  }, [category, difficulty, query]);
+    return searchExercises(scopedCatalog, deferredQuery, {
+      limit: deferredQuery.trim() ? 80 : scopedCatalog.length,
+      includeZeroScore: !deferredQuery.trim(),
+    }).map((result) => result.exercise);
+  }, [category, deferredQuery, difficulty]);
 
   return (
     <div className="space-y-3">
@@ -240,13 +239,6 @@ function CatalogInfoBlock({ title, items, muted = false }: { title: string; item
       </ul>
     </div>
   );
-}
-
-function normalizeCatalogText(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function getDifficultyLabel(difficulty: ExerciseDifficulty) {

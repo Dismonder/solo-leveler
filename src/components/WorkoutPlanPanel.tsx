@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useDeferredValue, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -26,7 +26,8 @@ import {
   updatePlanExercise,
 } from "../game/workoutPlan";
 import { getLocalDateKey } from "../game/playerMath";
-import type { WorkoutPlanExercise, WorkoutPlanSession, WorkoutPlanSessionSummary } from "../types";
+import { searchExercises } from "../game/exerciseSearch";
+import type { WorkoutEntry, WorkoutPlanExercise, WorkoutPlanSession, WorkoutPlanSessionSummary } from "../types";
 
 type HistoryRange = "7d" | "30d" | "all";
 type PlanPanelMode = "plan" | "history";
@@ -34,6 +35,7 @@ type PlanPanelMode = "plan" | "history";
 type WorkoutPlanPanelProps = {
   plan: WorkoutPlanExercise[];
   sessions: WorkoutPlanSessionSummary[];
+  workoutHistory: WorkoutEntry[];
   activeSession: WorkoutPlanSession | null;
   onChange: (plan: WorkoutPlanExercise[]) => void;
   onStartSession: () => void;
@@ -42,37 +44,39 @@ type WorkoutPlanPanelProps = {
 export function WorkoutPlanPanel({
   plan,
   sessions,
+  workoutHistory,
   activeSession,
   onChange,
   onStartSession,
 }: WorkoutPlanPanelProps) {
   const [query, setQuery] = useState("");
-  const [selectedExerciseId, setSelectedExerciseId] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [historyRange, setHistoryRange] = useState<HistoryRange>("7d");
   const [mode, setMode] = useState<PlanPanelMode>("plan");
+  const [startError, setStartError] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const todayKey = getLocalDateKey();
 
-  const filteredCatalog = useMemo(() => {
-    const normalizedQuery = normalizeText(query);
-    return EXERCISE_CATALOG.filter((exercise) => {
-      if (!normalizedQuery) return true;
-      return normalizeText([
-        exercise.name,
-        exercise.category,
-        exercise.equipment,
-        ...exercise.primaryMuscles,
-      ].join(" ")).includes(normalizedQuery);
-    });
-  }, [query]);
-
-  const selectedExercise = EXERCISE_CATALOG.find((exercise) => exercise.id === selectedExerciseId) ?? filteredCatalog[0];
   const completion = getPlanCompletionForDate(plan, todayKey);
   const plannedIds = new Set(plan.map((exercise) => exercise.catalogExerciseId));
+  const searchResults = useMemo(
+    () => searchExercises(EXERCISE_CATALOG, deferredQuery, { limit: deferredQuery.trim() ? 8 : 5 }),
+    [deferredQuery],
+  );
 
-  const addSelectedExercise = () => {
-    if (!selectedExercise) return;
-    onChange(addCatalogExerciseToPlan(plan, selectedExercise));
-    setSelectedExerciseId("");
+  const addExercise = (exercise: ExerciseCatalogEntry) => {
+    onChange(addCatalogExerciseToPlan(plan, exercise));
+    setStartError(null);
+  };
+
+  const handleStartSession = () => {
+    if (plan.length === 0 && !activeSession) {
+      setStartError("Dodaj pierwsze ćwiczenie z wyników wyszukiwania, wtedy plan będzie można uruchomić.");
+      searchInputRef.current?.focus();
+      searchInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    onStartSession();
   };
 
   return (
@@ -102,6 +106,7 @@ export function WorkoutPlanPanel({
         <WorkoutHistoryPanel
           plan={plan}
           sessions={sessions}
+          workoutHistory={workoutHistory}
           range={historyRange}
           onRangeChange={setHistoryRange}
         />
@@ -121,8 +126,7 @@ export function WorkoutPlanPanel({
 
         <button
           type="button"
-          onClick={onStartSession}
-          disabled={plan.length === 0 && !activeSession}
+          onClick={handleStartSession}
           className="sl-button-primary mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black uppercase tracking-widest active:scale-[0.98]"
         >
           <Play className="h-4 w-4" />
@@ -133,35 +137,43 @@ export function WorkoutPlanPanel({
           <label className="sl-input flex min-h-12 items-center gap-2 rounded-2xl px-3">
             <Search className="h-4 w-4 text-[var(--theme-muted)]" />
             <input
+              ref={searchInputRef}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Szukaj ćwiczenia do planu"
+              placeholder="Szukaj: klata, brzuch, bez sprzętu..."
               className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
             />
           </label>
 
-          <div className="grid grid-cols-[1fr_auto] gap-2">
-            <select
-              value={selectedExerciseId}
-              onChange={(event) => setSelectedExerciseId(event.target.value)}
-              className="sl-input min-h-12 min-w-0 rounded-2xl px-3 text-xs font-black uppercase tracking-widest outline-none"
-            >
-              <option value="">{filteredCatalog[0] ? "Wybierz z listy" : "Brak wyników"}</option>
-              {filteredCatalog.map((exercise) => (
-                <option key={exercise.id} value={exercise.id}>
-                  {exercise.name}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              onClick={addSelectedExercise}
-              disabled={!selectedExercise || plannedIds.has(selectedExercise.id)}
-              className="sl-button-primary flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-black uppercase tracking-widest active:scale-[0.98]"
-            >
-              <Plus className="h-4 w-4" />
-              Dodaj
-            </button>
+          {startError && (
+            <div className="sl-alert-warning rounded-2xl px-3 py-2 text-xs font-bold text-[var(--theme-warning-text)]">
+              {startError}
+            </div>
+          )}
+
+          <div className="grid gap-2">
+            {searchResults.map(({ exercise }) => {
+              const planned = plannedIds.has(exercise.id);
+              return (
+                <button
+                  key={exercise.id}
+                  type="button"
+                  onClick={() => !planned && addExercise(exercise)}
+                  disabled={planned}
+                  className="sl-input flex min-h-14 items-center justify-between gap-3 rounded-2xl px-3 py-2 text-left active:scale-[0.99] disabled:opacity-80"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black text-[var(--theme-text-strong)]">{exercise.name}</span>
+                    <span className="sl-muted mt-0.5 block truncate text-[10px] font-black uppercase tracking-widest">
+                      {exercise.category} · {exercise.equipment}
+                    </span>
+                  </span>
+                  <span className={planned ? "sl-chip rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest" : "sl-button-primary shrink-0 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest"}>
+                    {planned ? "W planie" : "Dodaj"}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -246,15 +258,15 @@ const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({
 
   return (
     <article className="sl-card rounded-[22px] p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">
             {index + 1}. {exercise.category}
           </p>
           <h3 className="mt-1 text-lg font-black uppercase tracking-[0.04em] text-[var(--theme-text)]">{exercise.name}</h3>
           <p className="mt-1 truncate text-xs font-bold text-[var(--theme-muted)]">{exercise.equipment}</p>
         </div>
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-3 gap-1.5 self-stretch sm:self-start">
           <IconButton onClick={onMoveUp} disabled={!canMoveUp} label="Przesuń wyżej">
             <ArrowUp className="h-4 w-4" />
           </IconButton>
@@ -346,28 +358,40 @@ const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({
 function WorkoutHistoryPanel({
   plan,
   sessions,
+  workoutHistory,
   range,
   onRangeChange,
 }: {
   plan: WorkoutPlanExercise[];
   sessions: WorkoutPlanSessionSummary[];
+  workoutHistory: WorkoutEntry[];
   range: HistoryRange;
   onRangeChange: (range: HistoryRange) => void;
 }) {
-  const filteredSessions = useMemo(() => filterSessionsByRange(sessions, range), [sessions, range]);
-  const chartData = useMemo(() => buildHistoryChart(filteredSessions), [filteredSessions]);
-  const totals = useMemo(() => getHistoryTotals(filteredSessions), [filteredSessions]);
+  const historyModel = useMemo(
+    () => buildUnifiedTrainingHistory(sessions, workoutHistory, readTrainingHistoryArchive()),
+    [sessions, workoutHistory],
+  );
+  const filteredDays = useMemo(() => filterHistoryDaysByRange(historyModel.days, range), [historyModel.days, range]);
+  const filteredEvents = useMemo(() => filterHistoryEventsByRange(historyModel.events, range), [historyModel.events, range]);
+  const chartData = useMemo(() => buildUnifiedHistoryChart(filteredDays), [filteredDays]);
+  const totals = useMemo(() => getUnifiedHistoryTotals(filteredDays), [filteredDays]);
   const currentPlanSignature = useMemo(() => createPlanSignatureFromPlan(plan), [plan]);
   const bestTimeForPlan = useMemo(() => getBestTimeForPlan(sessions, currentPlanSignature), [sessions, currentPlanSignature]);
+
+  const hasHistory = filteredDays.length > 0 || filteredEvents.length > 0;
 
   return (
     <section className="sl-card rounded-[22px] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">Historia</p>
-          <h3 className="mt-1 text-lg font-black uppercase tracking-[0.06em] text-[var(--theme-text)]">Raport planów</h3>
+          <h3 className="mt-1 text-lg font-black uppercase tracking-[0.06em] text-[var(--theme-text)]">Pełny dziennik treningów</h3>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">
+            Daily, plan, sensor telefonu, Health Connect i archiwum dnia w jednym widoku.
+          </p>
         </div>
-        <BarChart3 className="h-6 w-6 text-[var(--theme-icon)]" />
+        <BarChart3 className="h-6 w-6 shrink-0 text-[var(--theme-icon)]" />
       </div>
 
       <div className="sl-input mt-4 grid grid-cols-3 gap-2 rounded-2xl p-1.5">
@@ -376,33 +400,19 @@ function WorkoutHistoryPanel({
         <RangeButton active={range === "all"} onClick={() => onRangeChange("all")} label="Całość" />
       </div>
 
-      {filteredSessions.length === 0 ? (
+      {!hasHistory ? (
         <div className="sl-input mt-4 rounded-2xl p-4 text-center">
-          <p className="text-sm font-bold text-[var(--theme-text)]">Brak zapisanych sesji w tym zakresie.</p>
-          <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">Uruchom plan i zakończ go, żeby pojawiły się wykresy.</p>
+          <p className="text-sm font-bold text-[var(--theme-text)]">Brak historii w tym zakresie.</p>
+          <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">
+            Wykonaj daily, zapisz serię w planie albo zsynchronizuj Health Connect, żeby pojawiły się dane.
+          </p>
         </div>
       ) : (
         <>
-          <div className="sl-input mt-4 h-52 rounded-2xl p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 12, right: 8, left: -28, bottom: 0 }}>
-                <XAxis dataKey="label" tick={{ fill: "#64748b", fontSize: 10, fontWeight: 800 }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  cursor={{ fill: "rgba(34,211,238,0.08)" }}
-                  contentStyle={{ background: "var(--theme-modal)", border: "1px solid var(--theme-border)", borderRadius: 14, color: "var(--theme-text)" }}
-                  labelStyle={{ color: "#e0f2fe", fontWeight: 900 }}
-                />
-                <Bar dataKey="minutes" name="Minuty" fill="#22d3ee" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="sets" name="Serie" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="volume" name="Objętość kg" fill="#a855f7" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="xp" name="XP" fill="#facc15" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <PlanStat label="Sesje" value={filteredSessions.length} />
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <PlanStat label="Dni aktywne" value={filteredDays.length} />
+            <PlanStat label="Daily" value={`${totals.dailyCompleted}/${filteredDays.length}`} />
+            <PlanStat label="Plan" value={`${totals.planSessions} sesji`} />
             <PlanStat label="Czas" value={formatDuration(totals.seconds)} />
             <PlanStat label="Serie" value={totals.sets} />
             <PlanStat label="Objętość" value={`${totals.volumeKg} kg`} />
@@ -410,28 +420,71 @@ function WorkoutHistoryPanel({
             <PlanStat label="Rekord" value={bestTimeForPlan ? formatDuration(bestTimeForPlan) : "--"} />
           </div>
 
-          <div className="mt-3 space-y-2">
-            {filteredSessions.slice(-3).reverse().map((session) => (
-              <div key={session.id} className="sl-input rounded-2xl p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-black uppercase tracking-widest text-[var(--theme-text)]">{formatDate(session.completedAt)}</p>
-                  <span className="font-mono text-xs font-black text-[var(--theme-icon)]">{formatDuration(session.activeSeconds)}</span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">
-                  {session.completedSets}/{session.totalSets} serii · {session.totalReps} powt. · {session.volumeKg} kg · +{session.xpReward} XP
-                </p>
-                {session.newRecord && (
-                  <div className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--theme-warning-text)]">
-                    <Trophy className="h-3.5 w-3.5" />
-                    Rekord układu planu
-                  </div>
-                )}
+          <div className="sl-input mt-4 h-56 rounded-2xl p-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 12, right: 8, left: -28, bottom: 0 }}>
+                <XAxis dataKey="label" tick={{ fill: "var(--theme-muted)", fontSize: 10, fontWeight: 800 }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip
+                  cursor={{ fill: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}
+                  contentStyle={{ background: "var(--theme-modal)", border: "1px solid var(--theme-border)", borderRadius: 14, color: "var(--theme-text)" }}
+                  labelStyle={{ color: "var(--theme-text-strong)", fontWeight: 900 }}
+                />
+                <Bar dataKey="dailyPercent" name="Daily %" fill="var(--theme-accent)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="minutes" name="Minuty planu" fill="var(--theme-progress-fill)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="sets" name="Serie" fill="var(--theme-success)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="xp" name="XP" fill="var(--theme-warning)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-4 grid gap-2">
+            <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Oś aktywności</p>
+            {filteredEvents.slice(0, 18).map((event) => (
+              <div key={event.id}>
+                <HistoryEventCard event={event} />
               </div>
             ))}
           </div>
         </>
       )}
     </section>
+  );
+}
+
+function HistoryEventCard({ event }: { event: UnifiedHistoryEvent }) {
+  const Icon = event.kind === "plan"
+    ? Dumbbell
+    : event.kind === "dailyComplete"
+      ? Trophy
+      : event.kind === "archive"
+        ? BarChart3
+        : CheckCircle2;
+
+  return (
+    <article className="sl-input rounded-2xl p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${event.highlight ? "sl-chip-active" : "sl-chip"}`}>
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-black text-[var(--theme-text)]">{event.title}</p>
+            <p className="mt-1 text-xs leading-relaxed text-[var(--theme-muted)]">
+              {formatDate(event.timestamp)} · {event.subtitle}
+            </p>
+            {event.metaLabel && (
+              <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-[var(--theme-accent)]">{event.metaLabel}</p>
+            )}
+          </div>
+        </div>
+        {event.amountLabel && (
+          <span className="sl-chip-active shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest">
+            {event.amountLabel}
+          </span>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -548,11 +601,352 @@ function PlanStat({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-function normalizeText(value: string) {
-  return value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+type HistoryArchiveDailyItem = {
+  id?: string;
+  label?: string;
+  unit?: string;
+  target?: number;
+  value?: number;
+  source?: string;
+};
+
+type TrainingHistoryArchiveEntry = {
+  date: string;
+  dailyItems?: HistoryArchiveDailyItem[];
+  pushups?: number;
+  situps?: number;
+  squats?: number;
+  runningKm?: number;
+  xpGained?: number;
+  workoutPlanSessions?: number;
+  workoutPlanMinutes?: number;
+  workoutPlanSets?: number;
+  workoutPlanVolume?: number;
+  workoutPlanGold?: number;
+  completed?: boolean;
+  updatedAt?: string;
+};
+
+type UnifiedHistoryEventKind = "daily" | "sensor" | "health" | "plan" | "dailyComplete" | "archive";
+
+type UnifiedHistoryEvent = {
+  id: string;
+  kind: UnifiedHistoryEventKind;
+  dateKey: string;
+  timestamp: string;
+  sortMs: number;
+  title: string;
+  subtitle: string;
+  amountLabel?: string;
+  metaLabel?: string;
+  xp: number;
+  gold: number;
+  minutes: number;
+  sets: number;
+  volumeKg: number;
+  highlight?: boolean;
+};
+
+type UnifiedHistoryDay = {
+  dateKey: string;
+  label: string;
+  sortMs: number;
+  dailyValue: number;
+  dailyTarget: number;
+  dailyCompleted: boolean;
+  dailyEntries: number;
+  planSessions: number;
+  seconds: number;
+  sets: number;
+  volumeKg: number;
+  xp: number;
+  gold: number;
+};
+
+function readTrainingHistoryArchive(): TrainingHistoryArchiveEntry[] {
+  if (typeof localStorage === "undefined") return [];
+
+  try {
+    const historyStr = localStorage.getItem("sololeveler_history_data") || "{}";
+    const historyData = JSON.parse(historyStr) as Record<string, TrainingHistoryArchiveEntry>;
+    return Object.values(historyData).filter((entry) => entry && typeof entry.date === "string");
+  } catch {
+    return [];
+  }
+}
+
+function buildUnifiedTrainingHistory(
+  sessions: WorkoutPlanSessionSummary[],
+  workoutHistory: WorkoutEntry[],
+  archiveEntries: TrainingHistoryArchiveEntry[],
+) {
+  const days = new Map<string, UnifiedHistoryDay>();
+  const events: UnifiedHistoryEvent[] = [];
+
+  for (const entry of workoutHistory) {
+    const dateKey = getDateKeyFromTimestamp(entry.timestamp);
+    const day = ensureHistoryDay(days, dateKey);
+    const amount = Number(entry.value || 0);
+    const amountLabel = formatWorkoutEntryAmount(entry);
+    day.dailyEntries += 1;
+    day.dailyValue += Math.max(0, amount);
+
+    const kind = getWorkoutEntryEventKind(entry.source);
+    events.push({
+      id: entry.id,
+      kind,
+      dateKey,
+      timestamp: entry.timestamp,
+      sortMs: new Date(entry.timestamp).getTime(),
+      title: entry.exerciseLabel || prettifyHistoryExercise(entry.exercise),
+      subtitle: getWorkoutEntrySourceLabel(entry.source),
+      amountLabel,
+      xp: 0,
+      gold: 0,
+      minutes: 0,
+      sets: 0,
+      volumeKg: 0,
+    });
+  }
+
+  for (const session of sessions) {
+    const dateKey = session.dateKey || getDateKeyFromTimestamp(session.completedAt);
+    const day = ensureHistoryDay(days, dateKey);
+    day.planSessions += 1;
+    day.seconds += session.activeSeconds;
+    day.sets += session.completedSets;
+    day.volumeKg = Number((day.volumeKg + session.volumeKg).toFixed(1));
+    day.xp += session.xpReward;
+    day.gold += session.goldReward;
+
+    const exerciseNames = session.exercises.map((exercise) => exercise.name).slice(0, 3).join(", ");
+    events.push({
+      id: session.id,
+      kind: "plan",
+      dateKey,
+      timestamp: session.completedAt,
+      sortMs: new Date(session.completedAt).getTime(),
+      title: "Sesja planu",
+      subtitle: exerciseNames ? `${exerciseNames}${session.exercises.length > 3 ? "..." : ""}` : "Plan treningowy",
+      amountLabel: formatDuration(session.activeSeconds),
+      metaLabel: `+${session.xpReward} XP · +${session.goldReward} gold · ${session.completedSets}/${session.totalSets} serii`,
+      xp: session.xpReward,
+      gold: session.goldReward,
+      minutes: Math.round(session.activeSeconds / 60),
+      sets: session.completedSets,
+      volumeKg: session.volumeKg,
+      highlight: session.newRecord,
+    });
+  }
+
+  for (const entry of archiveEntries) {
+    const dateKey = entry.date;
+    const day = ensureHistoryDay(days, dateKey);
+    const dailyItems = getArchiveDailyItems(entry);
+    const dailyValue = dailyItems.reduce((sum, item) => sum + Math.max(0, Number(item.value || 0)), 0);
+    const dailyTarget = dailyItems.reduce((sum, item) => sum + Math.max(0, Number(item.target || 0)), 0);
+    const xpGained = Math.max(0, Math.round(Number(entry.xpGained || 0)));
+    const planSeconds = Math.max(0, Math.round(Number(entry.workoutPlanMinutes || 0) * 60));
+    const planSets = Math.max(0, Math.round(Number(entry.workoutPlanSets || 0)));
+    const planVolume = Math.max(0, Number(Number(entry.workoutPlanVolume || 0).toFixed(1)));
+    const planGold = Math.max(0, Math.round(Number(entry.workoutPlanGold || 0)));
+
+    day.dailyTarget = Math.max(day.dailyTarget, dailyTarget);
+    day.dailyValue = Math.max(day.dailyValue, dailyValue);
+    day.dailyCompleted = day.dailyCompleted || Boolean(entry.completed);
+    day.planSessions = Math.max(day.planSessions, Math.round(Number(entry.workoutPlanSessions || 0)));
+    day.seconds = Math.max(day.seconds, planSeconds);
+    day.sets = Math.max(day.sets, planSets);
+    day.volumeKg = Math.max(day.volumeKg, planVolume);
+    day.xp = Math.max(day.xp, xpGained);
+    day.gold = Math.max(day.gold, planGold);
+
+    if (entry.completed) {
+      events.push({
+        id: `${dateKey}-daily-complete`,
+        kind: "dailyComplete",
+        dateKey,
+        timestamp: entry.updatedAt || `${dateKey}T20:00:00`,
+        sortMs: getDateSortMs(dateKey) + 20 * 60 * 60 * 1000,
+        title: "Daily ukończone",
+        subtitle: formatArchiveDailySummary(dailyItems),
+        amountLabel: "100%",
+        xp: xpGained,
+        gold: 0,
+        minutes: 0,
+        sets: 0,
+        volumeKg: 0,
+        highlight: true,
+      });
+    }
+
+    const hasArchiveOnlyProgress = xpGained > 0 || planGold > 0;
+    if (hasArchiveOnlyProgress) {
+      events.push({
+        id: `${dateKey}-archive`,
+        kind: "archive",
+        dateKey,
+        timestamp: entry.updatedAt || `${dateKey}T21:00:00`,
+        sortMs: getDateSortMs(dateKey) + 21 * 60 * 60 * 1000,
+        title: "Podsumowanie dnia",
+        subtitle: "Daily, mini-gry, plan i nagrody systemu",
+        amountLabel: xpGained > 0 ? `+${xpGained} XP` : undefined,
+        metaLabel: planGold > 0 ? `+${planGold} gold` : undefined,
+        xp: xpGained,
+        gold: planGold,
+        minutes: Math.round(planSeconds / 60),
+        sets: planSets,
+        volumeKg: planVolume,
+      });
+    }
+  }
+
+  return {
+    days: Array.from(days.values()).sort((a, b) => b.sortMs - a.sortMs),
+    events: events.sort((a, b) => b.sortMs - a.sortMs),
+  };
+}
+
+function ensureHistoryDay(days: Map<string, UnifiedHistoryDay>, dateKey: string) {
+  const existing = days.get(dateKey);
+  if (existing) return existing;
+
+  const created: UnifiedHistoryDay = {
+    dateKey,
+    label: formatDateShort(dateKey),
+    sortMs: getDateSortMs(dateKey),
+    dailyValue: 0,
+    dailyTarget: 0,
+    dailyCompleted: false,
+    dailyEntries: 0,
+    planSessions: 0,
+    seconds: 0,
+    sets: 0,
+    volumeKg: 0,
+    xp: 0,
+    gold: 0,
+  };
+  days.set(dateKey, created);
+  return created;
+}
+
+function filterHistoryDaysByRange(days: UnifiedHistoryDay[], range: HistoryRange) {
+  if (range === "all") return days;
+  return days.filter((day) => isDateKeyInRange(day.dateKey, range));
+}
+
+function filterHistoryEventsByRange(events: UnifiedHistoryEvent[], range: HistoryRange) {
+  if (range === "all") return events;
+  return events.filter((event) => isDateKeyInRange(event.dateKey, range));
+}
+
+function buildUnifiedHistoryChart(days: UnifiedHistoryDay[]) {
+  return [...days]
+    .sort((a, b) => a.sortMs - b.sortMs)
+    .map((day) => ({
+      label: day.label,
+      dailyPercent: getDailyPercentForHistoryDay(day),
+      minutes: Math.round(day.seconds / 60),
+      sets: day.sets,
+      xp: day.xp,
+    }))
+    .slice(-14);
+}
+
+function getUnifiedHistoryTotals(days: UnifiedHistoryDay[]) {
+  return days.reduce((totals, day) => ({
+    dailyCompleted: totals.dailyCompleted + (day.dailyCompleted ? 1 : 0),
+    planSessions: totals.planSessions + day.planSessions,
+    seconds: totals.seconds + day.seconds,
+    sets: totals.sets + day.sets,
+    volumeKg: Number((totals.volumeKg + day.volumeKg).toFixed(1)),
+    xp: totals.xp + day.xp,
+    gold: totals.gold + day.gold,
+  }), {
+    dailyCompleted: 0,
+    planSessions: 0,
+    seconds: 0,
+    sets: 0,
+    volumeKg: 0,
+    xp: 0,
+    gold: 0,
+  });
+}
+
+function getDailyPercentForHistoryDay(day: UnifiedHistoryDay) {
+  if (day.dailyCompleted) return 100;
+  if (day.dailyTarget <= 0) return day.dailyEntries > 0 ? 1 : 0;
+  return Math.min(100, Math.round((day.dailyValue / day.dailyTarget) * 100));
+}
+
+function isDateKeyInRange(dateKey: string, range: Exclude<HistoryRange, "all">) {
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() - (range === "7d" ? 6 : 29));
+  return getDateSortMs(dateKey) >= cutoff.getTime();
+}
+
+function getDateKeyFromTimestamp(timestamp: string) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return getLocalDateKey();
+  return getLocalDateKey(date);
+}
+
+function getDateSortMs(dateKey: string) {
+  const timestamp = new Date(`${dateKey}T12:00:00`).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function getArchiveDailyItems(entry: TrainingHistoryArchiveEntry): HistoryArchiveDailyItem[] {
+  if (Array.isArray(entry.dailyItems) && entry.dailyItems.length > 0) {
+    return entry.dailyItems.filter((item) => Number(item.target || 0) > 0 || Number(item.value || 0) > 0);
+  }
+
+  return [
+    { id: "pushups", label: "Pompki", unit: "powt.", target: 100, value: entry.pushups || 0, source: "trackable" },
+    { id: "situps", label: "Brzuszki", unit: "powt.", target: 100, value: entry.situps || 0, source: "trackable" },
+    { id: "squats", label: "Przysiady", unit: "powt.", target: 100, value: entry.squats || 0, source: "trackable" },
+    { id: "runningKm", label: "Bieganie", unit: "km", target: 10, value: entry.runningKm || 0, source: "trackable" },
+  ].filter((item) => Number(item.value || 0) > 0);
+}
+
+function formatArchiveDailySummary(items: HistoryArchiveDailyItem[]) {
+  if (items.length === 0) return "Cel dzienny zamknięty";
+  return items
+    .slice(0, 3)
+    .map((item) => `${item.label || "Ćwiczenie"} ${formatCompactNumber(Number(item.value || 0))}/${formatCompactNumber(Number(item.target || 0))} ${item.unit || ""}`.trim())
+    .join(" · ");
+}
+
+function getWorkoutEntryEventKind(source: WorkoutEntry["source"]): UnifiedHistoryEventKind {
+  if (source === "healthConnect") return "health";
+  if (source === "phoneSensor" || source === "wearable") return "sensor";
+  return "daily";
+}
+
+function getWorkoutEntrySourceLabel(source: WorkoutEntry["source"]) {
+  if (source === "healthConnect") return "Health Connect";
+  if (source === "phoneSensor") return "Sensor telefonu";
+  if (source === "wearable") return "Opaska";
+  return "Wpis manualny daily";
+}
+
+function formatWorkoutEntryAmount(entry: WorkoutEntry) {
+  const amount = Number(entry.value || 0);
+  const unit = entry.trackableExerciseId === "runningKm" ? "km" : "powt.";
+  return `+${formatCompactNumber(amount)} ${unit}`;
+}
+
+function prettifyHistoryExercise(exercise: string) {
+  return exercise
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatCompactNumber(value: number) {
+  if (!Number.isFinite(value)) return "0";
+  if (Math.abs(value % 1) > 0) return value.toFixed(1);
+  return String(Math.round(value));
 }
 
 function filterSessionsByRange(sessions: WorkoutPlanSessionSummary[], range: HistoryRange) {

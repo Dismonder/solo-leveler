@@ -11,9 +11,42 @@ import {
 
 export type WorkoutSource = "manual" | "phoneSensor" | "wearable" | "healthConnect";
 
+export type DailyQuestTrackableId = "pushups" | "situps" | "squats" | "runningKm";
+export type DailyQuestStat = "STR" | "VITALITY" | "AGILITY" | "INTELLIGENCE" | "SENSE";
+
+export type DailyQuestItem = {
+  id: string;
+  label: string;
+  unit: string;
+  target: number;
+  manualSmall: number;
+  manualLarge: number;
+  stat: DailyQuestStat;
+  catalogExerciseId?: string;
+  trackableExerciseId?: DailyQuestTrackableId;
+  enabled: boolean;
+};
+
+export type DailyQuestProgress = Record<string, number>;
+
+export type DailyQuestState = {
+  pushups: number;
+  situps: number;
+  squats: number;
+  runningKm: number;
+  items: DailyQuestItem[];
+  progressByItemId: DailyQuestProgress;
+  completedAt: string | null;
+  penaltyGiven: boolean;
+  miniGamesPlayed: number;
+  streak: number;
+};
+
 export type WorkoutEntry = {
   id: string;
-  exercise: keyof Pick<PlayerState["dailyQuest"], "pushups" | "situps" | "squats" | "runningKm">;
+  exercise: string;
+  exerciseLabel?: string;
+  trackableExerciseId?: DailyQuestTrackableId;
   value: number;
   source: WorkoutSource;
   timestamp: string;
@@ -333,16 +366,7 @@ export interface PlayerState {
   maxHp: number;
   mp: number;
   maxMp: number;
-  dailyQuest: {
-    pushups: number;
-    situps: number;
-    squats: number;
-    runningKm: number;
-    completedAt: string | null;
-    penaltyGiven: boolean;
-    miniGamesPlayed: number;
-    streak: number;
-  };
+  dailyQuest: DailyQuestState;
   workoutHistory: WorkoutEntry[];
   wearableSamples: WearableSample[];
   workoutPlan: WorkoutPlanExercise[];
@@ -470,6 +494,61 @@ export const INITIAL_PLAYER: PlayerState = {
     situps: 0,
     squats: 0,
     runningKm: 0,
+    items: [
+      {
+        id: "pushups",
+        label: "Pompki",
+        unit: "powt.",
+        target: 100,
+        manualSmall: 1,
+        manualLarge: 10,
+        stat: "STR",
+        trackableExerciseId: "pushups",
+        catalogExerciseId: "pompki-klasyczne",
+        enabled: true,
+      },
+      {
+        id: "situps",
+        label: "Brzuszki",
+        unit: "powt.",
+        target: 100,
+        manualSmall: 1,
+        manualLarge: 10,
+        stat: "VITALITY",
+        trackableExerciseId: "situps",
+        catalogExerciseId: "brzuszki",
+        enabled: true,
+      },
+      {
+        id: "squats",
+        label: "Przysiady",
+        unit: "powt.",
+        target: 100,
+        manualSmall: 1,
+        manualLarge: 10,
+        stat: "AGILITY",
+        trackableExerciseId: "squats",
+        catalogExerciseId: "przysiad-klasyczny",
+        enabled: true,
+      },
+      {
+        id: "runningKm",
+        label: "Bieganie",
+        unit: "km",
+        target: 10,
+        manualSmall: 0.1,
+        manualLarge: 1,
+        stat: "SENSE",
+        trackableExerciseId: "runningKm",
+        enabled: true,
+      },
+    ],
+    progressByItemId: {
+      pushups: 0,
+      situps: 0,
+      squats: 0,
+      runningKm: 0,
+    },
     completedAt: null,
     penaltyGiven: false,
     miniGamesPlayed: 0,

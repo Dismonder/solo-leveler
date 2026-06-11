@@ -2,7 +2,16 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { INITIAL_PLAYER, MiniGameSettlement, PlayerState, WearableSample, WorkoutPlanSession, WorkoutSource, normalizeMusicTrackSettings } from "../types";
 import { toast } from "sonner";
 import { applyXpGain, getLocalDateKey, recalculateMaxStats } from "../game/playerMath";
-import { QUEST_TARGETS, QUEST_XP_WEIGHTS, DAILY_COMPLETION_REWARD } from "../game/gameConfig";
+import {
+  getDailyQuestCompletionReward,
+  getDailyQuestXpForDelta,
+  normalizeDailyQuest,
+  resetDailyQuestProgress,
+  syncLegacyDailyQuestFields,
+  getDailyQuestItemProgress,
+  updateDailyQuestItemProgress,
+  isDailyQuestComplete,
+} from "../game/dailyQuest";
 import {
   calculateMiniGameCompletion,
   MiniGameCompletionInput,
@@ -67,7 +76,7 @@ interface PlayerContextType {
   setPlayer: (player: PlayerState | null) => Promise<void>;
   updateStats: (stat: keyof PlayerState["stats"], amount: number) => void;
   addXp: (amount: number) => void;
-  updateDailyQuest: (exercise: keyof PlayerState["dailyQuest"], amount: number, source?: WorkoutSource) => void;
+  updateDailyQuest: (itemId: string, amount: number, source?: WorkoutSource) => void;
   addWearableSample: (sample: WearableSample) => void;
   triggerPenalty: () => void;
   clearPenalty: () => void;
@@ -110,7 +119,7 @@ const normalizeUiSurfaceOpacity = (value: unknown) => {
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric)) return INITIAL_PLAYER.settings.uiSurfaceOpacity;
   if (Math.abs(numeric - LEGACY_UI_SURFACE_OPACITY) < 0.001) return INITIAL_PLAYER.settings.uiSurfaceOpacity;
-  return Math.min(1, Math.max(0.58, numeric));
+  return Math.min(1, Math.max(0.55, numeric));
 };
 
 const normalizeGraphicsQuality = (value: unknown) => {
@@ -146,7 +155,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
             ...INITIAL_PLAYER,
             ...data,
             stats: { ...INITIAL_PLAYER.stats, ...(data.stats || {}) },
-            dailyQuest: { ...INITIAL_PLAYER.dailyQuest, ...(data.dailyQuest || {}) },
+            dailyQuest: normalizeDailyQuest(data.dailyQuest),
             workoutHistory: data.workoutHistory || [],
             workoutPlan: normalizeWorkoutPlan(data.workoutPlan),
             activeWorkoutSession: data.activeWorkoutSession || null,
@@ -216,10 +225,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
           const missedQuest = data.lastLoginDate ? !data.dailyQuest.completedAt : false;
           const missedDateKey = data.lastLoginDate;
           const previousStreak = data.dailyQuest.streak || 0;
-          data.dailyQuest = { ...INITIAL_PLAYER.dailyQuest, streak: missedQuest ? 0 : previousStreak };
+          data.dailyQuest = resetDailyQuestProgress(data.dailyQuest, missedQuest ? 0 : previousStreak);
           if (missedQuest) {
             data.penalties = ensureDailyPenalty(data.penalties, missedDateKey, data.settings);
-            data.dailyQuest.penaltyGiven = true;
+            data.dailyQuest = syncLegacyDailyQuestFields({ ...data.dailyQuest, penaltyGiven: true });
             const activePenalty = getActivePenalty(data.penalties);
             if (activePenalty) void notifyPenaltyCreated(data.settings.notifications, activePenalty);
           }
@@ -260,6 +269,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       ...updated,
       rank: nextRank,
       miniGames: normalizeMiniGamesProgress(updated.miniGames),
+      dailyQuest: normalizeDailyQuest(updated.dailyQuest),
       miniGameUpgrades: {
         ...INITIAL_PLAYER.miniGameUpgrades,
         ...(updated.miniGameUpgrades || {}),
@@ -373,45 +383,41 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     logHistory(updatedPlayer, 0);
   };
 
-  const updateDailyQuest = (exercise: keyof PlayerState["dailyQuest"], amount: number, source: WorkoutSource = "manual") => {
+  const updateDailyQuest = (itemId: string, amount: number, source: WorkoutSource = "manual") => {
     if (!player) return;
-    
-    if (exercise === 'completedAt' || exercise === 'penaltyGiven' || exercise === 'miniGamesPlayed' || exercise === 'streak') return;
 
-    const previous = (player.dailyQuest[exercise] as number) || 0;
-    const target = QUEST_TARGETS[exercise as keyof typeof QUEST_TARGETS];
-    const next = Math.min(target, previous + amount);
-    const effectiveDelta = next - previous;
+    const {
+      dailyQuest: progressedQuest,
+      item,
+      delta: effectiveDelta,
+    } = updateDailyQuestItemProgress(player.dailyQuest, itemId, amount);
 
-    if (effectiveDelta <= 0) return;
+    if (!item || effectiveDelta <= 0) return;
 
-    let xpToAdd = effectiveDelta * QUEST_XP_WEIGHTS[exercise as keyof typeof QUEST_XP_WEIGHTS];
+    const completionReward = getDailyQuestCompletionReward();
+    let xpToAdd = getDailyQuestXpForDelta(item, effectiveDelta);
     let showQuestComplete = false;
 
-    const newQuest = { ...player.dailyQuest, [exercise]: next };
+    const newQuest = syncLegacyDailyQuestFields({ ...progressedQuest });
     let tempPlayer = { ...player, dailyQuest: newQuest };
 
-    if (
-      newQuest.pushups >= QUEST_TARGETS.pushups &&
-      newQuest.situps >= QUEST_TARGETS.situps &&
-      newQuest.squats >= QUEST_TARGETS.squats &&
-      newQuest.runningKm >= QUEST_TARGETS.runningKm &&
-      !newQuest.completedAt
-    ) {
+    if (isDailyQuestComplete(newQuest) && !newQuest.completedAt) {
       newQuest.completedAt = new Date().toISOString();
       newQuest.penaltyGiven = Boolean(getActivePenalty(player.penalties));
       newQuest.streak = (player.dailyQuest.streak || 0) + 1;
-      xpToAdd += DAILY_COMPLETION_REWARD.xp;
-      tempPlayer.availablePoints += DAILY_COMPLETION_REWARD.attributePoints;
-      tempPlayer.gold += DAILY_COMPLETION_REWARD.gold;
+      xpToAdd += completionReward.xp;
+      tempPlayer.availablePoints += completionReward.attributePoints;
+      tempPlayer.gold += completionReward.gold;
       showQuestComplete = true;
     }
 
     tempPlayer.workoutHistory = [
-      ...(player.workoutHistory || []).slice(-59),
+      ...(player.workoutHistory || []),
       {
         id: `workout_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        exercise,
+        exercise: item.id,
+        exerciseLabel: item.label,
+        trackableExerciseId: item.trackableExerciseId,
         value: effectiveDelta,
         source,
         timestamp: new Date().toISOString(),
@@ -422,7 +428,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     
     if (updatedPlayer.level > player.level) {
        toast.success(`AWANS NA ${updatedPlayer.level} POZIOM!`);
-       animateReward("daily", xpToAdd, showQuestComplete ? DAILY_COMPLETION_REWARD.gold : 0);
+       animateReward("daily", xpToAdd, showQuestComplete ? completionReward.gold : 0);
     } else if (!showQuestComplete && xpToAdd > 0) {
        animateReward("daily", xpToAdd, 0);
     }
@@ -431,13 +437,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
        toast.success("CODZIENNE ZADANIE UKOŃCZONE!");
        playRewardSound();
        if (updatedPlayer.level <= player.level) {
-         animateReward("daily", xpToAdd, DAILY_COMPLETION_REWARD.gold);
+         animateReward("daily", xpToAdd, completionReward.gold);
        }
        void cancelDailyTrainingNotifications();
        void notifyDailyReward(
          updatedPlayer.settings.notifications,
          "Daily Quest ukończony",
-         `Nagroda: +${Math.floor(xpToAdd)} XP, +${DAILY_COMPLETION_REWARD.gold} gold.`
+         `Nagroda: +${Math.floor(xpToAdd)} XP, +${completionReward.gold} gold.`
        );
     }
 
@@ -516,7 +522,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       gold: player.gold + reward.gold,
       workoutPlan,
       activeWorkoutSession: null,
-      workoutSessions: [...(player.workoutSessions || []).slice(-119), summary],
+      workoutSessions: [...(player.workoutSessions || []), summary],
     };
     const updatedPlayer = applyXpGain(tempPlayer, reward.xp);
 
@@ -566,6 +572,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         situps: currentPlayerState.dailyQuest.situps,
         squats: currentPlayerState.dailyQuest.squats,
         runningKm: currentPlayerState.dailyQuest.runningKm,
+        dailyItems: currentPlayerState.dailyQuest.items
+          .filter((item) => item.enabled)
+          .map((item) => ({
+            id: item.id,
+            label: item.label,
+            unit: item.unit,
+            target: item.target,
+            value: getDailyQuestItemProgress(currentPlayerState.dailyQuest, item.id),
+            source: item.trackableExerciseId ? "trackable" : "manual",
+          })),
         xpGained: prevEntry.xpGained + (xpGainedDelta || 0),
         workoutPlanSessions: todayWorkoutSessions.length,
         workoutPlanMinutes: Number(workoutPlanMinutes.toFixed(1)),
