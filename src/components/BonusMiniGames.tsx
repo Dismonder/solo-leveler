@@ -141,6 +141,7 @@ type ActiveMiniGameProps = ActiveGameProps & {
 type ScorePopupState = { id: number; value: number } | null;
 type MiniGameOrientationMode = "landscape" | "portrait";
 type MiniGameRuntimeState = "ready" | "running" | "finished";
+type PlayfieldSize = { width: number; height: number };
 const SHADOW_HEART_HEAL_RATIO = 0.05;
 const SHADOW_HEART_CHANCE = 0.0045;
 const SHADOW_LAST_CHANCE_HEART_CHANCE = 0.018;
@@ -1734,6 +1735,7 @@ function ShadowExtractionGame({
   const [trail, setTrail] = useState<SliceTrailPoint[]>([]);
   const [impactEffects, setImpactEffects] = useState<SliceImpactEffect[]>([]);
   const [signalPercent, setSignalPercent] = useState(100);
+  const [playfieldSize, setPlayfieldSize] = useState<PlayfieldSize | null>(null);
   const playfieldRef = useRef<HTMLDivElement | null>(null);
   const playfieldRectRef = useRef<DOMRect | null>(null);
   const objectsRef = useRef<ShadowSliceObject[]>([]);
@@ -1892,6 +1894,33 @@ function ShadowExtractionGame({
       if (hudSyncFrameRef.current) window.cancelAnimationFrame(hudSyncFrameRef.current);
       impactTimersRef.current.forEach((timer) => window.clearTimeout(timer));
     };
+  }, []);
+
+  useEffect(() => {
+    const element = playfieldRef.current;
+    if (!element) return;
+
+    const updateSize = () => {
+      const rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      playfieldRectRef.current = rect;
+      setPlayfieldSize((current) => {
+        const width = Math.round(rect.width);
+        const height = Math.round(rect.height);
+        if (current?.width === width && current.height === height) return current;
+        return { width, height };
+      });
+    };
+
+    updateSize();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateSize);
+      return () => window.removeEventListener("resize", updateSize);
+    }
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -2196,7 +2225,7 @@ function ShadowExtractionGame({
         onPointerCancel={endSlice}
       >
         {objects.map((object) => (
-          <ShadowSliceToken key={object.id} object={object} graphicsQuality={graphicsQuality} />
+          <ShadowSliceToken key={object.id} object={object} graphicsQuality={graphicsQuality} playfieldSize={playfieldSize} />
         ))}
         <SliceTrail points={trail} effect={selectedEffect} />
         <SliceImpactLayer effects={impactEffects} graphicsQuality={graphicsQuality} />
@@ -2616,9 +2645,11 @@ const GameHud = memo(function GameHud({
 const ShadowSliceToken = memo(function ShadowSliceToken({
   object,
   graphicsQuality,
+  playfieldSize,
 }: {
   object: ShadowSliceObject;
   graphicsQuality: PlayerState["settings"]["graphicsQuality"];
+  playfieldSize: PlayfieldSize | null;
   key?: string;
 }) {
   const classes = {
@@ -2634,33 +2665,23 @@ const ShadowSliceToken = memo(function ShadowSliceToken({
     : object.kind === "decoy"
       ? MOBILE_THEME_ASSETS.miniGames.shadowDecoy
       : null;
-  const lifetime = Math.max(1, object.expiresAt - object.spawnedAt);
-  const chancePercent = Math.max(0, Math.min(100, ((object.expiresAt - Date.now()) / lifetime) * 100));
-  const ringColor = object.kind === "trap" ? "#fb7185" : object.kind === "gold" ? "#facc15" : object.kind === "heart" ? "#fb7185" : object.kind === "time" ? "#67e8f9" : "#c084fc";
-  const animateEntryFilter = graphicsQuality === "cinematic";
+  const shouldGlow = graphicsQuality === "cinematic" || object.kind === "true" || object.kind === "heart" || object.kind === "time";
+  const positionTransform = playfieldSize
+    ? `translate3d(${(object.x / 100) * playfieldSize.width}px, ${(object.y / 100) * playfieldSize.height}px, 0) translate(-50%, -50%) rotate(${object.rotation}deg)`
+    : `translate(-50%, -50%) rotate(${object.rotation}deg)`;
 
   return (
-    <motion.div
+    <div
       className={`sl-slice-target pointer-events-none absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border shadow-[0_0_30px] ${classes[object.kind]}`}
-      initial={{ scale: 0.58, opacity: 0, ...(animateEntryFilter ? { filter: "brightness(1.8)" } : {}) }}
-      animate={{ scale: 1, opacity: 1, ...(animateEntryFilter ? { filter: "brightness(1)" } : {}) }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
       style={{
-        left: `${object.x}%`,
-        top: `${object.y}%`,
+        left: playfieldSize ? 0 : `${object.x}%`,
+        top: playfieldSize ? 0 : `${object.y}%`,
         width: object.sizePx,
         height: object.sizePx,
-        transform: `translate(-50%, -50%) rotate(${object.rotation}deg)`,
+        transform: positionTransform,
       }}
     >
-      <div
-        className="pointer-events-none absolute -inset-1 rounded-full opacity-80"
-        style={{
-          background: `conic-gradient(${ringColor} ${chancePercent}%, rgba(15,23,42,0.24) 0)`,
-          mask: "radial-gradient(circle, transparent 58%, #000 60%)",
-          WebkitMask: "radial-gradient(circle, transparent 58%, #000 60%)",
-        }}
-      />
+      {shouldGlow && <span className="sl-slice-glow pointer-events-none absolute inset-[-18%] rounded-full" />}
       {asset ? (
         <img src={asset} alt="" className="h-[142%] w-[142%] object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.55)]" />
       ) : object.kind === "gold" ? (
@@ -2684,15 +2705,14 @@ const ShadowSliceToken = memo(function ShadowSliceToken({
       ) : (
         <div className="h-1/2 w-1/2 rounded-full bg-sky-100" />
       )}
-      <span className="sl-slice-ping pointer-events-none absolute inset-[-30%] rounded-full border border-current/20 opacity-40 animate-ping" />
       {object.kind === "true" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-violet-100" />}
       {object.kind === "heart" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-rose-100" />}
       {object.kind === "time" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-cyan-100" />}
-    </motion.div>
+    </div>
   );
 });
 
-function SliceImpactLayer({
+const SliceImpactLayer = memo(function SliceImpactLayer({
   effects,
   graphicsQuality,
 }: {
@@ -2708,7 +2728,7 @@ function SliceImpactLayer({
       </AnimatePresence>
     </div>
   );
-}
+});
 
 const SliceImpactBurst = memo(function SliceImpactBurst({
   effect,
