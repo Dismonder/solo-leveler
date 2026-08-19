@@ -1,4 +1,4 @@
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
 export const CURRENT_APP_VERSION = "1.0.0";
 export const CURRENT_APP_BUILD = 1;
@@ -58,6 +58,56 @@ export type FetchLike = (
   statusText: string;
   json: () => Promise<unknown>;
 }>;
+
+export const defaultFetch: FetchLike = async (
+  input: string | URL | Request,
+  init?: RequestInit
+) => {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+  const headers: Record<string, string> = {
+    Accept: "application/json, application/vnd.github.v3+json",
+  };
+
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const response = await CapacitorHttp.get({
+        url,
+        headers,
+      });
+      const ok = response.status >= 200 && response.status < 300;
+      return {
+        ok,
+        status: response.status,
+        statusText: ok ? "OK" : `HTTP ${response.status}`,
+        json: async () => {
+          if (typeof response.data === "string") {
+            try {
+              return JSON.parse(response.data);
+            } catch {
+              return response.data;
+            }
+          }
+          return response.data;
+        },
+      };
+    } catch {
+      // Fallback to standard fetch
+    }
+  }
+
+  const res = await fetch(url, {
+    cache: "no-cache",
+    headers,
+  });
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    statusText: res.statusText,
+    json: () => res.json(),
+  };
+};
+
 
 export function getSavedUpdateSource(): string {
   try {
@@ -145,8 +195,9 @@ export function extractGitHubRepo(input: string): { owner: string; repo: string 
 
 export async function checkForUpdate(
   customSource?: string,
-  fetchFn: FetchLike = fetch as FetchLike
+  fetchFn: FetchLike = defaultFetch
 ): Promise<AppUpdateInfo> {
+
   const source = (customSource || getSavedUpdateSource()).trim();
 
   // 1. Check if source is a GitHub repository (e.g. Damian/solo-leveler)
