@@ -2884,63 +2884,20 @@ function SystemPanel({
                 Aktualizacja Systemu
               </h3>
               <p className="sl-muted text-xs font-mono truncate">
-                v{CURRENT_APP_VERSION} · {extractGitHubRepo(updateSource) ? `GitHub (${extractGitHubRepo(updateSource)?.owner}/${extractGitHubRepo(updateSource)?.repo})` : updateSource}
+                v{CURRENT_APP_VERSION} · GitHub (Dismonder/solo-leveler)
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setUpdateSourceEditOpen((v) => !v)}
-              className="rounded-xl border border-cyan-500/20 bg-cyan-950/30 px-2.5 py-2 text-xs font-mono text-cyan-400/80 hover:text-cyan-300 active:scale-[0.98]"
-              title="Zmień źródło GitHub"
-            >
-              Źródło
-            </button>
-            <button
-              type="button"
-              onClick={onCheckUpdate}
-              className="rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-3.5 py-2 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
-            >
-              Sprawdź
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onCheckUpdate}
+            className="shrink-0 rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-4 py-2 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
+          >
+            Sprawdź
+          </button>
         </div>
-
-        {updateSourceEditOpen && (
-          <div className="mt-3 pt-3 border-t border-cyan-500/20 space-y-2">
-            <label className="block text-[10px] font-mono uppercase tracking-widest text-cyan-400/80">
-              Repozytorium GitHub lub adres URL:
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={updateSource}
-                onChange={(e) => {
-                  setUpdateSourceState(e.target.value);
-                  saveUpdateSource(e.target.value);
-                }}
-                placeholder="Dismonder/solo-leveler"
-                className="sl-input min-w-0 flex-1 rounded-xl px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] outline-none border border-cyan-500/30"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setUpdateSourceState("Dismonder/solo-leveler");
-                  saveUpdateSource("Dismonder/solo-leveler");
-                }}
-                className="sl-button-secondary rounded-xl px-2.5 py-1.5 text-[10px] font-mono shrink-0"
-              >
-                Domyślne
-              </button>
-
-            </div>
-            <p className="text-[10px] text-[var(--theme-muted)] leading-tight">
-              Podaj nazwę repozytorium GitHub (np. <code>login/nazwa-repo</code>) lub bezpośredni link do manifestu JSON.
-            </p>
-          </div>
-        )}
       </div>
+
 
 
 

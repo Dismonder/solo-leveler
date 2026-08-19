@@ -1,7 +1,8 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
-export const CURRENT_APP_VERSION = "1.0.0";
-export const CURRENT_APP_BUILD = 1;
+export const CURRENT_APP_VERSION = "1.0.1";
+export const CURRENT_APP_BUILD = 2;
+
 
 export const DEFAULT_GITHUB_REPO = "Dismonder/solo-leveler";
 export const STORAGE_KEY_UPDATE_SOURCE = "SOLO_LEVELER_UPDATE_SOURCE";
@@ -113,13 +114,16 @@ export function getSavedUpdateSource(): string {
   try {
     if (typeof window !== "undefined" && window.localStorage) {
       const saved = window.localStorage.getItem(STORAGE_KEY_UPDATE_SOURCE);
-      if (saved && saved.trim()) return saved.trim();
+      if (saved && saved.trim() && !saved.includes("Damian/")) {
+        return saved.trim();
+      }
     }
   } catch {
     // localStorage unavailable
   }
   return DEFAULT_GITHUB_REPO;
 }
+
 
 export function saveUpdateSource(source: string): void {
   try {

@@ -51,6 +51,17 @@ if (fs.existsSync(gradlePath)) {
   console.log(`✅ Zaktualizowano android/app/build.gradle -> versionName "${targetVersion}"`);
 }
 
+// 4. Update src/services/updateService.ts
+const updateServicePath = path.join(rootDir, "src", "services", "updateService.ts");
+if (fs.existsSync(updateServicePath)) {
+  let updateCode = fs.readFileSync(updateServicePath, "utf-8");
+  updateCode = updateCode.replace(/CURRENT_APP_VERSION = "[^"]+"/, `CURRENT_APP_VERSION = "${targetVersion}"`);
+  updateCode = updateCode.replace(/CURRENT_APP_BUILD = (\d+)/, (match, code) => `CURRENT_APP_BUILD = ${parseInt(code, 10) + 1}`);
+  fs.writeFileSync(updateServicePath, updateCode);
+  console.log(`✅ Zaktualizowano src/services/updateService.ts -> CURRENT_APP_VERSION "${targetVersion}"`);
+}
+
+
 console.log(`
 🎉 Gotowe! Aby opublikować wersję na GitHub (z automatyczną kompilacją APK w GitHub Actions):
 
