@@ -7,8 +7,10 @@ import { Onboarding } from "./screens/Onboarding";
 import { Dashboard } from "./screens/Dashboard";
 import { lockAppPortrait } from "./services/orientationService";
 import { enableHighPerformanceMode } from "./services/performanceService";
+import { initBackgroundMediaNotification } from "./services/musicService";
 import { playClickSound, playKeyboardSound } from "./utils/audio";
 import { SystemWakeBoot } from "./components/SystemWakeBoot";
+
 
 const WAKE_BOOT_THRESHOLD_MS = 30 * 60 * 1000;
 const LAST_INACTIVE_KEY = "sololeveler_last_inactive_at";
@@ -46,7 +48,9 @@ export default function App() {
 
   useEffect(() => {
     void lockAppPortrait();
+    initBackgroundMediaNotification();
   }, []);
+
 
   useEffect(() => {
     const shouldShowBoot = () => {
@@ -68,10 +72,11 @@ export default function App() {
     };
 
     document.addEventListener("visibilitychange", handleVisibility);
-    void CapacitorApp.addListener("pause", markInactive);
+    void CapacitorApp.addListener("pause", markInactive).catch(() => {});
     void CapacitorApp.addListener("resume", () => {
       if (shouldShowBoot()) setShowWakeBoot(true);
-    });
+    }).catch(() => {});
+
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);

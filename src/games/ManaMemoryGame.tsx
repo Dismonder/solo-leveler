@@ -126,7 +126,8 @@ export function ManaMemoryGame({ onComplete, onExit }: { onComplete: (r: GameRes
   return (
     <PixelFrame title="MANA MEMORY" onBack={onExit}>
        {!isPlaying && !gameOver && (
-         <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
+         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/85 backdrop-blur-xl p-4 text-center z-10">
+            <div className="pointer-events-none absolute inset-0 -z-10 bg-black/60 backdrop-blur-xl" />
             <h2 className="text-2xl text-blue-400 font-black mb-4 uppercase tracking-[0.3em] font-mono">Mana Memory</h2>
             <p className="text-xs text-zinc-400 mb-8 uppercase font-mono leading-relaxed">System testuje Twoją koncentrację.<br/>Powtórz magiczną sekwencję {targetRounds} razy, aby ukończyć test.</p>
             <div className="text-xs text-zinc-500 mb-8 border border-zinc-800 p-2 bg-zinc-900/50 text-left w-full max-w-[200px]">

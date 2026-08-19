@@ -35,11 +35,22 @@ type HunterNotificationsPlugin = {
   showPenaltyNotification(options: { penaltyId: string; title: string; body: string }): Promise<{ shown: boolean; message: string }>;
   showWorkoutOngoing(options: { title: string; body: string; paused?: boolean }): Promise<{ shown: boolean; message: string }>;
   clearWorkoutOngoing(): Promise<{ cleared: boolean; message: string }>;
+  showMediaPlaybackNotification(options: {
+    title: string;
+    artist: string;
+    backgroundName?: string;
+    isPlaying: boolean;
+    position?: number;
+    duration?: number;
+  }): Promise<{ shown: boolean; message: string }>;
+  clearMediaPlaybackNotification(): Promise<{ cleared: boolean; message: string }>;
   getLaunchAction(): Promise<{ action: string | null }>;
   clearLaunchAction(): Promise<{ cleared: boolean }>;
 };
 
+
 const HunterNotifications = registerPlugin<HunterNotificationsPlugin>("HunterNotifications");
+
 
 const WEB_STATUS: HunterNotificationStatus = {
   android: false,
@@ -142,7 +153,51 @@ export async function clearWorkoutOngoingNotification() {
   await HunterNotifications.clearWorkoutOngoing();
 }
 
+export type NativeMediaNotificationOptions = {
+  title: string;
+  artist: string;
+  backgroundName?: string;
+  isPlaying: boolean;
+  position?: number;
+  duration?: number;
+};
+
+export async function showNativeMediaNotification(options: NativeMediaNotificationOptions) {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await HunterNotifications.showMediaPlaybackNotification(options);
+  } catch {
+    // Ignore if notifications are blocked or unavailable
+  }
+}
+
+
+export async function clearNativeMediaNotification() {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    await HunterNotifications.clearMediaPlaybackNotification();
+  } catch {
+    // Ignore
+  }
+}
+
+export function addMediaActionListener(callback: (action: string) => void) {
+  if (!Capacitor.isNativePlatform()) return () => {};
+  try {
+    const handlePromise = (HunterNotifications as unknown as { addListener: (event: string, cb: (data: { action: string }) => void) => Promise<{ remove: () => void }> })
+      .addListener("mediaAction", (data) => {
+        if (data?.action) callback(data.action);
+      });
+    return () => {
+      void handlePromise.then((h) => h?.remove?.()).catch(() => {});
+    };
+  } catch {
+    return () => {};
+  }
+}
+
 export async function consumeNotificationLaunchAction(): Promise<string | null> {
+
   if (!Capacitor.isNativePlatform()) return null;
   try {
     const result = await HunterNotifications.getLaunchAction();

@@ -141,64 +141,71 @@ export function WorkoutSessionRunner({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 bg-[var(--theme-game-bg)] text-[var(--theme-text)]"
+      className="workout-session-runner fixed inset-0 z-50 bg-[var(--theme-game-bg)] text-[var(--theme-text)]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--theme-accent)_18%,transparent),transparent_42%),var(--theme-game-bg)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(color-mix(in_srgb,var(--theme-accent)_7%,transparent)_1px,transparent_1px),linear-gradient(90deg,color-mix(in_srgb,var(--theme-accent)_6%,transparent)_1px,transparent_1px)] bg-[size:28px_28px]" />
 
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-[min(100vw,980px)] flex-col px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-[max(env(safe-area-inset-top),0.75rem)]">
+      <div className="workout-session-shell relative z-10 mx-auto flex h-full w-full max-w-[min(100vw,980px)] flex-col px-3 pb-[max(env(safe-area-inset-bottom),0.6rem)] pt-[max(env(safe-area-inset-top),0.6rem)] sm:px-4">
         <header className="flex items-center justify-between gap-3">
           <div>
             <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.28em]">Aktywna sesja</p>
-            <h2 className="text-xl font-black uppercase tracking-[0.08em] text-[var(--theme-text-strong)]">Plan treningowy</h2>
+            <h2 className="workout-session-header-title font-black uppercase leading-tight tracking-[0.08em] text-[var(--theme-text-strong)]">Plan treningowy</h2>
           </div>
           <button
             type="button"
             onClick={() => requestCloseRef.current()}
-            className="sl-icon-button flex h-11 w-11 items-center justify-center rounded-2xl active:scale-[0.96]"
+            className="workout-session-close sl-icon-button flex h-11 w-11 items-center justify-center rounded-2xl active:scale-[0.96]"
             aria-label="Zamknij sesję"
           >
             <X className="h-5 w-5" />
           </button>
         </header>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="workout-session-top-stats mt-3 grid grid-cols-3 gap-2">
           <SessionStat label="Czas" value={formatDuration(activeSeconds)} />
           <SessionStat label="Serie" value={`${completedSets}/${totalSets}`} />
           <SessionStat label="Tempo" value={formatPace(session.estimatedSeconds, activeSeconds)} />
         </div>
 
-        <div className="sl-progress-track mt-4 h-2 overflow-hidden rounded-full">
+        <div className="workout-session-progress sl-progress-track mt-3 h-2 overflow-hidden rounded-full">
           <div className="sl-progress-fill h-full rounded-full shadow-[0_0_20px_color-mix(in_srgb,var(--theme-accent)_55%,transparent)]" style={{ width: `${progress}%` }} />
         </div>
 
-        <main className="sl-card mt-4 flex min-h-0 flex-1 overflow-hidden rounded-[28px] p-4">
+        <main className="workout-session-main sl-card mt-3 flex min-h-0 flex-1 overflow-hidden rounded-[24px] p-3 sm:p-4">
           {summary ? (
-            <SessionSummary summary={summary} />
+            <div className="flex min-h-full flex-1 items-center justify-center text-center">
+              <div>
+                <Trophy className="mx-auto h-10 w-10 text-[var(--theme-icon)]" />
+                <p className="sl-kicker mt-3 text-[10px] font-black uppercase tracking-[0.28em]">Raport gotowy</p>
+                <p className="sl-muted mt-2 text-sm">Wynik sesji zapisany w historii.</p>
+              </div>
+            </div>
           ) : exercise ? (
-            <div className="flex h-full min-h-0 flex-col landscape:grid landscape:grid-cols-[1.05fr_0.95fr] landscape:gap-5">
-              <div className="min-h-0 min-w-0 flex-1 overflow-y-auto pr-1 custom-scrollbar landscape:h-full">
+            <div className="flex h-full min-h-0 flex-col landscape:grid landscape:grid-cols-[minmax(0,1fr)_minmax(250px,0.78fr)] landscape:gap-4">
+              <div className="workout-session-info min-h-0 min-w-0 flex-1 overflow-hidden pr-1 landscape:h-full">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.26em]">{exercise.category}</p>
-                  <h1 className="mt-2 text-3xl font-black uppercase tracking-[0.04em] text-[var(--theme-text-strong)]">{exercise.name}</h1>
-                  <p className="sl-muted mt-2 text-sm leading-relaxed">{exercise.goal} · {exercise.targetArea}</p>
+                  <h1 className="workout-session-title mt-2 line-clamp-2 break-words font-black uppercase tracking-[0.035em] text-[var(--theme-text-strong)]">{exercise.name}</h1>
+                  <p className="sl-muted mt-2 line-clamp-2 text-sm leading-relaxed">{exercise.goal} · {exercise.targetArea}</p>
                 </div>
-                <div className="sl-chip-active rounded-2xl px-3 py-2 text-center">
+                <div className="workout-session-set-badge sl-chip-active rounded-2xl px-3 py-2 text-center">
                   <p className="text-[9px] font-black uppercase tracking-widest">Seria</p>
                   <p className="font-mono text-lg font-black text-[var(--theme-text-strong)]">{session.setIndex + 1}/{exercise.targetSets}</p>
                 </div>
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
+              <div className="workout-session-metrics mt-4 grid grid-cols-2 gap-2">
                 <BigMetric label="Powtórzenia" value={exercise.targetReps} />
                 <BigMetric label="Ciężar" value={exercise.weightKg > 0 ? `${exercise.weightKg} kg` : "masa"} />
               </div>
 
-              <SessionTechniqueGuide catalogExerciseId={exercise.catalogExerciseId} exerciseName={exercise.name} />
+              <div className="workout-session-technique">
+                <SessionTechniqueGuide catalogExerciseId={exercise.catalogExerciseId} exerciseName={exercise.name} />
+              </div>
 
               {exercise.notes && (
                 <div className="sl-input mt-4 rounded-2xl p-3">
@@ -208,7 +215,7 @@ export function WorkoutSessionRunner({
               )}
               </div>
 
-              <div className="flex min-h-0 shrink-0 flex-col landscape:h-full">
+              <div className="workout-session-actions flex min-h-0 shrink-0 flex-col landscape:h-full">
               {session.status === "resting" && (
                 <div className="sl-alert-warning mt-5 rounded-[24px] p-4 text-center">
                   <Timer className="sl-alert-icon mx-auto h-8 w-8" />
@@ -231,8 +238,8 @@ export function WorkoutSessionRunner({
                 </div>
               )}
 
-              <div className="mt-4 landscape:mt-auto landscape:pt-6">
-                <div className="grid grid-cols-2 gap-2">
+              <div className="mt-3 landscape:mt-auto landscape:pt-3">
+                <div className="workout-session-action-grid grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={togglePause}
@@ -268,6 +275,23 @@ export function WorkoutSessionRunner({
       </div>
 
       <AnimatePresence>
+        {summary && (
+          <motion.div
+            className="sl-modal-backdrop absolute inset-0 z-20 flex items-center justify-center p-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="workout-summary-modal sl-modal w-full max-w-[min(92vw,520px)] rounded-[26px] border shadow-2xl"
+              initial={{ scale: 0.96, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.96, y: 10 }}
+            >
+              <SessionSummary summary={summary} onClose={onCloseSummary} />
+            </motion.div>
+          </motion.div>
+        )}
         {closeConfirm && (
           <motion.div className="sl-modal-backdrop absolute inset-0 z-20 flex items-center justify-center p-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div className="sl-modal w-full max-w-sm rounded-[26px] border p-5 shadow-2xl" initial={{ scale: 0.96, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 10 }}>
@@ -288,16 +312,28 @@ export function WorkoutSessionRunner({
   );
 }
 
-function SessionSummary({ summary }: { summary: WorkoutPlanSessionSummary }) {
+function SessionSummary({ summary, onClose }: { summary: WorkoutPlanSessionSummary; onClose: () => void }) {
   return (
-    <div className="flex min-h-full flex-col justify-center text-center">
+    <div className="workout-summary-content flex flex-col text-center">
+      <div className="flex items-start justify-between gap-3 text-left">
+        <div>
+          <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.28em]">Raport systemu</p>
+          <h2 className="mt-1 text-2xl font-black uppercase tracking-[0.06em] text-[var(--theme-text-strong)]">Plan zapisany</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="sl-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-2xl active:scale-[0.98]"
+          aria-label="Zamknij raport"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
       <div className="mx-auto rounded-full border border-[var(--theme-border)] bg-[var(--theme-accent-soft)] p-5">
         <Trophy className="h-10 w-10 text-[var(--theme-icon)]" />
       </div>
-      <p className="sl-kicker mt-5 text-[10px] font-black uppercase tracking-[0.28em]">Raport systemu</p>
-      <h2 className="mt-2 text-3xl font-black uppercase tracking-[0.06em] text-[var(--theme-text-strong)]">Plan zapisany</h2>
       <p className="sl-muted mt-3 text-sm leading-relaxed">{getPaceText(summary)}</p>
-      <div className="mt-6 grid grid-cols-2 gap-2 text-left">
+      <div className="mt-4 grid grid-cols-2 gap-2 text-left">
         <SessionStat label="Czas" value={formatDuration(summary.activeSeconds)} />
         <SessionStat label="Serie" value={`${summary.completedSets}/${summary.totalSets}`} />
         <SessionStat label="XP" value={`+${summary.xpReward}`} />
@@ -308,24 +344,31 @@ function SessionSummary({ summary }: { summary: WorkoutPlanSessionSummary }) {
           Nowy rekord planu
         </div>
       )}
+      <button
+        type="button"
+        onClick={onClose}
+        className="sl-button-primary mt-4 min-h-12 rounded-2xl px-4 text-sm font-black uppercase tracking-widest active:scale-[0.98]"
+      >
+        Zamknij raport
+      </button>
     </div>
   );
 }
 
 function SessionStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="sl-stat-tile rounded-2xl p-3">
+    <div className="sl-stat-tile rounded-2xl p-2.5 sm:p-3">
       <p className="sl-muted text-[9px] font-black uppercase tracking-widest">{label}</p>
-      <p className="mt-1 font-mono text-lg font-black text-[var(--theme-text-strong)]">{value}</p>
+      <p className="workout-session-stat-value mt-1 font-mono font-black text-[var(--theme-text-strong)]">{value}</p>
     </div>
   );
 }
 
 function BigMetric({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="sl-stat-tile rounded-[22px] p-4">
+    <div className="sl-stat-tile rounded-[20px] p-3">
       <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">{label}</p>
-      <p className="mt-2 text-3xl font-black text-[var(--theme-text-strong)]">{value}</p>
+      <p className="workout-session-metric-value mt-1 font-black text-[var(--theme-text-strong)]">{value}</p>
     </div>
   );
 }
@@ -519,7 +562,7 @@ function formatDuration(seconds: number) {
 
 function formatPace(estimatedSeconds: number, activeSeconds: number) {
   if (estimatedSeconds <= 0 || activeSeconds <= 0) return "0%";
-  const pace = Math.round(((estimatedSeconds - activeSeconds) / estimatedSeconds) * 100);
+  const pace = Math.max(-99, Math.min(99, Math.round(((estimatedSeconds - activeSeconds) / estimatedSeconds) * 100)));
   return `${pace > 0 ? "+" : ""}${pace}%`;
 }
 

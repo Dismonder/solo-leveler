@@ -455,7 +455,8 @@ function Overlay({
   onClick: () => void;
 }) {
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/84 p-4 text-center">
+    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 text-center">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-black/60 backdrop-blur-xl" />
       <div className="max-w-md border border-orange-500/40 bg-slate-950/90 p-6 shadow-[0_0_40px_rgba(194,65,12,0.3)]">
         <h2 className={`mb-4 text-2xl font-black uppercase tracking-[0.28em] ${tone}`}>{title}</h2>
         <p className="mb-7 text-xs uppercase tracking-widest text-zinc-300">{body}</p>

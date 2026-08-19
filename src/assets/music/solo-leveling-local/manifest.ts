@@ -32,6 +32,7 @@ export type LocalMusicTrack = {
   artist: string;
   fileName: string;
   url: string;
+  backgroundName: string;
   contexts: ThemeMusicId[];
   mood: string;
 };
@@ -43,6 +44,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Hiroyuki SAWANO",
     fileName: "symphonic-suite-lv1.mp3",
     url: symphonicSuiteLv1Url,
+    backgroundName: "01-shadow-citadel-purple.jpg",
     contexts: ["status"],
     mood: "system",
   },
@@ -52,6 +54,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Solo Leveling OP",
     fileName: "reaweker.mp3",
     url: reawekerUrl,
+    backgroundName: "02-frost-temple-blue.jpg",
     contexts: ["training", "workout-session"],
     mood: "training",
   },
@@ -61,6 +64,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Solo Leveling OST",
     fileName: "hunter-of-hunters.mp3",
     url: hunterOfHuntersUrl,
+    backgroundName: "03-blood-eclipse-red.jpg",
     contexts: ["gate-dodge"],
     mood: "reflex",
   },
@@ -70,6 +74,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Hiroyuki SAWANO / Benjamin / mpi",
     fileName: "shadowborn.mp3",
     url: shadowbornUrl,
+    backgroundName: "07-void-eclipse-purple.jpg",
     contexts: ["shadow-extraction"],
     mood: "shadow",
   },
@@ -79,6 +84,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Hiroyuki SAWANO / Hannah Grace",
     fileName: "symphonic-suite-lv8.mp3",
     url: symphonicSuiteLv8Url,
+    backgroundName: "08-cyan-ruins-gate.jpg",
     contexts: ["shadow-strike"],
     mood: "combat",
   },
@@ -88,6 +94,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Diego Mitre",
     fileName: "dark-aria.mp3",
     url: darkAriaUrl,
+    backgroundName: "04-rain-city-night.jpg",
     contexts: ["mana-memory", "rune-lock"],
     mood: "arcane",
   },
@@ -97,6 +104,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Epic Orchestral Cover",
     fileName: "praise-of-god.mp3",
     url: praiseOfGodUrl,
+    backgroundName: "06-golden-wasteland.jpg",
     contexts: ["reward"],
     mood: "reward",
   },
@@ -106,6 +114,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Oricadia",
     fileName: "sung-jinwoo-arise.mp3",
     url: sungJinwooAriseUrl,
+    backgroundName: "06-cursed-red-city.jpg",
     contexts: ["penalty"],
     mood: "penalty",
   },
@@ -115,6 +124,7 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "AdkinsJune",
     fileName: "adkinsjune-solo-leveling.mp3",
     url: adkinsjuneSoloLevelingUrl,
+    backgroundName: "05-demon-moon-town.jpg",
     contexts: ["status", "training"],
     mood: "alternate",
   },
@@ -124,10 +134,12 @@ export const LOCAL_MUSIC_TRACKS: LocalMusicTrack[] = [
     artist: "Ashler Mc feat. Neoxer Nahue R",
     fileName: "rap-de-solo-leveling.mp3",
     url: rapDeSoloLevelingUrl,
+    backgroundName: "09-red-rain-streets.jpg",
     contexts: ["status", "training"],
     mood: "alternate",
   },
 ];
+
 
 export const DEFAULT_MUSIC_BY_CONTEXT: Record<ThemeMusicId, LocalMusicTrackId> = {
   status: "symphonic-suite-lv1",

@@ -252,12 +252,53 @@ body {
 
 .sl-modal-backdrop {
   background: var(--theme-overlay);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: max(0.55rem, env(safe-area-inset-top)) max(0.55rem, env(safe-area-inset-right)) max(0.55rem, env(safe-area-inset-bottom)) max(0.55rem, env(safe-area-inset-left));
 }
 
 .sl-modal {
   background: var(--theme-modal-gradient) !important;
   border-color: var(--theme-border);
   color: var(--theme-text);
+  max-width: min(var(--sl-modal-max-width, 560px), calc(100vw - 1rem));
+  max-height: min(var(--sl-modal-max-height, 90dvh), calc(100dvh - 1rem));
+}
+
+.sl-modal :is(h1, h2, h3) {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px), (max-height: 720px) {
+  .sl-modal {
+    border-radius: 22px !important;
+  }
+
+  .sl-modal :is(.p-5, .p-4) {
+    padding: clamp(0.75rem, 2dvh, 1rem);
+  }
+
+  .sl-modal :is(.text-3xl, .text-2xl) {
+    font-size: clamp(1.12rem, 4.8dvh, 1.45rem);
+    line-height: 1.05;
+  }
+
+  .sl-modal :is(.min-h-14, .min-h-12) {
+    min-height: clamp(2.35rem, 6dvh, 3rem);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .sl-modal-backdrop {
+    place-items: center !important;
+    align-items: center !important;
+    padding: max(0.35rem, env(safe-area-inset-top)) max(0.55rem, env(safe-area-inset-right)) max(0.35rem, env(safe-area-inset-bottom)) max(0.55rem, env(safe-area-inset-left));
+  }
+
+  .sl-modal {
+    --sl-modal-max-height: calc(100dvh - 0.7rem);
+    --sl-modal-max-width: 720px;
+  }
 }
 
 .sl-muted {
@@ -406,6 +447,9 @@ body {
 .sl-mini-ready-overlay {
   --sl-ready-scale: 1;
   gap: clamp(0.55rem, 1.4dvh, 1rem);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--theme-overlay) 80%, rgba(0, 0, 0, 0.88)) !important;
 }
 
 .sl-mini-ready-overlay > * {
@@ -4662,6 +4706,303 @@ body {
   }
 }
 
+.workout-session-header-title {
+  font-size: clamp(1rem, min(3.2vh, 2.8vw), 1.35rem);
+}
+
+.workout-session-title {
+  font-size: clamp(1.22rem, min(4.4vh, 3vw), 1.78rem);
+  line-height: 1.04;
+}
+
+.workout-session-stat-value {
+  font-size: clamp(1rem, min(3.2vh, 2.8vw), 1.25rem);
+  line-height: 1;
+}
+
+.workout-session-metric-value {
+  font-size: clamp(1.2rem, min(4.2vh, 3.1vw), 1.85rem);
+  line-height: 1.05;
+}
+
+.workout-session-technique {
+  min-height: 0;
+}
+
+.workout-summary-modal {
+  max-height: min(92dvh, 620px);
+  overflow: hidden;
+}
+
+.workout-summary-content {
+  max-height: min(92dvh, 620px);
+  overflow-y: auto;
+  padding: clamp(0.9rem, 2.5dvh, 1.25rem);
+}
+
+.sl-auto-marquee {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sl-auto-marquee__text {
+  display: inline-block;
+  max-width: none;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.sl-auto-marquee.is-overflowing .sl-auto-marquee__text {
+  padding-right: 2rem;
+  animation: sl-readable-marquee var(--sl-marquee-duration, 10s) ease-in-out infinite;
+  animation-delay: 0.75s;
+}
+
+@keyframes sl-readable-marquee {
+  0%,
+  18% {
+    transform: translate3d(0, 0, 0);
+  }
+  62%,
+  78% {
+    transform: translate3d(calc(-1 * var(--sl-marquee-distance, 0px)), 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 760px) {
+  .workout-session-runner {
+    --ws-compact-gap: clamp(0.32rem, 1.15dvh, 0.55rem);
+  }
+
+  .workout-session-shell {
+    padding-inline: max(0.75rem, env(safe-area-inset-left));
+    padding-block: 0.34rem;
+    max-width: min(100vw, 1180px);
+  }
+
+  .workout-session-runner header {
+    min-height: 2.25rem;
+  }
+
+  .workout-session-runner header > div > p {
+    display: none;
+  }
+
+  .workout-session-header-title {
+    font-size: clamp(0.86rem, 3.25dvh, 1.04rem);
+    letter-spacing: 0.07em;
+  }
+
+  .workout-session-close {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.9rem;
+  }
+
+  .workout-session-runner .sl-kicker {
+    font-size: 0.52rem;
+    letter-spacing: 0.16em;
+  }
+
+  .workout-session-top-stats {
+    margin-top: var(--ws-compact-gap);
+    gap: var(--ws-compact-gap);
+  }
+
+  .workout-session-runner .sl-stat-tile {
+    min-height: 2.35rem;
+    padding: 0.34rem 0.55rem;
+    border-radius: 0.82rem;
+  }
+
+  .workout-session-stat-value {
+    font-size: clamp(0.82rem, 2.8vh, 0.98rem);
+  }
+
+  .workout-session-progress {
+    margin-top: var(--ws-compact-gap);
+    height: 0.22rem;
+  }
+
+  .workout-session-main {
+    margin-top: var(--ws-compact-gap);
+    border-radius: 1.15rem;
+    padding: 0.58rem;
+  }
+
+  .workout-session-title {
+    font-size: clamp(0.98rem, 3.45vh, 1.22rem);
+    line-height: 1.03;
+    letter-spacing: 0.025em;
+  }
+
+  .workout-session-main > div {
+    grid-template-columns: minmax(0, 1.08fr) minmax(210px, 0.62fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .workout-session-info > div:first-child {
+    gap: 0.55rem;
+  }
+
+  .workout-session-info .sl-muted {
+    margin-top: 0.32rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  .workout-session-set-badge {
+    border-radius: 0.82rem;
+    padding: 0.34rem 0.52rem;
+  }
+
+  .workout-session-set-badge p:last-child {
+    font-size: 0.92rem;
+  }
+
+  .workout-session-metric-value {
+    font-size: clamp(0.88rem, 3vh, 1.02rem);
+  }
+
+  .workout-session-metrics {
+    margin-top: var(--ws-compact-gap);
+    gap: var(--ws-compact-gap);
+    max-width: min(100%, 30rem);
+  }
+
+  .workout-session-metrics .sl-stat-tile {
+    min-height: 2.6rem;
+  }
+
+  .workout-session-technique {
+    display: block;
+    margin-top: var(--ws-compact-gap);
+    max-height: clamp(4.7rem, 25dvh, 8.5rem);
+    overflow: hidden;
+  }
+
+  .workout-session-technique > .mt-4 {
+    margin-top: 0;
+  }
+
+  .workout-session-technique .space-y-3 {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .workout-session-technique .space-y-3 > :not(:first-child) {
+    display: none;
+  }
+
+  .workout-session-technique video {
+    max-height: clamp(4.2rem, 21dvh, 7rem) !important;
+  }
+
+  .workout-session-technique .border-b,
+  .workout-session-technique .border-t {
+    display: none;
+  }
+
+  .workout-session-actions {
+    justify-content: flex-end;
+    align-self: stretch;
+  }
+
+  .workout-session-actions > div:last-child {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .workout-session-action-grid button {
+    min-height: 2.1rem;
+    border-radius: 0.95rem;
+    font-size: 0.62rem;
+  }
+
+  .workout-session-action-grid + button {
+    min-height: 2.38rem;
+    margin-top: var(--ws-compact-gap);
+    border-radius: 0.95rem;
+    font-size: 0.68rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .workout-session-shell {
+    padding-block: 0.32rem;
+  }
+
+  .workout-session-header-title {
+    font-size: clamp(0.88rem, 4vh, 1rem);
+  }
+
+  .workout-session-top-stats {
+    margin-top: 0.32rem;
+  }
+
+  .workout-session-progress {
+    margin-top: 0.32rem;
+  }
+
+  .workout-session-main {
+    margin-top: 0.4rem;
+    padding: 0.55rem;
+  }
+
+  .workout-session-title {
+    font-size: clamp(0.86rem, 3.8vh, 1rem);
+    line-height: 1.02;
+    -webkit-line-clamp: 1;
+  }
+
+  .workout-session-runner .sl-stat-tile {
+    border-radius: 1rem;
+    padding: 0.34rem 0.5rem;
+  }
+
+  .workout-session-runner main {
+    border-radius: 1.15rem;
+    padding: 0.48rem;
+  }
+
+  .workout-session-main > div {
+    grid-template-columns: minmax(0, 1.1fr) minmax(190px, 0.55fr) !important;
+  }
+
+  .workout-session-metrics {
+    grid-template-columns: repeat(2, minmax(0, 10rem));
+  }
+
+  .workout-session-info .sl-muted {
+    -webkit-line-clamp: 1;
+  }
+
+  .workout-session-technique {
+    max-height: clamp(3.8rem, 23dvh, 5.8rem);
+  }
+
+  .workout-session-technique video {
+    max-height: clamp(3.4rem, 20dvh, 5.2rem) !important;
+  }
+}
+
+@media (orientation: portrait) {
+  .workout-session-title {
+    font-size: clamp(1.55rem, 6vw, 2.35rem);
+  }
+
+  .workout-session-technique {
+    max-height: 32dvh;
+    overflow-y: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pixel-model-core,
   .pixel-aura-ring,
@@ -4723,6 +5064,11 @@ body {
   .sl-hub-model-img,
   .sl-hub-hotspot-pulse {
     animation: none !important;
+  }
+
+  .sl-auto-marquee.is-overflowing .sl-auto-marquee__text {
+    animation: none !important;
+    transform: none !important;
   }
 }
 

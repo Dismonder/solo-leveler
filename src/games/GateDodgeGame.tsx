@@ -503,7 +503,8 @@ function GameOverlay({
   onClick: () => void;
 }) {
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/82 p-4 text-center">
+    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 text-center">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-black/60 backdrop-blur-xl" />
       <div className="max-w-md border border-cyan-500/35 bg-slate-950/90 p-6 shadow-[0_0_36px_rgba(37,99,235,0.28)]">
         <h2 className={`mb-4 text-2xl font-black uppercase tracking-[0.28em] ${tone}`}>{title}</h2>
         <p className="mb-3 text-xs uppercase tracking-widest text-zinc-300">{body}</p>

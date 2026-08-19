@@ -1,9 +1,19 @@
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { getThemeMusicUrlWithSelection, type ThemeMusicContext } from "./systemThemeAssets";
-import { LOCAL_MUSIC_TRACKS } from "../assets/music/solo-leveling-local/manifest";
+import {
+  LOCAL_MUSIC_TRACKS,
+  getLocalMusicTrack,
+  type LocalMusicTrack,
+  type LocalMusicTrackId,
+} from "../assets/music/solo-leveling-local/manifest";
 import type { MiniGameId } from "../game/miniGameProgress";
 import type { MusicTrackSettings } from "../types";
+import {
+  addMediaActionListener,
+  clearNativeMediaNotification,
+  showNativeMediaNotification,
+} from "./notificationService";
 
 const MUSIC_ENABLED_KEY = "solo-leveler:background-music-enabled";
 const MUSIC_VOLUME_KEY = "solo-leveler:background-music-volume";
@@ -14,16 +24,18 @@ let enabled = readBoolean(MUSIC_ENABLED_KEY, true);
 let volume = readNumber(MUSIC_VOLUME_KEY, DEFAULT_MUSIC_VOLUME);
 let currentAudio: HTMLAudioElement | null = null;
 let nextAudio: HTMLAudioElement | null = null;
+let currentTrackId: string | null = null;
 let currentContext: ThemeMusicContext | null = "status";
 let lastRequestedContext: ThemeMusicContext = "status";
 let pendingContext: ThemeMusicContext | null = null;
 let unlocked = false;
-let pausedByVisibility = false;
 let unlockListenersInstalled = false;
 let unlockHandler: (() => void) | null = null;
 let lifecycleListenersInstalled = false;
+let mediaSessionHandlersInstalled = false;
 let appPauseListener: PluginListenerHandle | null = null;
 let appResumeListener: PluginListenerHandle | null = null;
+
 let trackPreferences: MusicTrackSettings = {
   appTrackId: "auto",
   workoutTrackId: "auto",
@@ -80,6 +92,7 @@ export async function playMusicContext(context: ThemeMusicContext) {
   lastRequestedContext = context;
   currentContext = "status";
   installLifecycleListeners();
+  installMediaSessionHandlers();
   if (!enabled || volume <= 0 || !isBrowserAudioAvailable()) return false;
 
   const url = resolveGlobalMusicUrl();
@@ -89,6 +102,11 @@ export async function playMusicContext(context: ThemeMusicContext) {
     return false;
   }
 
+  const track = findTrackByUrl(url) || null;
+
+  // Immediately display native notification on Android so user sees it right away
+  syncNativeNotification(track, true);
+
   if (!unlocked) {
     pendingContext = "status";
     installUnlockListeners();
@@ -96,12 +114,13 @@ export async function playMusicContext(context: ThemeMusicContext) {
   }
 
   if (currentAudio?.dataset.url === url && !currentAudio.paused) return true;
-  return crossfadeTo(url);
+  return crossfadeTo(url, track);
 }
 
 export function stopBackgroundMusic(fadeMs = FADE_MS) {
   const audio = currentAudio;
   currentAudio = null;
+  currentTrackId = null;
   currentContext = null;
   pendingContext = null;
   if (nextAudio) {
@@ -109,10 +128,124 @@ export function stopBackgroundMusic(fadeMs = FADE_MS) {
     nextAudio = null;
   }
   if (audio) fadeOutAndStop(audio, fadeMs);
+  updateMediaSessionPlaybackState("none");
+  void clearNativeMediaNotification();
+}
+
+export function getCurrentMusicTrack(): LocalMusicTrack | null {
+  if (currentTrackId) {
+    const matched = LOCAL_MUSIC_TRACKS.find((t) => t.id === currentTrackId);
+    if (matched) return matched;
+  }
+  if (!currentAudio?.dataset.url) return null;
+  return findTrackByUrl(currentAudio.dataset.url) || null;
+}
+
+export async function playTrackById(trackId: LocalMusicTrackId | string) {
+  const track = LOCAL_MUSIC_TRACKS.find((t) => t.id === trackId);
+  if (!track || !track.url) return null;
+
+  if (!enabled) setBackgroundMusicEnabled(true);
+  currentContext = "status";
+  lastRequestedContext = "status";
+
+  syncNativeNotification(track, true);
+
+  if (!unlocked) {
+    pendingContext = "status";
+    installUnlockListeners();
+    return track.id;
+  }
+
+  await crossfadeTo(track.url, track);
+  return track.id;
+}
+
+export async function playNextTrack(): Promise<string | null> {
+  if (LOCAL_MUSIC_TRACKS.length === 0) return null;
+  const current = getCurrentMusicTrack();
+  const currentIndex = current ? LOCAL_MUSIC_TRACKS.findIndex((t) => t.id === current.id) : -1;
+  const nextIndex = (currentIndex + 1) % LOCAL_MUSIC_TRACKS.length;
+  const nextTrack = LOCAL_MUSIC_TRACKS[nextIndex];
+  if (!nextTrack) return null;
+
+  if (!enabled) setBackgroundMusicEnabled(true);
+  currentContext = "status";
+  lastRequestedContext = "status";
+
+  syncNativeNotification(nextTrack, true);
+
+  if (!unlocked) {
+    pendingContext = "status";
+    installUnlockListeners();
+    return nextTrack.id;
+  }
+
+  await crossfadeTo(nextTrack.url, nextTrack);
+  return nextTrack.id;
+}
+
+export async function playPreviousTrack(): Promise<string | null> {
+  if (LOCAL_MUSIC_TRACKS.length === 0) return null;
+  if (currentAudio && currentAudio.currentTime > 3) {
+    currentAudio.currentTime = 0;
+    updateMediaSessionPosition(currentAudio);
+    return getCurrentMusicTrack()?.id || null;
+  }
+
+  const current = getCurrentMusicTrack();
+  const currentIndex = current ? LOCAL_MUSIC_TRACKS.findIndex((t) => t.id === current.id) : 0;
+  const prevIndex = (currentIndex - 1 + LOCAL_MUSIC_TRACKS.length) % LOCAL_MUSIC_TRACKS.length;
+  const prevTrack = LOCAL_MUSIC_TRACKS[prevIndex];
+  if (!prevTrack) return null;
+
+  if (!enabled) setBackgroundMusicEnabled(true);
+  currentContext = "status";
+  lastRequestedContext = "status";
+
+  syncNativeNotification(prevTrack, true);
+
+  if (!unlocked) {
+    pendingContext = "status";
+    installUnlockListeners();
+    return prevTrack.id;
+  }
+
+  await crossfadeTo(prevTrack.url, prevTrack);
+  return prevTrack.id;
+}
+
+export function seekTrackTo(seconds: number) {
+  if (!currentAudio || !Number.isFinite(seconds)) return;
+  const duration = Number.isFinite(currentAudio.duration) && currentAudio.duration > 0 ? currentAudio.duration : 9999;
+  currentAudio.currentTime = Math.max(0, Math.min(duration, seconds));
+  updateMediaSessionPosition(currentAudio);
+}
+
+export function seekTrackBy(deltaSeconds: number) {
+  if (!currentAudio || !Number.isFinite(deltaSeconds)) return;
+  seekTrackTo(currentAudio.currentTime + deltaSeconds);
+}
+
+export function togglePlayPause() {
+  if (!currentAudio) {
+    void playMusicContext("status");
+    return;
+  }
+  if (currentAudio.paused) {
+    void currentAudio.play().then(() => {
+      updateMediaSessionPlaybackState("playing");
+      syncNativeNotification(getCurrentMusicTrack(), true);
+    }).catch(() => {});
+  } else {
+    currentAudio.pause();
+    updateMediaSessionPlaybackState("paused");
+    syncNativeNotification(getCurrentMusicTrack(), false);
+  }
 }
 
 export async function playRandomBackgroundTrack() {
-  if (!isBrowserAudioAvailable() || LOCAL_MUSIC_TRACKS.length === 0) return null;
+  if (LOCAL_MUSIC_TRACKS.length === 0) return null;
   const currentUrl = currentAudio?.dataset.url ?? null;
   const options = LOCAL_MUSIC_TRACKS.filter((track) => track.url && track.url !== currentUrl);
   const pool = options.length ? options : LOCAL_MUSIC_TRACKS;
@@ -123,18 +256,46 @@ export async function playRandomBackgroundTrack() {
   lastRequestedContext = "status";
   if (!enabled) setBackgroundMusicEnabled(true);
 
+  syncNativeNotification(picked, true);
+
   if (!unlocked) {
     pendingContext = "status";
     installUnlockListeners();
     return picked.id;
   }
 
-  await crossfadeTo(picked.url);
+  await crossfadeTo(picked.url, picked);
   return picked.id;
 }
 
 export async function testBackgroundMusic() {
   return playMusicContext("status");
+}
+
+export function initBackgroundMediaNotification() {
+  installMediaSessionHandlers();
+  const track = getCurrentMusicTrack() || LOCAL_MUSIC_TRACKS[0];
+  if (track && enabled) {
+    syncNativeNotification(track, true);
+  }
+}
+
+function syncNativeNotification(track: LocalMusicTrack | null | undefined, isPlaying: boolean) {
+  const current = track || LOCAL_MUSIC_TRACKS[0];
+  if (current) {
+    void showNativeMediaNotification({
+      title: current.title,
+      artist: current.artist || "Solo Leveler OST",
+      backgroundName: current.backgroundName || "01-shadow-citadel-purple.jpg",
+      isPlaying,
+      position: currentAudio ? currentAudio.currentTime : 0,
+      duration: currentAudio && Number.isFinite(currentAudio.duration) ? currentAudio.duration : 0,
+    });
+  }
+}
+
+function findTrackByUrl(url: string): LocalMusicTrack | undefined {
+  return LOCAL_MUSIC_TRACKS.find((track) => track.url === url || url.includes(track.fileName));
 }
 
 function isBrowserAudioAvailable() {
@@ -167,34 +328,142 @@ function removeUnlockListeners() {
 function installLifecycleListeners() {
   if (lifecycleListenersInstalled || typeof document === "undefined") return;
   lifecycleListenersInstalled = true;
+}
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      pausedByVisibility = Boolean(currentAudio && !currentAudio.paused);
-      currentAudio?.pause();
-      return;
+function installMediaSessionHandlers() {
+  if (mediaSessionHandlersInstalled) return;
+  mediaSessionHandlersInstalled = true;
+
+  // Native Android Media Action bridge
+  addMediaActionListener((action) => {
+    switch (action) {
+      case "media_prev":
+        void playPreviousTrack();
+        break;
+      case "media_toggle":
+        togglePlayPause();
+        break;
+      case "media_next":
+        void playNextTrack();
+        break;
+      case "media_shuffle":
+        void playRandomBackgroundTrack();
+        break;
+      case "media_stop":
+        stopBackgroundMusic();
+        break;
     }
-    if (pausedByVisibility && currentContext && enabled) {
-      pausedByVisibility = false;
+  });
+
+  if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+
+  const setHandler = (action: MediaSessionAction, handler: MediaSessionActionHandler | null) => {
+    try {
+      navigator.mediaSession.setActionHandler(action, handler);
+    } catch {
+      // Some browsers or older engines do not support all media actions.
+    }
+  };
+
+
+  setHandler("play", () => {
+    if (currentAudio && currentAudio.paused) {
+      void currentAudio.play().then(() => {
+        updateMediaSessionPlaybackState("playing");
+        syncNativeNotification(getCurrentMusicTrack(), true);
+      }).catch(() => {});
+    } else if (!currentAudio) {
       void playMusicContext("status");
     }
   });
 
-  if (Capacitor.getPlatform() === "android" && Capacitor.isPluginAvailable("App")) {
-    void CapacitorApp.addListener("pause", () => {
-      pausedByVisibility = Boolean(currentAudio && !currentAudio.paused);
-      currentAudio?.pause();
-    }).then((listener) => { appPauseListener = listener; });
-    void CapacitorApp.addListener("resume", () => {
-      if (pausedByVisibility && currentContext && enabled) {
-        pausedByVisibility = false;
-        void playMusicContext("status");
-      }
-    }).then((listener) => { appResumeListener = listener; });
+  setHandler("pause", () => {
+    if (currentAudio && !currentAudio.paused) {
+      currentAudio.pause();
+      updateMediaSessionPlaybackState("paused");
+      syncNativeNotification(getCurrentMusicTrack(), false);
+    }
+  });
+
+  setHandler("previoustrack", () => {
+    void playPreviousTrack();
+  });
+
+  setHandler("nexttrack", () => {
+    void playNextTrack();
+  });
+
+  setHandler("seekto", (details) => {
+    if (typeof details.seekTime === "number") {
+      seekTrackTo(details.seekTime);
+    }
+  });
+
+  setHandler("seekforward", (details) => {
+    seekTrackBy(details.seekOffset || 10);
+  });
+
+  setHandler("seekbackward", (details) => {
+    seekTrackBy(-(details.seekOffset || 10));
+  });
+
+  setHandler("stop", () => {
+    stopBackgroundMusic();
+  });
+}
+
+function updateMediaSessionMetadata(track: LocalMusicTrack | null) {
+  if (typeof navigator === "undefined" || !("mediaSession" in navigator) || typeof window === "undefined" || !window.MediaMetadata) {
+    return;
+  }
+
+  if (track) {
+    const bgUrl = `/backgrounds/${track.backgroundName || "01-shadow-citadel-purple.jpg"}`;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.title,
+      artist: track.artist || "Solo Leveler OST",
+      album: "Solo Leveler - Status Łowcy",
+      artwork: [
+        { src: bgUrl, sizes: "512x512", type: "image/jpeg" },
+        { src: "/favicon.ico", sizes: "64x64", type: "image/x-icon" },
+      ],
+    });
+  } else {
+    navigator.mediaSession.metadata = null;
+  }
+
+}
+
+function updateMediaSessionPlaybackState(state: "playing" | "paused" | "none") {
+  if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = state;
   }
 }
 
-async function crossfadeTo(url: string) {
+function updateMediaSessionPosition(audio: HTMLAudioElement | null) {
+  if (
+    !audio ||
+    typeof navigator === "undefined" ||
+    !("mediaSession" in navigator) ||
+    typeof navigator.mediaSession.setPositionState !== "function"
+  ) {
+    return;
+  }
+
+  if (Number.isFinite(audio.duration) && audio.duration > 0) {
+    try {
+      navigator.mediaSession.setPositionState({
+        duration: audio.duration,
+        playbackRate: audio.playbackRate || 1,
+        position: Math.min(Math.max(0, audio.currentTime), audio.duration),
+      });
+    } catch {
+      // Ignore transient position state calculation errors during audio loading.
+    }
+  }
+}
+
+async function crossfadeTo(url: string, explicitTrack?: LocalMusicTrack | null) {
   if (nextAudio?.dataset.url === url) return false;
   if (nextAudio) {
     nextAudio.pause();
@@ -203,36 +472,96 @@ async function crossfadeTo(url: string) {
     nextAudio = null;
   }
 
+  const track = explicitTrack ?? findTrackByUrl(url) ?? null;
   const incoming = new Audio(url);
   incoming.dataset.url = url;
-  incoming.loop = true;
+  incoming.loop = false;
   incoming.preload = "metadata";
   incoming.volume = 0;
   nextAudio = incoming;
+
+  incoming.addEventListener("play", () => {
+    if (currentAudio === incoming) {
+      updateMediaSessionPlaybackState("playing");
+      syncNativeNotification(track, true);
+    }
+  });
+
+  incoming.addEventListener("pause", () => {
+    if (currentAudio === incoming && !incoming.ended) {
+      updateMediaSessionPlaybackState("paused");
+      syncNativeNotification(track, false);
+    }
+  });
+
+  incoming.addEventListener("timeupdate", () => {
+    if (currentAudio === incoming) {
+      updateMediaSessionPosition(incoming);
+    }
+  });
+
+  incoming.addEventListener("loadedmetadata", () => {
+    if (currentAudio === incoming) {
+      updateMediaSessionPosition(incoming);
+    }
+  });
+
+  incoming.addEventListener("seeked", () => {
+    if (currentAudio === incoming) {
+      updateMediaSessionPosition(incoming);
+    }
+  });
+
+  incoming.addEventListener("ended", () => {
+    if (currentAudio === incoming) {
+      void playNextTrack();
+    }
+  });
 
   try {
     await incoming.play();
   } catch {
     pendingContext = currentContext;
     installUnlockListeners();
+    syncNativeNotification(track, true);
     return false;
   }
 
   const outgoing = currentAudio;
   currentAudio = incoming;
+  currentTrackId = track?.id || null;
   nextAudio = null;
+
+  installMediaSessionHandlers();
+  updateMediaSessionMetadata(track);
+  updateMediaSessionPlaybackState("playing");
+  updateMediaSessionPosition(incoming);
+  syncNativeNotification(track, true);
+
   animateFade(incoming, 0, volume, FADE_MS);
   if (outgoing) fadeOutAndStop(outgoing, FADE_MS);
   return true;
 }
 
 function fadeOutAndStop(audio: HTMLAudioElement, fadeMs: number) {
+  // Clear any dataset and event callbacks to prevent interference with current track
+  audio.dataset.url = "";
+  audio.onplay = null;
+  audio.onpause = null;
+  audio.onended = null;
+  audio.ontimeupdate = null;
   const from = audio.volume;
   animateFade(audio, from, 0, fadeMs, () => {
-    audio.pause();
-    audio.currentTime = 0;
+    try {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    } catch {
+      // Ignore
+    }
   });
 }
+
 
 function animateFade(audio: HTMLAudioElement, from: number, to: number, durationMs: number, onDone?: () => void) {
   const start = performance.now();
@@ -288,3 +617,6 @@ function normalizeTrackSelection(value: unknown): "auto" | string {
 
 void appPauseListener;
 void appResumeListener;
+void CapacitorApp;
+void Capacitor;
+void getLocalMusicTrack;

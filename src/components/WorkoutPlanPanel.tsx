@@ -151,7 +151,7 @@ export function WorkoutPlanPanel({
             </div>
           )}
 
-          <div className="grid gap-2">
+          <div className="grid max-w-full gap-2 overflow-hidden">
             {searchResults.map(({ exercise }) => {
               const planned = plannedIds.has(exercise.id);
               return (
@@ -160,7 +160,7 @@ export function WorkoutPlanPanel({
                   type="button"
                   onClick={() => !planned && addExercise(exercise)}
                   disabled={planned}
-                  className="sl-input flex min-h-14 items-center justify-between gap-3 rounded-2xl px-3 py-2 text-left active:scale-[0.99] disabled:opacity-80"
+                  className="sl-input grid min-h-14 w-full max-w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-2xl px-3 py-2 text-left active:scale-[0.99] disabled:opacity-80"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-black text-[var(--theme-text-strong)]">{exercise.name}</span>
@@ -257,13 +257,13 @@ const PlanExerciseCard: React.FC<PlanExerciseCardProps> = ({
   const progress = exercise.targetSets > 0 ? Math.min(100, (todaySets.length / exercise.targetSets) * 100) : 0;
 
   return (
-    <article className="sl-card rounded-[22px] p-4">
+    <article className="sl-card w-full max-w-full overflow-hidden rounded-[22px] p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">
             {index + 1}. {exercise.category}
           </p>
-          <h3 className="mt-1 text-lg font-black uppercase tracking-[0.04em] text-[var(--theme-text)]">{exercise.name}</h3>
+          <h3 className="mt-1 line-clamp-2 break-words text-lg font-black uppercase tracking-[0.04em] text-[var(--theme-text)]">{exercise.name}</h3>
           <p className="mt-1 truncate text-xs font-bold text-[var(--theme-muted)]">{exercise.equipment}</p>
         </div>
         <div className="grid grid-cols-3 gap-1.5 self-stretch sm:self-start">

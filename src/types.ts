@@ -388,6 +388,7 @@ export interface PlayerState {
     advancedUnlockedUntil: number | null;
     healthAutoSync: boolean;
     uiSurfaceOpacity: number;
+    marqueeSpeed: number;
     themeId: AppThemeId;
     ownedThemeIds: AppThemeId[];
     activeThemeEffectId: ThemeEffectId;
@@ -581,6 +582,7 @@ export const INITIAL_PLAYER: PlayerState = {
     advancedUnlockedUntil: null,
     healthAutoSync: true,
     uiSurfaceOpacity: 0.84,
+    marqueeSpeed: 42,
     themeId: "system-dark",
     ownedThemeIds: ["system-dark"],
     activeThemeEffectId: "none",

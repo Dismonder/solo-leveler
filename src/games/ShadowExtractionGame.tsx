@@ -125,7 +125,8 @@ export function ShadowExtractionGame({ onComplete, onExit }: { onComplete: (r: G
   return (
     <PixelFrame title="SHADOW EXTRACTION" onBack={onExit}>
       {!isPlaying && !gameOver && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/85 p-4 text-center">
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/85 backdrop-blur-xl p-4 text-center">
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-black/60 backdrop-blur-xl" />
           <Eye className="mb-4 h-10 w-10 text-violet-400 drop-shadow-[0_0_16px_rgba(167,139,250,0.9)]" />
           <h2 className="mb-3 text-2xl font-black uppercase tracking-[0.25em] text-violet-300">Shadow Extraction</h2>
           <p className="mb-5 max-w-xs text-xs uppercase leading-relaxed tracking-widest text-zinc-400">

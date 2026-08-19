@@ -14,6 +14,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
 
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
+import androidx.media.app.NotificationCompat.MediaStyle;
+import java.io.InputStream;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -41,6 +50,76 @@ public class HunterNotificationsPlugin extends Plugin {
     private static final String SCHEDULES = "schedules";
     private static final String LAST_ACTION = "last_action";
     private static final int WORKOUT_NOTIFICATION_ID = 74401;
+    public static final int MEDIA_NOTIFICATION_ID = 74402;
+    private static HunterNotificationsPlugin instance;
+    private static MediaSessionCompat mediaSession;
+
+    @Override
+    public void load() {
+        super.load();
+        instance = this;
+        ensureMediaSession();
+    }
+
+    public static void handleMediaAction(String action) {
+        if (instance != null && action != null) {
+            JSObject data = new JSObject();
+            data.put("action", action);
+            instance.notifyListeners("mediaAction", data);
+        }
+    }
+
+    private synchronized void ensureMediaSession() {
+        if (mediaSession != null) return;
+        try {
+            mediaSession = new MediaSessionCompat(getContext(), "SoloLevelerMediaSession");
+            mediaSession.setCallback(new MediaSessionCompat.Callback() {
+                @Override
+                public void onPlay() {
+                    handleMediaAction("media_toggle");
+                }
+
+                @Override
+                public void onPause() {
+                    handleMediaAction("media_toggle");
+                }
+
+                @Override
+                public void onSkipToNext() {
+                    handleMediaAction("media_next");
+                }
+
+                @Override
+                public void onSkipToPrevious() {
+                    handleMediaAction("media_prev");
+                }
+
+                @Override
+                public void onStop() {
+                    handleMediaAction("media_stop");
+                }
+
+                @Override
+                public void onSeekTo(long pos) {
+                    if (instance != null) {
+                        JSObject data = new JSObject();
+                        data.put("action", "media_seek");
+                        data.put("seekTime", pos / 1000.0);
+                        instance.notifyListeners("mediaAction", data);
+                    }
+                }
+
+                @Override
+                public void onSetShuffleMode(int shuffleMode) {
+                    handleMediaAction("media_shuffle");
+                }
+            });
+            mediaSession.setActive(true);
+        } catch (Exception ignored) {
+        }
+    }
+
+
 
     @PluginMethod
     public void getStatus(PluginCall call) {
@@ -205,6 +284,139 @@ public class HunterNotificationsPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void showMediaPlaybackNotification(PluginCall call) {
+        ensureChannels(getContext());
+        ensureMediaSession();
+
+        String title = call.getString("title", "Solo Leveler");
+        String artist = call.getString("artist", "Solo Leveling OST");
+        String backgroundName = call.getString("backgroundName", "01-shadow-citadel-purple.jpg");
+        boolean isPlaying = call.getBoolean("isPlaying", true);
+        long positionMs = (long) (call.getDouble("position", 0.0) * 1000);
+        long durationMs = (long) (call.getDouble("duration", 0.0) * 1000);
+
+        Bitmap artwork = loadArtworkBitmap(getContext(), backgroundName);
+
+        if (mediaSession != null) {
+            long playbackActions = PlaybackStateCompat.ACTION_PLAY
+                    | PlaybackStateCompat.ACTION_PAUSE
+                    | PlaybackStateCompat.ACTION_PLAY_PAUSE
+                    | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
+                    | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                    | PlaybackStateCompat.ACTION_STOP
+                    | PlaybackStateCompat.ACTION_SEEK_TO
+                    | PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE;
+
+            PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
+                    .setActions(playbackActions)
+                    .setState(
+                            isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED,
+                            positionMs,
+                            1.0f
+                    );
+            mediaSession.setPlaybackState(stateBuilder.build());
+
+            MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "Solo Leveler - Status Łowcy");
+            if (durationMs > 0) {
+                metaBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
+            }
+            if (artwork != null) {
+                metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, artwork);
+                metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, artwork);
+                metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, artwork);
+            }
+            mediaSession.setMetadata(metaBuilder.build());
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), "media_playback")
+                .setSmallIcon(R.drawable.ic_stat_hunter)
+                .setContentTitle(title != null ? title : "Solo Leveler")
+                .setContentText(artist != null ? artist : "Solo Leveling OST")
+                .setSubText("Solo Leveler")
+                .setOngoing(isPlaying)
+                .setOnlyAlertOnce(true)
+                .setColor(Color.rgb(34, 211, 238))
+                .setContentIntent(openAction(getContext(), "open_status"))
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_LOW);
+
+        if (artwork != null) {
+            builder.setLargeIcon(artwork);
+        }
+
+        // Actions: 0=Shuffle, 1=Prev, 2=Play/Pause, 3=Next, 4=Stop
+        builder.addAction(R.drawable.ic_media_shuffle, "Losuj", mediaAction(getContext(), "media_shuffle"));
+        builder.addAction(R.drawable.ic_media_previous, "Poprzedni", mediaAction(getContext(), "media_prev"));
+        builder.addAction(
+                isPlaying ? R.drawable.ic_media_pause : R.drawable.ic_media_play,
+                isPlaying ? "Pauza" : "Odtwarzaj",
+                mediaAction(getContext(), "media_toggle")
+        );
+        builder.addAction(R.drawable.ic_media_next, "Następny", mediaAction(getContext(), "media_next"));
+        builder.addAction(R.drawable.ic_media_stop, "Zatrzymaj", mediaAction(getContext(), "media_stop"));
+
+        if (mediaSession != null) {
+            MediaStyle mediaStyle = new MediaStyle()
+                    .setMediaSession(mediaSession.getSessionToken())
+                    .setShowActionsInCompactView(1, 2, 3)
+                    .setShowCancelButton(true)
+                    .setCancelButtonIntent(mediaAction(getContext(), "media_stop"));
+            builder.setStyle(mediaStyle);
+        }
+
+        notify(getContext(), MEDIA_NOTIFICATION_ID, builder.build());
+
+        JSObject result = new JSObject();
+        result.put("shown", hasNotificationPermission(getContext()));
+        result.put("message", "MediaStyle notification active.");
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void clearMediaPlaybackNotification(PluginCall call) {
+        NotificationManagerCompat.from(getContext()).cancel(MEDIA_NOTIFICATION_ID);
+        if (mediaSession != null) {
+            mediaSession.setActive(false);
+        }
+        JSObject result = new JSObject();
+        result.put("cleared", true);
+        result.put("message", "Powiadomienie odtwarzacza zamknięte.");
+        call.resolve(result);
+    }
+
+    private static Bitmap loadArtworkBitmap(Context context, String backgroundName) {
+        if (backgroundName == null || backgroundName.trim().isEmpty()) {
+            backgroundName = "01-shadow-citadel-purple.jpg";
+        }
+        AssetManager assets = context.getAssets();
+        String[] possiblePaths = {
+                "public/backgrounds/" + backgroundName,
+                "backgrounds/" + backgroundName,
+                "public/assets/" + backgroundName
+        };
+
+        for (String path : possiblePaths) {
+            try {
+                InputStream is = assets.open(path);
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                is.close();
+                if (bitmap != null) return bitmap;
+            } catch (Exception ignored) {
+            }
+        }
+
+        try {
+            return BitmapFactory.decodeResource(context.getResources(), R.drawable.splash);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+
+    @PluginMethod
     public void getLaunchAction(PluginCall call) {
         SharedPreferences prefs = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         JSObject result = new JSObject();
@@ -227,9 +439,18 @@ public class HunterNotificationsPlugin extends Plugin {
         createChannel(manager, "daily_training", "Daily Quest", "Przypomnienia o dziennym treningu.", NotificationManager.IMPORTANCE_DEFAULT);
         createChannel(manager, "deadline_alert", "Deadline Systemu", "Mocniejsze ostrzeżenie przed resetem dnia.", NotificationManager.IMPORTANCE_HIGH);
         createChannel(manager, "workout_session", "Aktywny trening", "Status trwającej sesji treningowej.", NotificationManager.IMPORTANCE_LOW);
+        createChannel(manager, "media_playback", "Odtwarzacz Muzyki", "Sterowanie muzyką w tle.", NotificationManager.IMPORTANCE_LOW);
         createChannel(manager, "penalties", "Kary Systemu", "Kary za pominięty dzień.", NotificationManager.IMPORTANCE_DEFAULT);
         createChannel(manager, "rewards", "Nagrody", "XP, gold, streak i ukończenie celu.", NotificationManager.IMPORTANCE_DEFAULT);
     }
+
+    private static PendingIntent mediaAction(Context context, String action) {
+        Intent intent = new Intent(context, HunterNotificationReceiver.class);
+        intent.setAction(HunterNotificationReceiver.ACTION_MEDIA);
+        intent.putExtra("media_action", action);
+        return PendingIntent.getBroadcast(context, requestCode("media_" + action), intent, flags());
+    }
+
 
     public static void showNotificationFromIntent(Context context, Intent intent) {
         ensureChannels(context);

@@ -43,7 +43,18 @@ import {
 } from "lucide-react";
 import { RewardAnimationLayer } from "../components/RewardAnimationLayer";
 import { WorkoutStartCountdown } from "../components/WorkoutStartCountdown";
+import { SystemUpdateModal } from "../components/SystemUpdateModal";
+import {
+  checkForUpdate,
+  CURRENT_APP_VERSION,
+  getSavedUpdateSource,
+  saveUpdateSource,
+  extractGitHubRepo,
+  type AppUpdateInfo,
+} from "../services/updateService";
 import { usePlayer } from "../context/PlayerContext";
+
+
 import { EXERCISE_CATALOG, type ExerciseCatalogEntry } from "../data/exerciseCatalog";
 import { createDefaultMiniGameProgress, type MiniGameId } from "../game/miniGameProgress";
 import { MINI_GAME_CATALOG } from "../game/miniGameCatalog";
@@ -309,10 +320,34 @@ export function Dashboard() {
   const [workoutCountdownOpen, setWorkoutCountdownOpen] = useState(false);
   const [penaltyExerciseAttempt, setPenaltyExerciseAttempt] = useState<{ penaltyId: string; openedAt: number; message: string | null } | null>(null);
   const [rewardEvents, setRewardEvents] = useState<RewardAnimationEvent[]>([]);
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
   const healthAutoSyncRef = useRef({ lastDateKey: "", lastRunAt: 0 });
   const contentScrollRef = useRef<HTMLElement | null>(null);
   const musicTracks = useMemo(() => getLocalMusicTracks(), []);
   const resetCountdown = useDailyResetCountdown();
+
+  useEffect(() => {
+    void checkForUpdate().then((info) => {
+      if (info.hasUpdate) {
+        setUpdateInfo(info);
+      }
+    });
+  }, []);
+
+  const handleManualCheckUpdate = async () => {
+    toast.loading("Sprawdzam dostępność aktualizacji na GitHub...", { id: "check-update" });
+    const info = await checkForUpdate();
+    if (info.hasUpdate) {
+      toast.dismiss("check-update");
+      setUpdateInfo(info);
+    } else if (info.error) {
+      toast.info(info.error, { id: "check-update", duration: 5000 });
+    } else {
+      toast.success(`Posiadasz najnowszą wersję Systemu Łowcy (v${info.currentVersion})!`, { id: "check-update" });
+    }
+  };
+
+
   const progress = useMemo(() => player ? getDailyQuestProgress(player.dailyQuest) : { percent: 0, completedCount: 0, totalCount: 0 }, [player?.dailyQuest]);
   const dailyQuestItems = useMemo(() => player ? getEnabledDailyQuestItems(player.dailyQuest) : [], [player?.dailyQuest]);
   const incompleteDailyQuestItems = useMemo(
@@ -1100,9 +1135,11 @@ export function Dashboard() {
                       toast.error("Daily nie ma ćwiczenia obsługiwanego przez sensor.");
                     }
                   }}
+                  onCheckUpdate={handleManualCheckUpdate}
                 />
               </div>
             )}
+
           </>
         </section>
 
@@ -1195,6 +1232,15 @@ export function Dashboard() {
       <RewardAnimationLayer events={rewardEvents} />
 
       <AnimatePresence>
+        {updateInfo?.hasUpdate && (
+          <SystemUpdateModal
+            updateInfo={updateInfo}
+            onClose={() => setUpdateInfo(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {workoutCountdownOpen && (
           <WorkoutStartCountdown
             onCancel={() => setWorkoutCountdownOpen(false)}
@@ -1208,6 +1254,7 @@ export function Dashboard() {
     </div>
   );
 }
+
 
 function HeaderCard({
   player,
@@ -2470,6 +2517,7 @@ function SystemPanel({
   onDevClearPenalty,
   onDevResetMiniGames,
   onOpenWearableSensor,
+  onCheckUpdate,
 }: {
   player: PlayerState;
   volume: number;
@@ -2505,7 +2553,9 @@ function SystemPanel({
   onDevClearPenalty: () => void;
   onDevResetMiniGames: () => void;
   onOpenWearableSensor: () => void;
+  onCheckUpdate?: () => void;
 }) {
+
   const bluetoothAvailable = isWearableBluetoothAvailable();
   const nativeBluetooth = isNativeBluetoothAvailable();
   const lastWorkout = player.workoutHistory?.[player.workoutHistory.length - 1];
@@ -2529,6 +2579,9 @@ function SystemPanel({
   const [advancedError, setAdvancedError] = useState<string | null>(null);
   const [devGoldAmount, setDevGoldAmount] = useState("1000");
   const [penaltiesOpen, setPenaltiesOpen] = useState(false);
+  const [updateSource, setUpdateSourceState] = useState(() => getSavedUpdateSource());
+  const [updateSourceEditOpen, setUpdateSourceEditOpen] = useState(false);
+
   const [trackingOpen, setTrackingOpen] = useState({
     phone: false,
     band: false,
@@ -2818,6 +2871,78 @@ function SystemPanel({
           />
         </div>
       </div>
+
+      <div className="sl-card rounded-[22px] p-4 border border-cyan-500/30">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400">
+              <Sparkles className="h-5 w-5 animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-cyan-400">System OTA · GitHub</p>
+              <h3 className="text-sm font-black uppercase tracking-[0.15em] text-[var(--theme-text-strong)]">
+                Aktualizacja Systemu
+              </h3>
+              <p className="sl-muted text-xs font-mono truncate">
+                v{CURRENT_APP_VERSION} · {extractGitHubRepo(updateSource) ? `GitHub (${extractGitHubRepo(updateSource)?.owner}/${extractGitHubRepo(updateSource)?.repo})` : updateSource}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setUpdateSourceEditOpen((v) => !v)}
+              className="rounded-xl border border-cyan-500/20 bg-cyan-950/30 px-2.5 py-2 text-xs font-mono text-cyan-400/80 hover:text-cyan-300 active:scale-[0.98]"
+              title="Zmień źródło GitHub"
+            >
+              Źródło
+            </button>
+            <button
+              type="button"
+              onClick={onCheckUpdate}
+              className="rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-3.5 py-2 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
+            >
+              Sprawdź
+            </button>
+          </div>
+        </div>
+
+        {updateSourceEditOpen && (
+          <div className="mt-3 pt-3 border-t border-cyan-500/20 space-y-2">
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-cyan-400/80">
+              Repozytorium GitHub lub adres URL:
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={updateSource}
+                onChange={(e) => {
+                  setUpdateSourceState(e.target.value);
+                  saveUpdateSource(e.target.value);
+                }}
+                placeholder="Dismonder/solo-leveler"
+                className="sl-input min-w-0 flex-1 rounded-xl px-3 py-1.5 font-mono text-xs text-[var(--theme-text)] outline-none border border-cyan-500/30"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setUpdateSourceState("Dismonder/solo-leveler");
+                  saveUpdateSource("Dismonder/solo-leveler");
+                }}
+                className="sl-button-secondary rounded-xl px-2.5 py-1.5 text-[10px] font-mono shrink-0"
+              >
+                Domyślne
+              </button>
+
+            </div>
+            <p className="text-[10px] text-[var(--theme-muted)] leading-tight">
+              Podaj nazwę repozytorium GitHub (np. <code>login/nazwa-repo</code>) lub bezpośredni link do manifestu JSON.
+            </p>
+          </div>
+        )}
+      </div>
+
+
 
       {activeSheet === "dev" && advancedOpen && advancedUnlocked && notificationsOpen && (
       <div className="sl-card rounded-[22px] p-4">
