@@ -1,10 +1,16 @@
 {
-  "version": "1.0.1",
-  "versionCode": 2,
-  "releaseDate": "2026-08-19",
+  "version": "1.0.2",
+  "versionCode": 3,
+  "releaseDate": "2026-08-20",
   "changelog": [
-    "Testowy update OTA: powiększone ikony, obsługa odtwarzacza i aktualizacji przez GitHub Releases"
+    "⚖️ System Kar: wyłączono domyślne karne ćwiczenia z wymuszonego systemu kar",
+    "💧 Eliksir Many: przypomnienia o nawodnieniu w ciągu dnia",
+    "🎮 Brama Treningowa: wyzwania mini-gier z nagrodami XP i Złota",
+    "⚔️ Atlas Kalisteniki: polecane ćwiczenia bez sprzętu z instrukcjami wideo i techniką",
+    "🎯 Precyzyjny Deep Linking: kliknięcie powiadomienia natychmiast przenosi do wybranego ćwiczenia, gry lub panelu nawodnienia",
+    "🎵 Poprawka odtwarzania muzyki w tle i ekran nowości po aktualizacji"
   ],
-  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.1/solo-leveler.apk",
+  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.2/solo-leveler.apk",
   "mandatory": false
 }
+

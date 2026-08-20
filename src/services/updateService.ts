@@ -1,7 +1,9 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
-export const CURRENT_APP_VERSION = "1.0.1";
-export const CURRENT_APP_BUILD = 2;
+export const CURRENT_APP_VERSION = "1.0.2";
+export const CURRENT_APP_BUILD = 3;
+
+
 
 export const CURRENT_VERSION_CHANGELOG: string[] = [
   "⚖️ System Kar: wyłączono domyślne karne ćwiczenia z wymuszonego systemu kar (pełna kontrola w opcjach Systemu)",

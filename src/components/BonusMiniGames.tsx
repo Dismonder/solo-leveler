@@ -521,6 +521,17 @@ export function GameRuntimeScreen({
               </MiniGameAudioButton>
             </div>
           )}
+          {definition.allowPortraitFallback && (
+            <button
+              type="button"
+              onClick={toggleOrientation}
+              className="pointer-events-auto grid h-10 w-10 place-items-center rounded-xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] text-[var(--theme-text-strong)] shadow-[0_0_18px_var(--theme-shadow)] active:scale-95"
+              title={orientationMode === "landscape" ? "Zmień na pion (Portrait)" : "Zmień na poziom (Landscape)"}
+              aria-label="Obróć ekran"
+            >
+              <RotateCw className="h-4 w-4" />
+            </button>
+          )}
           {runtimeState === "ready" && (
             <button
               type="button"
@@ -543,6 +554,7 @@ export function GameRuntimeScreen({
           )}
         </div>
       </div>
+
       <main className="absolute inset-0 z-10 flex min-h-0 w-full" data-gpu-layer="true">
         <Fragment key={`${definition.id}-${roundKey}`}>
           <ActiveMiniGame
@@ -1831,17 +1843,27 @@ function ShadowExtractionGame({
 
   const spawnObject = useCallback((now: number) => {
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 14);
-    const batch = 1 + (difficulty >= 5 ? 1 : 0) + (difficulty >= 10 && Math.random() > 0.55 ? 1 : 0);
     const underFramePressure = framePressureUntilRef.current > now;
     const objectBudget = getShadowExtractionObjectBudget(graphicsQuality, underFramePressure);
-    const nextObjects = objectsRef.current.length > objectBudget
-      ? objectsRef.current.slice(-objectBudget)
-      : [...objectsRef.current];
-    const spawnCircles: SpawnCircle[] = nextObjects
-      .map((object) => ({ x: object.x, y: object.y, radius: object.radiusPct }));
 
-    for (let index = 0; index < batch; index += 1) {
-      if (nextObjects.length >= objectBudget) break;
+    // Fruit Ninja wave size: 1-3 shadows thrown together into the air
+    const isComboWave = Math.random() < Math.min(0.75, 0.35 + difficulty * 0.04);
+    const waveCount = isComboWave
+      ? (difficulty >= 7 && Math.random() > 0.45 ? 3 : 2)
+      : 1;
+
+    const availableSlots = objectBudget - objectsRef.current.length;
+    const actualBatch = Math.min(availableSlots, waveCount);
+    if (actualBatch <= 0) return;
+
+    const nextObjects = [...objectsRef.current];
+    const isLandscape = orientationMode === "landscape";
+    const span = (isLandscape ? 68 : 56) / Math.max(1, actualBatch);
+
+    for (let index = 0; index < actualBatch; index += 1) {
+      const minX = (isLandscape ? 16 : 22) + index * span;
+      const spawnX = minX + Math.random() * (span * 0.82);
+
       const object = createShadowSliceObject({
         difficulty,
         score: scoreRef.current,
@@ -1849,17 +1871,17 @@ function ShadowExtractionGame({
         playerHp: player.hp,
         upgrades,
         relicBonuses,
-        existing: spawnCircles,
-        now,
+        orientationMode,
+        now: now + index * 12,
         wallNow: Date.now(),
+        spawnX,
       });
-      if (!object) break;
-      spawnCircles.push({ x: object.x, y: object.y, radius: object.radiusPct });
       nextObjects.push(object);
     }
 
     setObjectsSync(nextObjects);
-  }, [graphicsQuality, player.hp, progress.level, relicBonuses, setObjectsSync, upgrades]);
+  }, [graphicsQuality, orientationMode, player.hp, progress.level, relicBonuses, setObjectsSync, upgrades]);
+
 
   const start = useCallback(() => {
     playMiniGameStartCue();
@@ -1987,9 +2009,19 @@ function ShadowExtractionGame({
           rotation: object.rotation + object.spin * delta,
         };
 
+        // Smoothly bounce off side bounds to keep shadows playable on screen
+        if (nextObject.x < 5) {
+          nextObject.x = 5;
+          nextObject.vx = Math.abs(nextObject.vx) * 0.85;
+        } else if (nextObject.x > 95) {
+          nextObject.x = 95;
+          nextObject.vx = -Math.abs(nextObject.vx) * 0.85;
+        }
+
         if (wallNow >= nextObject.expiresAt) {
           if (nextObject.kind === "true") missedTrue += 1;
-        } else if (nextObject.y > 110 || nextObject.x < 4 || nextObject.x > 96) {
+        } else if (nextObject.y > 106 && nextObject.vy > 0) {
+          // Fallen below the bottom of the screen
           if (nextObject.kind === "true") missedTrue += 1;
         } else {
           updatedObjects.push(nextObject);
@@ -1997,7 +2029,7 @@ function ShadowExtractionGame({
       }
 
       if (missedTrue > 0) {
-        applyMissPenalty("-cień uciekł", 850 + difficulty * 80);
+        applyMissPenalty("-cień uciekł", Math.min(1600, 680 + difficulty * 55));
       }
 
       objectsRef.current = updatedObjects;
@@ -2024,6 +2056,7 @@ function ShadowExtractionGame({
         finish(scoreRef.current);
         return;
       }
+
 
       animationRef.current = window.requestAnimationFrame(tick);
     };
@@ -2132,7 +2165,7 @@ function ShadowExtractionGame({
 
     const pathPx = path.map((point) => pointToPixels(point, rect));
     const hitIds = new Set<string>();
-    const bladeWidth = orientationMode === "portrait" ? 24 : 22;
+    const bladeWidth = orientationMode === "portrait" ? 32 : 28;
 
     for (const object of objectsRef.current) {
       const center = {
@@ -2143,7 +2176,7 @@ function ShadowExtractionGame({
       if (!pathBoundsCouldIntersectCircle(pathPx, center, bladeWidth)) {
         continue;
       }
-      if (slicePathIntersectsTarget(pathPx, center, { bladeWidth, maxSegmentLength: 8 })) {
+      if (slicePathIntersectsTarget(pathPx, center, { bladeWidth, maxSegmentLength: 6 })) {
         hitIds.add(object.id);
       }
     }
@@ -2152,14 +2185,28 @@ function ShadowExtractionGame({
 
     const hitObjects = objectsRef.current.filter((object) => hitIds.has(object.id));
     setObjectsSync(objectsRef.current.filter((object) => !hitIds.has(object.id)));
+
+    // Multi-cut combo recognition (Fruit Ninja style combo)
+    const validCuts = hitObjects.filter((o) => o.kind === "true" || o.kind === "gold" || o.kind === "heart" || o.kind === "time").length;
+    if (validCuts >= 3) {
+      playMiniGameComboSound();
+      showFeedback(`⚔️ COMBO x${validCuts}!`);
+      scoreRef.current += validCuts * 20;
+      scheduleHudSync();
+      showScorePopup(validCuts * 20);
+    } else if (validCuts === 2) {
+      showFeedback("Podwójne cięcie!");
+    }
+
     hitObjects.forEach(handleSliceHit);
-  }, [handleSliceHit, orientationMode, setObjectsSync]);
+  }, [handleSliceHit, orientationMode, scheduleHudSync, setObjectsSync, showFeedback, showScorePopup]);
+
 
   const addTrailPoint = useCallback((point: SliceTrailPoint) => {
     const current = trailRef.current;
     const previous = current[current.length - 1];
-    if (previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 0.55) return;
-    const next = [...current.slice(-5), point];
+    if (previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 0.45) return;
+    const next = [...current.slice(-6), point];
     trailRef.current = next;
     const now = performance.now();
     const trailEveryMs = framePressureUntilRef.current > now
@@ -2172,7 +2219,7 @@ function ShadowExtractionGame({
     slicePath(previous ? [previous, point] : [point]);
   }, [graphicsQuality, slicePath]);
 
-  const pointerToPoint = useCallback((event: PointerEvent<HTMLDivElement>): SliceTrailPoint | null => {
+  const pointerToPoint = useCallback((event: { clientX: number; clientY: number }): SliceTrailPoint | null => {
     const rect = playfieldRectRef.current ?? playfieldRef.current?.getBoundingClientRect();
     if (!rect) return null;
     return {
@@ -2184,7 +2231,11 @@ function ShadowExtractionGame({
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!running || paused) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore if pointer capture is not permitted
+    }
     playfieldRectRef.current = event.currentTarget.getBoundingClientRect();
     slicingRef.current = true;
     const point = pointerToPoint(event);
@@ -2197,9 +2248,18 @@ function ShadowExtractionGame({
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!running || paused || !slicingRef.current) return;
-    const point = pointerToPoint(event);
-    if (point) addTrailPoint(point);
+    const coalesced = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [];
+    if (coalesced.length > 0) {
+      for (const e of coalesced) {
+        const point = pointerToPoint(e);
+        if (point) addTrailPoint(point);
+      }
+    } else {
+      const point = pointerToPoint(event);
+      if (point) addTrailPoint(point);
+    }
   };
+
 
   const endSlice = (event?: PointerEvent<HTMLDivElement>) => {
     if (running && !paused && slicingRef.current && event) {
@@ -2672,7 +2732,7 @@ const ShadowSliceToken = memo(function ShadowSliceToken({
 
   return (
     <div
-      className={`sl-slice-target pointer-events-none absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border shadow-[0_0_30px] ${classes[object.kind]}`}
+      className={`sl-slice-target pointer-events-none absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border shadow-[0_0_30px] will-change-transform ${classes[object.kind]}`}
       style={{
         left: playfieldSize ? 0 : `${object.x}%`,
         top: playfieldSize ? 0 : `${object.y}%`,
@@ -2683,7 +2743,7 @@ const ShadowSliceToken = memo(function ShadowSliceToken({
     >
       {shouldGlow && <span className="sl-slice-glow pointer-events-none absolute inset-[-18%] rounded-full" />}
       {asset ? (
-        <img src={asset} alt="" className="h-[142%] w-[142%] object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.55)]" />
+        <img src={asset} alt="" className="h-[142%] w-[142%] object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.55)] select-none pointer-events-none" />
       ) : object.kind === "gold" ? (
         <div className="relative grid h-[66%] w-[66%] place-items-center rounded-full bg-amber-300/15">
           <div className="absolute h-[44%] w-[72%] -rotate-6 rounded-md border border-amber-100/80 bg-gradient-to-br from-yellow-200 via-amber-400 to-yellow-700 shadow-[0_0_18px_rgba(250,204,21,0.62)]" />
@@ -2711,6 +2771,7 @@ const ShadowSliceToken = memo(function ShadowSliceToken({
     </div>
   );
 });
+
 
 const SliceImpactLayer = memo(function SliceImpactLayer({
   effects,
@@ -2821,12 +2882,9 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
         animate={{ scaleX: 1, opacity: 0, rotate: effect.rotation + 18 }}
         transition={{ duration: 0.34, ease: "easeOut" }}
       />
-      {graphicsQuality === "cinematic" && (
-        <>
-          <SlicedHalf asset={asset} effect={effect} side="left" />
-          <SlicedHalf asset={asset} effect={effect} side="right" />
-        </>
-      )}
+      <SlicedHalf asset={asset} effect={effect} side="left" />
+      <SlicedHalf asset={asset} effect={effect} side="right" />
+
       {particles.map((particle) => (
         <motion.span
           key={particle.id}
@@ -2914,55 +2972,57 @@ const ShadowExtractionChanceMeter = memo(function ShadowExtractionChanceMeter({ 
 const SliceTrail = memo(function SliceTrail({ points, effect }: { points: SliceTrailPoint[]; effect: ReturnType<typeof getShadowExtractionEffect> }) {
   if (points.length < 2) return null;
   const stroke = getTrailColor(effect.id);
+
+  let pathD = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    pathD += ` L ${points[i].x} ${points[i].y}`;
+  }
+
+  const tip = points[points.length - 1];
+
   return (
-    <svg className="pointer-events-none absolute inset-0 z-20 h-full w-full overflow-visible">
-      {points.slice(1).map((point, index) => {
-        const previous = points[index];
-        const opacity = (index + 1) / points.length;
-        return (
-          <g
-            key={`${point.time}_${index}`}
-            className={`drop-shadow-lg ${effect.glowClass}`}
-          >
-            <line
-              x1={`${previous.x}%`}
-              y1={`${previous.y}%`}
-              x2={`${point.x}%`}
-              y2={`${point.y}%`}
-              stroke={stroke}
-              strokeWidth={18 * opacity}
-              strokeLinecap="round"
-              opacity={0.18 * opacity}
-            />
-            <line
-              x1={`${previous.x}%`}
-              y1={`${previous.y}%`}
-              x2={`${point.x}%`}
-              y2={`${point.y}%`}
-              stroke={stroke}
-              strokeWidth={Math.max(4, 9 * opacity)}
-              strokeLinecap="round"
-              opacity={opacity}
-            />
-            <line
-              x1={`${previous.x}%`}
-              y1={`${previous.y}%`}
-              x2={`${point.x}%`}
-              y2={`${point.y}%`}
-              stroke="#f8fafc"
-              strokeWidth={Math.max(1.5, 2.8 * opacity)}
-              strokeLinecap="round"
-              opacity={0.72 * opacity}
-            />
-            {index === points.length - 2 && (
-              <circle cx={`${point.x}%`} cy={`${point.y}%`} r={4.5} fill="#e0f2fe" opacity={0.9} />
-            )}
-          </g>
-        );
-      })}
+    <svg
+      className="pointer-events-none absolute inset-0 z-20 h-full w-full overflow-visible"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
+    >
+      <path
+        d={pathD}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.32"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d={pathD}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.88"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d={pathD}
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.95"
+        vectorEffect="non-scaling-stroke"
+      />
+      {tip && (
+        <circle cx={tip.x} cy={tip.y} r="1.5" fill="#ffffff" opacity="0.95" />
+      )}
     </svg>
   );
 });
+
 
 function StartOverlay({
   finished,
@@ -3338,9 +3398,10 @@ function createShadowSliceObject({
   playerHp,
   upgrades,
   relicBonuses,
-  existing,
+  orientationMode,
   now,
   wallNow,
+  spawnX,
 }: {
   difficulty: number;
   score: number;
@@ -3348,10 +3409,11 @@ function createShadowSliceObject({
   playerHp: number;
   upgrades: ShadowExtractionUpgrades;
   relicBonuses: MiniGameRelicBonusSummary;
-  existing: SpawnCircle[];
+  orientationMode: MiniGameOrientationMode;
   now: number;
   wallNow: number;
-}): ShadowSliceObject | null {
+  spawnX?: number;
+}): ShadowSliceObject {
   const roll = Math.random();
   const heartChance = playerHp <= 0 ? SHADOW_LAST_CHANCE_HEART_CHANCE : SHADOW_HEART_CHANCE;
   const kind: ShadowSliceKind =
@@ -3359,51 +3421,60 @@ function createShadowSliceObject({
       ? "time"
       : roll > 1 - SHADOW_TIME_BUBBLE_CHANCE - heartChance
       ? "heart"
-      : roll > 0.93
+      : roll > 0.92
         ? "gold"
-        : roll > Math.max(0.62, 0.82 - difficulty * 0.015)
+        : roll > Math.max(0.64, 0.84 - difficulty * 0.015)
           ? "trap"
-          : roll > 0.52
+          : roll > 0.54
             ? "decoy"
             : "true";
-  const focusBonus = kind === "true" || kind === "heart" || kind === "time" ? upgrades.upgrades.focus * 4 : 0;
-  const baseSize = kind === "trap" ? 54 : kind === "heart" ? 50 : kind === "time" ? 52 : kind === "gold" ? 46 : kind === "decoy" ? 48 : 58;
-  const sizePx = Math.max(34, baseSize + focusBonus - difficulty * 1.2);
-  const radiusPct = Math.max(4.8, sizePx / 8.2);
-  const lifetimeMs = getExtractionSignalWindowMs(score, level) + upgrades.upgrades.focus * 260 + relicBonuses.targetLifetime + Math.round(relicBonuses.hitWindow * 1000);
-  const highArc = Math.random() < Math.min(0.48, 0.32 + difficulty * 0.012);
-  const spawnBounds = highArc
-    ? { minX: 12, maxX: 88, minY: 38, maxY: 62 }
-    : { minX: 13, maxX: 87, minY: 60, maxY: 86 };
-  const [point] = spawnNonOverlappingObjects({
-    count: 1,
-    existing,
-    bounds: spawnBounds,
-    radius: radiusPct,
-    minGap: highArc ? 2.8 : 2.4,
-    attemptsPerObject: 48,
-  });
 
-  if (!point) return null;
+  const focusBonus = kind === "true" || kind === "heart" || kind === "time" ? upgrades.upgrades.focus * 4.5 : 0;
+  const baseSize = kind === "trap" ? 56 : kind === "heart" ? 52 : kind === "time" ? 54 : kind === "gold" ? 48 : kind === "decoy" ? 50 : 62;
+  const sizePx = Math.max(36, baseSize + focusBonus - difficulty * 0.9);
+  const radiusPct = Math.max(4.8, sizePx / 8.0);
+  const lifetimeMs = getExtractionSignalWindowMs(score, level) + upgrades.upgrades.focus * 280 + relicBonuses.targetLifetime + Math.round(relicBonuses.hitWindow * 1000) + 3000;
+
+  const isLandscape = orientationMode === "landscape";
+  const minX = isLandscape ? 12 : 16;
+  const maxX = isLandscape ? 88 : 84;
+  const x = spawnX !== undefined ? Math.max(minX, Math.min(maxX, spawnX)) : minX + Math.random() * (maxX - minX);
+  const y = 104 + Math.random() * 5;
+
+  // Fruit Ninja parabolic launch:
+  // Strong upward velocity:
+  const baseVy = isLandscape
+    ? -(62 + Math.random() * 16 + difficulty * 0.55)
+    : -(76 + Math.random() * 18 + difficulty * 0.65);
+
+  let vx = 0;
+  if (x < 42) {
+    vx = +(isLandscape ? 10 + Math.random() * 16 : 7 + Math.random() * 13);
+  } else if (x > 58) {
+    vx = -(isLandscape ? 10 + Math.random() * 16 : 7 + Math.random() * 13);
+  } else {
+    vx = isLandscape ? -12 + Math.random() * 24 : -8 + Math.random() * 16;
+  }
+
+  const gravity = isLandscape ? 46 + difficulty * 0.45 : 56 + difficulty * 0.5;
 
   return {
     id: `shadow_${kind}_${Math.round(now)}_${Math.random().toString(36).slice(2, 6)}`,
     kind,
     spawnedAt: wallNow,
     expiresAt: wallNow + lifetimeMs,
-    x: point.x,
-    y: point.y,
-    vx: -10 + Math.random() * 20,
-    vy: highArc
-      ? -(10 + difficulty * 0.45 + Math.random() * 9)
-      : -(22 + difficulty * 1.25 + Math.random() * 13),
-    gravity: highArc ? 27 + difficulty * 0.72 : 38 + difficulty * 1.1,
+    x,
+    y,
+    vx,
+    vy: baseVy,
+    gravity,
     sizePx,
     radiusPct,
     rotation: Math.random() * 360,
     spin: -160 + Math.random() * 320,
   };
 }
+
 
 function pointToPixels(point: SegmentPoint, rect: DOMRect): SegmentPoint {
   return {
