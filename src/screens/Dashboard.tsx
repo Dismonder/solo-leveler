@@ -13,21 +13,30 @@ import {
   Clock3,
   CircleDot,
   Crown,
+  Disc3,
   Dumbbell,
+  ExternalLink,
   Footprints,
   Gamepad2,
   Gem,
+  Github,
   Hand,
+  Headphones,
   HeartPulse,
   Home,
   Music2,
   Minus,
+  Pause,
+  Play,
   Plus,
   RotateCcw,
   Search,
   Settings,
   Shield,
   ShoppingBag,
+  Shuffle,
+  SkipBack,
+  SkipForward,
   Smartphone,
   Sparkles,
   Sword,
@@ -168,6 +177,10 @@ import {
   setGlobalMusicVolume,
   setMusicTrackPreferences,
   testBackgroundMusic,
+  playTrackById,
+  playNextTrack,
+  playPreviousTrack,
+  getCurrentMusicTrack,
 } from "../services/musicService";
 
 import {
@@ -2663,6 +2676,7 @@ function SystemPanel({
   const [updateSourceEditOpen, setUpdateSourceEditOpen] = useState(false);
 
   const [trackingOpen, setTrackingOpen] = useState({
+    health: false,
     phone: false,
     band: false,
     analysis: false,
@@ -2969,6 +2983,16 @@ function SystemPanel({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <a
+              href="https://github.com/Dismonder/solo-leveler/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-950/60 text-cyan-300 transition-colors hover:bg-cyan-900/60 hover:text-white active:scale-[0.98]"
+              title="Wydania i zmiany na GitHubie"
+              aria-label="Wydania i zmiany na GitHubie"
+            >
+              <Github className="h-4 w-4" />
+            </a>
             <button
               type="button"
               onClick={onOpenWhatsNew}
@@ -3108,56 +3132,18 @@ function SystemPanel({
       <div className="sl-card rounded-[22px] p-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Health Connect</h3>
-          </div>
-          <Activity className="h-5 w-5 shrink-0 text-[var(--theme-icon)]" />
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <MiniStat icon={<Target className="h-4 w-4" />} label="Status" value={healthStatus?.permissionsGranted ? "Gotowy" : healthStatus?.available ? "Zgoda" : "Brak"} />
-          <MiniStat icon={<Dumbbell className="h-4 w-4" />} label="Dystans" value={`${(healthSummary?.distanceKm || 0).toFixed(2)} km`} />
-          <MiniStat icon={<Zap className="h-4 w-4" />} label="Kroki" value={Math.floor(healthSummary?.steps || 0)} />
-          <MiniStat icon={<HeartPulse className="h-4 w-4" />} label="Tętno" value={healthSummary?.heartRateAvg ? `${Math.round(healthSummary.heartRateAvg)} bpm` : "--"} />
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <SmallButton onClick={requestHealthAccess} icon={<Shield className="h-3.5 w-3.5" />} label={healthBusy ? "..." : "Zgoda"} muted />
-          <SmallButton onClick={syncHealthToday} icon={<Activity className="h-3.5 w-3.5" />} label={healthBusy ? "..." : "Import"} />
-          <SmallButton onClick={openHealthSettings} icon={<Settings className="h-3.5 w-3.5" />} label="Opcje" muted />
-        </div>
-
-        <div className="mt-3">
-          <ToggleRow
-            label="Auto import"
-            description="Bieganie i kroki są synchronizowane przy starcie, powrocie do aplikacji i po akcji z powiadomienia."
-            enabled={player.settings.healthAutoSync}
-            onToggle={() => onUpdateSettings({ healthAutoSync: !player.settings.healthAutoSync })}
-          />
-        </div>
-
-        {healthMessage && <p className="sl-muted mt-3 text-xs leading-relaxed">{healthMessage}</p>}
-        {healthSummary?.dataOrigins?.length ? (
-          <p className="mt-2 truncate text-[10px] font-bold uppercase tracking-widest text-[var(--theme-success-text)]">
-            Źródła: {healthSummary.dataOrigins.join(", ")}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="sl-card rounded-[22px] p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Dźwięk</h3>
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Dźwięk & Album</h3>
             <p className="sl-muted mt-1 text-xs font-bold">
-              Efekty {systemAudioEnabled ? "ON" : "OFF"} · Muzyka {backgroundMusicEnabled ? "ON" : "OFF"}
+              Efekty {systemAudioEnabled ? "ON" : "OFF"} · Muzyka {backgroundMusicEnabled ? "ON" : "OFF"} · {musicTracks.length} utworów
             </p>
           </div>
           <button
             type="button"
             onClick={() => setActiveSheet("audio")}
             className="sl-icon-button grid h-11 w-11 shrink-0 place-items-center rounded-2xl active:scale-[0.98]"
-            aria-label="Otwórz ustawienia audio"
+            aria-label="Otwórz album muzyczny"
           >
-            {systemAudioEnabled || backgroundMusicEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+            {systemAudioEnabled || backgroundMusicEnabled ? <Disc3 className="h-5 w-5 animate-spin text-cyan-400" style={{ animationDuration: "8s" }} /> : <VolumeX className="h-5 w-5" />}
           </button>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
@@ -3173,7 +3159,7 @@ function SystemPanel({
           <AudioQuickTile
             activeIcon={Music2}
             mutedIcon={VolumeX}
-            label="Muzyka"
+            label="Album OST"
             value={`${Math.round(musicVolume * 100)}%`}
             enabled={backgroundMusicEnabled}
             onOpen={() => setActiveSheet("audio")}
@@ -3185,6 +3171,43 @@ function SystemPanel({
       <div className="sl-card rounded-[22px] p-4">
         <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Tracking i wydajność</h3>
         <div className="mt-4 grid gap-2">
+          <SystemAccordion
+            icon={<Activity className="h-4 w-4" />}
+            title="Health Connect"
+            status={healthStatus?.permissionsGranted ? "Gotowy" : healthStatus?.available ? "Zgoda" : "Brak"}
+            open={trackingOpen.health}
+            onToggle={() => setTrackingOpen((current) => ({ ...current, health: !current.health }))}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <MiniStat icon={<Target className="h-4 w-4" />} label="Status" value={healthStatus?.permissionsGranted ? "Gotowy" : healthStatus?.available ? "Zgoda" : "Brak"} />
+              <MiniStat icon={<Dumbbell className="h-4 w-4" />} label="Dystans" value={`${(healthSummary?.distanceKm || 0).toFixed(2)} km`} />
+              <MiniStat icon={<Zap className="h-4 w-4" />} label="Kroki" value={Math.floor(healthSummary?.steps || 0)} />
+              <MiniStat icon={<HeartPulse className="h-4 w-4" />} label="Tętno" value={healthSummary?.heartRateAvg ? `${Math.round(healthSummary.heartRateAvg)} bpm` : "--"} />
+            </div>
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <SmallButton onClick={requestHealthAccess} icon={<Shield className="h-3.5 w-3.5" />} label={healthBusy ? "..." : "Zgoda"} muted />
+              <SmallButton onClick={syncHealthToday} icon={<Activity className="h-3.5 w-3.5" />} label={healthBusy ? "..." : "Import"} />
+              <SmallButton onClick={openHealthSettings} icon={<Settings className="h-3.5 w-3.5" />} label="Opcje" muted />
+            </div>
+
+            <div className="mt-3">
+              <ToggleRow
+                label="Auto import"
+                description="Bieganie i kroki są synchronizowane przy starcie, powrocie do aplikacji i po akcji z powiadomienia."
+                enabled={player.settings.healthAutoSync}
+                onToggle={() => onUpdateSettings({ healthAutoSync: !player.settings.healthAutoSync })}
+              />
+            </div>
+
+            {healthMessage && <p className="sl-muted mt-3 text-xs leading-relaxed">{healthMessage}</p>}
+            {healthSummary?.dataOrigins?.length ? (
+              <p className="mt-2 truncate text-[10px] font-bold uppercase tracking-widest text-[var(--theme-success-text)]">
+                Źródła: {healthSummary.dataOrigins.join(", ")}
+              </p>
+            ) : null}
+          </SystemAccordion>
+
           <SystemAccordion
             icon={<Smartphone className="h-4 w-4" />}
             title="Sensor telefonu"
@@ -3349,57 +3372,21 @@ function SystemPanel({
       )}
 
       {activeSheet === "audio" && (
-        <SystemSheet title="Audio" icon={systemAudioEnabled || backgroundMusicEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />} onClose={() => setActiveSheet(null)}>
-          <div className="space-y-3">
-            <div className="sl-card rounded-2xl p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Efekty</h3>
-                  <p className="sl-muted mt-1 text-sm">{Math.round(volume * 100)}%</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onToggleSystemAudio(!systemAudioEnabled)}
-                  className={`flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${systemAudioEnabled ? "sl-toggle-active" : "sl-toggle"}`}
-                  aria-label={systemAudioEnabled ? "Wycisz efekty" : "Włącz efekty"}
-                >
-                  {systemAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                  <span>{systemAudioEnabled ? "ON" : "OFF"}</span>
-                </button>
-              </div>
-              <input className="mt-4 w-full accent-cyan-400" type="range" min="0" max="1" step="0.05" value={volume} onChange={onVolumeChange} />
-            </div>
-            <div className="sl-card rounded-2xl p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Muzyka tła</h3>
-                  <p className="sl-muted mt-1 text-xs font-bold">{musicTracks.length} utworów lokalnych · jedna ścieżka wszędzie</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
-                  className={`flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${backgroundMusicEnabled ? "sl-toggle-active" : "sl-toggle"}`}
-                  aria-label={backgroundMusicEnabled ? "Wycisz muzykę" : "Włącz muzykę"}
-                >
-                  {backgroundMusicEnabled ? <Music2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                  <span>{backgroundMusicEnabled ? "ON" : "OFF"}</span>
-                </button>
-              </div>
-              <input className="mt-4 w-full accent-violet-400" type="range" min="0" max="1" step="0.05" value={musicVolume} onChange={onMusicVolumeChange} />
-              <div className="mt-3 grid gap-2">
-                <MusicTrackSelect
-                  label="Utwór w tle"
-                  value={musicTrackSettings?.appTrackId ?? "auto"}
-                  tracks={musicTracks}
-                  onChange={(trackId) => onUpdateMusicTrackSettings({ appTrackId: trackId })}
-                />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <SmallButton onClick={onRandomizeMusicTrack} icon={<Music2 className="h-3.5 w-3.5" />} label="Losuj" muted />
-                <SmallButton onClick={() => void testBackgroundMusic()} icon={<Volume2 className="h-3.5 w-3.5" />} label="Test" />
-              </div>
-            </div>
-          </div>
+        <SystemSheet title="Album Muzyczny & Audio" icon={<Headphones className="h-5 w-5 text-cyan-400" />} onClose={() => setActiveSheet(null)}>
+          <AudioAlbumSheet
+            volume={volume}
+            systemAudioEnabled={systemAudioEnabled}
+            musicVolume={musicVolume}
+            backgroundMusicEnabled={backgroundMusicEnabled}
+            musicTracks={musicTracks}
+            musicTrackSettings={musicTrackSettings}
+            onVolumeChange={onVolumeChange}
+            onToggleSystemAudio={onToggleSystemAudio}
+            onMusicVolumeChange={onMusicVolumeChange}
+            onToggleBackgroundMusic={onToggleBackgroundMusic}
+            onUpdateMusicTrackSettings={onUpdateMusicTrackSettings}
+            onRandomizeMusicTrack={onRandomizeMusicTrack}
+          />
         </SystemSheet>
       )}
 
@@ -4281,6 +4268,274 @@ function AudioQuickTile({
       >
         <Icon className="h-4 w-4" />
       </button>
+    </div>
+  );
+}
+
+function AudioAlbumSheet({
+  volume,
+  systemAudioEnabled,
+  musicVolume,
+  backgroundMusicEnabled,
+  musicTracks,
+  musicTrackSettings,
+  onVolumeChange,
+  onToggleSystemAudio,
+  onMusicVolumeChange,
+  onToggleBackgroundMusic,
+  onUpdateMusicTrackSettings,
+  onRandomizeMusicTrack,
+}: {
+  volume: number;
+  systemAudioEnabled: boolean;
+  musicVolume: number;
+  backgroundMusicEnabled: boolean;
+  musicTracks: LocalMusicTrack[];
+  musicTrackSettings?: MusicTrackSettings;
+  onVolumeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onToggleSystemAudio: (enabled: boolean) => void;
+  onMusicVolumeChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onToggleBackgroundMusic: (enabled: boolean) => void;
+  onUpdateMusicTrackSettings: (patch: Partial<MusicTrackSettings>) => void;
+  onRandomizeMusicTrack: () => void;
+}) {
+  const currentTrackId = musicTrackSettings?.appTrackId ?? "symphonic-suite-lv1";
+  const activeTrack = musicTracks.find((t) => t.id === currentTrackId) || musicTracks[0];
+
+  const handleSelectTrack = (trackId: string) => {
+    onUpdateMusicTrackSettings({ appTrackId: trackId });
+    void playTrackById(trackId);
+  };
+
+  const handleNext = async () => {
+    const nextId = await playNextTrack();
+    if (nextId) {
+      onUpdateMusicTrackSettings({ appTrackId: nextId });
+    }
+  };
+
+  const handlePrev = async () => {
+    const prevId = await playPreviousTrack();
+    if (prevId) {
+      onUpdateMusicTrackSettings({ appTrackId: prevId });
+    }
+  };
+
+  const moodBadges: Record<string, { label: string; color: string }> = {
+    system: { label: "STATUS / MENU", color: "text-violet-300 border-violet-500/40 bg-violet-950/50" },
+    training: { label: "TRENING", color: "text-cyan-300 border-cyan-500/40 bg-cyan-950/50" },
+    reflex: { label: "REFLEKS / BRAMY", color: "text-emerald-300 border-emerald-500/40 bg-emerald-950/50" },
+    shadow: { label: "EKSTRAKCJA CIENIA", color: "text-purple-300 border-purple-500/40 bg-purple-950/50" },
+    combat: { label: "WALKA / BOSS", color: "text-rose-300 border-rose-500/40 bg-rose-950/50" },
+    arcane: { label: "MISTYKA / RUNY", color: "text-blue-300 border-blue-500/40 bg-blue-950/50" },
+    reward: { label: "NAGRODA", color: "text-amber-300 border-amber-500/40 bg-amber-950/50" },
+    penalty: { label: "MONARCHA / KARA", color: "text-red-300 border-red-500/40 bg-red-950/50" },
+    alternate: { label: "ALTERNATYWNY OST", color: "text-slate-300 border-slate-500/40 bg-slate-900/60" },
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Active Track Hero Player */}
+      <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-black p-4 shadow-[0_0_30px_rgba(6,182,212,0.15)]">
+        <div className="flex items-center gap-3.5">
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-950 to-slate-950 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+            <Disc3 className={`h-8 w-8 text-cyan-400 ${backgroundMusicEnabled ? "animate-spin" : ""}`} style={{ animationDuration: "6s" }} />
+            {backgroundMusicEnabled && (
+              <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[8px] font-black text-black">
+                ▶
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="rounded px-1.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wider text-cyan-400 bg-cyan-950/80 border border-cyan-500/30">
+                {activeTrack ? (moodBadges[activeTrack.mood]?.label || activeTrack.mood) : "OST"}
+              </span>
+              {backgroundMusicEnabled && (
+                <span className="flex items-center gap-0.5 text-cyan-400 text-[10px] font-bold">
+                  <span className="inline-block h-2.5 w-0.5 bg-cyan-400 animate-pulse" />
+                  <span className="inline-block h-3.5 w-0.5 bg-cyan-400 animate-pulse" style={{ animationDelay: "150ms" }} />
+                  <span className="inline-block h-2 w-0.5 bg-cyan-400 animate-pulse" style={{ animationDelay: "300ms" }} />
+                </span>
+              )}
+            </div>
+            <h4 className="mt-1 truncate text-sm font-black uppercase tracking-wide text-white">
+              {activeTrack?.title || "Solo Leveling OST"}
+            </h4>
+            <p className="truncate text-xs font-semibold text-slate-400">
+              {activeTrack?.artist || "Hiroyuki Sawano"}
+            </p>
+          </div>
+        </div>
+
+        {/* Playback Controls */}
+        <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3">
+          <button
+            type="button"
+            onClick={onRandomizeMusicTrack}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 transition-colors hover:text-white active:scale-95"
+            title="Losowy utwór"
+            aria-label="Losowy utwór"
+          >
+            <Shuffle className="h-4 w-4" />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 transition-colors hover:text-white active:scale-95"
+              title="Poprzedni utwór"
+              aria-label="Poprzedni utwór"
+            >
+              <SkipBack className="h-4 w-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
+              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all active:scale-95"
+              title={backgroundMusicEnabled ? "Zatrzymaj" : "Odtwórz"}
+              aria-label={backgroundMusicEnabled ? "Zatrzymaj" : "Odtwórz"}
+            >
+              {backgroundMusicEnabled ? <Pause className="h-5 w-5 fill-current" /> : <Play className="h-5 w-5 fill-current translate-x-0.5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNext}
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700 bg-slate-900/60 text-slate-300 transition-colors hover:text-white active:scale-95"
+              title="Następny utwór"
+              aria-label="Następny utwór"
+            >
+              <SkipForward className="h-4 w-4" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void testBackgroundMusic()}
+            className="flex h-10 px-3 items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/60 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300 transition-colors hover:text-white active:scale-95"
+            title="Przetestuj audio"
+          >
+            <Volume2 className="h-3.5 w-3.5" />
+            <span>Test</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Sliders Card */}
+      <div className="sl-card space-y-3 rounded-2xl p-4">
+        {/* SFX Volume */}
+        <div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs font-black uppercase tracking-widest text-[var(--theme-text-strong)]">
+              Efekty dźwiękowe (SFX)
+            </span>
+            <button
+              type="button"
+              onClick={() => onToggleSystemAudio(!systemAudioEnabled)}
+              className={`rounded-lg border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${systemAudioEnabled ? "border-cyan-500/40 bg-cyan-950/60 text-cyan-300" : "border-slate-800 text-slate-400"}`}
+            >
+              {systemAudioEnabled ? `${Math.round(volume * 100)}% ON` : "OFF"}
+            </button>
+          </div>
+          <input className="mt-2 w-full accent-cyan-400" type="range" min="0" max="1" step="0.05" value={volume} onChange={onVolumeChange} />
+        </div>
+
+        {/* Music Volume */}
+        <div className="border-t border-slate-800/80 pt-3">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs font-black uppercase tracking-widest text-[var(--theme-text-strong)]">
+              Głośność Muzyki
+            </span>
+            <button
+              type="button"
+              onClick={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
+              className={`rounded-lg border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${backgroundMusicEnabled ? "border-violet-500/40 bg-violet-950/60 text-violet-300" : "border-slate-800 text-slate-400"}`}
+            >
+              {backgroundMusicEnabled ? `${Math.round(musicVolume * 100)}% ON` : "OFF"}
+            </button>
+          </div>
+          <input className="mt-2 w-full accent-violet-400" type="range" min="0" max="1" step="0.05" value={musicVolume} onChange={onMusicVolumeChange} />
+        </div>
+      </div>
+
+      {/* Full Tracklist Album */}
+      <div className="sl-card rounded-2xl p-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+          <div className="flex items-center gap-2">
+            <Headphones className="h-4 w-4 text-cyan-400" />
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">
+              Album Muzyczny ({musicTracks.length} Utworów)
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => onUpdateMusicTrackSettings({ appTrackId: "auto" })}
+            className={`rounded-lg border px-2 py-1 font-mono text-[9px] font-black uppercase tracking-wider transition-colors ${
+              (musicTrackSettings?.appTrackId ?? "auto") === "auto"
+                ? "border-cyan-400 bg-cyan-950 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                : "border-slate-700 bg-slate-900/60 text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            Auto System
+          </button>
+        </div>
+
+        <p className="sl-muted mt-2 text-[11px] leading-relaxed">
+          Wybierz dowolny utwór z oficjalnej ścieżki dźwiękowej Solo Leveling.
+        </p>
+
+        <div className="mt-3 space-y-2 max-h-80 overflow-y-auto pr-1">
+          {musicTracks.map((track, idx) => {
+            const isCurrent = (musicTrackSettings?.appTrackId ?? "auto") === track.id || (musicTrackSettings?.appTrackId === "auto" && idx === 0);
+            const mood = moodBadges[track.mood] || { label: track.mood, color: "text-slate-300 border-slate-500/40 bg-slate-900/50" };
+
+            return (
+              <button
+                key={track.id}
+                type="button"
+                onClick={() => handleSelectTrack(track.id)}
+                className={`w-full flex items-center justify-between gap-3 rounded-xl border p-2.5 text-left transition-all active:scale-[0.99] ${
+                  isCurrent
+                    ? "border-cyan-400/80 bg-gradient-to-r from-cyan-950/80 to-slate-950 text-cyan-100 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                    : "border-slate-800/80 bg-black/40 hover:bg-slate-900/60 hover:border-slate-700 text-slate-300"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-black ${
+                    isCurrent ? "bg-cyan-500 text-black shadow-[0_0_10px_rgba(6,182,212,0.5)]" : "bg-slate-800/80 text-slate-400"
+                  }`}>
+                    {isCurrent && backgroundMusicEnabled ? <Volume2 className="h-4 w-4" /> : String(idx + 1).padStart(2, "0")}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`truncate text-xs font-black uppercase tracking-wide ${isCurrent ? "text-cyan-200" : "text-slate-200"}`}>
+                      {track.title}
+                    </p>
+                    <p className="truncate text-[10px] font-semibold text-slate-400">
+                      {track.artist}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`rounded border px-1.5 py-0.5 font-mono text-[8px] font-black uppercase tracking-wider ${mood.color}`}>
+                    {mood.label}
+                  </span>
+                  <span className={`grid h-7 w-7 place-items-center rounded-lg border text-xs ${
+                    isCurrent
+                      ? "border-cyan-400/60 bg-cyan-950 text-cyan-300"
+                      : "border-slate-800 bg-slate-900/60 text-slate-400"
+                  }`}>
+                    {isCurrent && backgroundMusicEnabled ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3 translate-x-0.5" />}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

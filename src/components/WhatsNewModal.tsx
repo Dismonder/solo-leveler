@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Sparkles, X, CheckCircle2, Shield, Flame } from "lucide-react";
+import { Sparkles, X, CheckCircle2, Shield, Flame, Github, ExternalLink } from "lucide-react";
 import { CURRENT_APP_VERSION, CURRENT_VERSION_CHANGELOG } from "../services/updateService";
 
 type WhatsNewModalProps = {
@@ -57,12 +57,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ onClose }) => {
         </div>
 
         {/* Changelog Items */}
-        <div className="space-y-2 mb-6">
+        <div className="space-y-2 mb-4">
           <div className="text-xs font-mono font-semibold text-cyan-300 tracking-wider uppercase flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
             <span>LISTA ZMIAN I USPRAWNIEŃ:</span>
           </div>
-          <div className="max-h-60 overflow-y-auto space-y-2.5 p-3.5 rounded-xl bg-black/60 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans">
+          <div className="max-h-56 overflow-y-auto space-y-2.5 p-3.5 rounded-xl bg-black/60 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans">
             {CURRENT_VERSION_CHANGELOG.map((item, index) => (
               <div key={index} className="flex items-start gap-2.5">
                 <span className="text-cyan-400 font-bold mt-0.5">•</span>
@@ -72,14 +72,27 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* Action Button */}
-        <button
-          onClick={onClose}
-          className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-black font-extrabold text-sm tracking-wide transition-all shadow-[0_0_25px_rgba(6,182,212,0.4)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>ROZPOCZNIJ TRENING</span>
-        </button>
+        {/* GitHub Link & Action Buttons */}
+        <div className="space-y-2.5">
+          <a
+            href="https://github.com/Dismonder/solo-leveler/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-2 px-3 rounded-xl border border-slate-800 bg-slate-950/70 hover:bg-slate-900 text-slate-300 hover:text-cyan-300 font-mono text-[11px] tracking-wider transition-all flex items-center justify-center gap-2"
+          >
+            <Github className="w-4 h-4 text-cyan-400" />
+            <span>Zobacz pełną historię wydań na GitHubie</span>
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </a>
+
+          <button
+            onClick={onClose}
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-black font-extrabold text-sm tracking-wide transition-all shadow-[0_0_25px_rgba(6,182,212,0.4)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>ROZPOCZNIJ TRENING</span>
+          </button>
+        </div>
       </motion.div>
     </div>
   );

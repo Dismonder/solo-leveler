@@ -7,18 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 
-const tag = process.argv[2] || "v1.0.2";
+const tag = process.argv[2] || "v1.0.3";
 const cleanTag = tag.replace(/^v/, "");
 const releaseName = `Solo Leveler ${tag}`;
 const releaseBody = `## Co nowego w wersji ${tag}
-- ⚖️ **System Kar**: domyślnie wyłączono karne ćwiczenia z wymuszonego systemu kar (pełna kontrola w opcjach Systemu)
-- 💧 **Eliksir Many**: spersonalizowane przypomnienia o nawodnieniu w ciągu dnia
-- 🎮 **Brama Treningowa**: wyzwania mini-gier z nagrodami XP i Złota
-- ⚔️ **Atlas Kalisteniki**: polecane ćwiczenia bez sprzętu z techniką i bazą wideo
-- 🎯 **Precyzyjny Deep Linking**: kliknięcie powiadomienia natychmiast przenosi i podświetla dane ćwiczenie, uruchamia mini-grę lub otwiera Eliksir Many
-- 🎵 **Poprawka Audio**: płynne przełączanie utworów w tle z powiadomień bez wyciszania dźwięku
-- ✨ **Ekran Nowości**: automatyczny przegląd nowości i zmian po aktualizacji
-- 🚀 **Aktualizacje OTA**: natywna obsługa pobierania i instalacji aktualizacji prosto z GitHuba
+- 🎵 **Pełny Album Muzyczny**: dedykowany odtwarzacz i selektor z biblioteką 10 utworów Solo Leveling OST
+- 🩺 **Health Connect**: zwijana, uporządkowana sekcja w panelu System
+- ⚔️ **Ekstrakcja Cienia (Fruit Ninja)**: usunięto przycinanie rozbłysków do kwadratów, ulepszono fizykę i efekty cięcia
+- 🔗 **GitHub**: szybka ikona i link do wydań oraz historii zmian prosto z aplikacji
+- 🚀 **Aktualizacje OTA**: stabilny proces sprawdzania i instalowania aktualizacji prosto z GitHuba
 `;
 
 
