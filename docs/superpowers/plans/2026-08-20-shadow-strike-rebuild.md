@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Zastąpić obecną mini-grę „Cięcie Cienia” deterministycznym silnikiem i lekkim rendererem Canvas, a następnie potwierdzić płynność oraz prawdziwe 120 Hz na LDPlayerze.
+**Goal:** Zastąpić obecną mini-grę „Cięcie Cienia” deterministycznym silnikiem i lekkim rendererem Canvas, usunąć lawinę efektów DOM po trafieniu w „Ekstrakcji Cienia”, a następnie potwierdzić płynność oraz prawdziwe 120 Hz na LDPlayerze.
 
-**Architecture:** Zasady rundy i monotoniczny zegar trafią do niezależnego, mutowalnego runtime bez DOM i Reacta. Dwie małe warstwy Canvas rozdzielą statyczny tor od dynamicznego wskaźnika, a istniejący komponent React będzie wyłącznie zarządzał cyklem życia, migawką HUD i końcowym wynikiem.
+**Architecture:** Zasady rundy i monotoniczny zegar Cięcia Cienia trafią do niezależnego, mutowalnego runtime bez DOM i Reacta. Dwie małe warstwy Canvas rozdzielą statyczny tor od dynamicznego wskaźnika. W Ekstrakcji Cienia osobny Canvas z czterema stałymi slotami zastąpi React/Motion, timery i montowanie wielu węzłów po każdym trafieniu. React pozostanie warstwą cyklu życia i końcowego wyniku.
 
 **Tech Stack:** TypeScript 5.8, React 19, Canvas 2D, Node test runner przez `tsx --test`, Capacitor 8, Android/Java, ADB, Chrome DevTools Protocol, LDPlayer 14.
 
@@ -20,6 +20,8 @@
 - Kara za pudło wynosi najwyżej 1000 ms przed zastosowaniem odporności.
 - Maksymalny pozostały czas rundy wynosi 42 000 ms.
 - Używać wyłącznie monotonicznego czasu przekazywanego jako `nowMs`; silnik nie wywołuje `Date.now()` ani `performance.now()` samodzielnie.
+- Efekty trafienia Ekstrakcji Cienia mają stałą pulę najwyżej 4 wpisów, nie tworzą React state ani timerów i są rysowane z istniejącej pętli RAF gry.
+- Nie zmieniać punktacji, fizyki, ekonomii, dźwięku ani zasad Ekstrakcji Cienia; zakres obejmuje wyłącznie kosztowną warstwę wizualnego potwierdzenia cięcia.
 - Nie zmieniać konfiguracji LDPlayera ani nie restartować emulatora, dopóki pomiar po instalacji nie wykaże regresji; stan wejściowy 120 Hz jest już potwierdzony.
 
 ---
@@ -498,7 +500,112 @@ git commit -m "feat: rebuild shadow strike around a single input loop"
 
 ---
 
-### Task 4: Pokazywać rzeczywiście aktywne 120 Hz
+### Task 4: Stałokosztowe efekty Canvas w Ekstrakcji Cienia
+
+**Files:**
+- Create: `src/gameRuntime/shadowExtractionImpactRenderer.ts`
+- Create: `src/gameRuntime/shadowExtractionImpactRenderer.test.ts`
+- Modify: `src/components/BonusMiniGames.tsx`
+- Modify: `src/gameRuntime/miniGamePerformance.ts`
+- Modify: `src/gameRuntime/miniGamePerformance.test.ts`
+
+**Interfaces:**
+- Consumes: jeden Canvas na całą scenę, istniejące dane trafienia i istniejący `nowMs` z pętli RAF Ekstrakcji Cienia.
+- Produces: `createShadowExtractionImpactRenderer(canvas)` z metodami `resize()`, `emit()`, `render()`, `clear()`, `activeCount()` i `destroy()`.
+
+- [ ] **Step 1: Write failing fixed-pool renderer tests**
+
+Create `src/gameRuntime/shadowExtractionImpactRenderer.test.ts` with a minimal fake Canvas 2D context and tests for the public behavior:
+
+1. po 100 wywołaniach `emit()` liczba aktywnych efektów nigdy nie przekracza 4;
+2. piąty efekt nadpisuje najstarszy, co potwierdzają etykiety narysowane przy tym samym `nowMs`;
+3. efekt jest widoczny tuż przed granicą czasu życia i nieaktywny dokładnie na granicy, bez `setTimeout`;
+4. harmonogramy próbkowania 60 i 120 Hz dają ten sam obraz dla tych samych końcowych timestampów;
+5. `resize()` ogranicza DPR do 2, a `emit()` i `render()` nigdy nie zapisują ponownie `canvas.width` ani `canvas.height`;
+6. cztery równoczesne efekty `perfect` mieszczą się w stałym limicie operacji Canvas wyliczonym z jednej smugi, jednego pierścienia, najwyżej sześciu iskier i jednej etykiety na slot;
+7. po `destroy()` wywołania są obojętne.
+
+Run:
+
+```powershell
+npx tsx --test src/gameRuntime/shadowExtractionImpactRenderer.test.ts
+```
+
+Expected: RED because the module does not exist.
+
+- [ ] **Step 2: Implement the renderer with a fixed four-slot pool**
+
+Implement `src/gameRuntime/shadowExtractionImpactRenderer.ts` without React, Motion, DOM nodes, timers, images, gradients or `shadowBlur`:
+
+```ts
+export type ShadowExtractionImpactTier = "perfect" | "great" | "good";
+
+export type ShadowExtractionImpactRenderer = {
+  resize(cssWidth: number, cssHeight: number, dpr: number): void;
+  emit(
+    xPercent: number,
+    yPercent: number,
+    sizePx: number,
+    rotationDeg: number,
+    color: string,
+    label: string,
+    tier: ShadowExtractionImpactTier,
+    nowMs: number,
+  ): void;
+  render(nowMs: number): void;
+  clear(): void;
+  activeCount(nowMs: number): number;
+  destroy(): void;
+};
+
+export function createShadowExtractionImpactRenderer(
+  canvas: HTMLCanvasElement,
+): ShadowExtractionImpactRenderer;
+```
+
+Use exactly four preallocated mutable slots. Overwrite the oldest active slot when full. Draw one slash, one expanding ring, at most six sparks and one clamped score/tier label. Lifetime must stay within 280–360 ms. All animation is an analytic function of `nowMs`; `render()` must not create arrays/objects or resize the backing store.
+
+Run the focused test until GREEN.
+
+- [ ] **Step 3: Integrate into the active extraction runtime**
+
+In the active local `ShadowExtractionGame` inside `src/components/BonusMiniGames.tsx`:
+
+- remove `impactEffects`, `impactTimersRef`, `SliceImpactLayer`, `SliceImpactBurst` and `SlicedHalf`;
+- add one impact canvas ref and one renderer ref at the existing effect-layer position;
+- create the renderer once and destroy it on unmount;
+- call `resize()` only from the existing `ResizeObserver`, with DPR capped by the renderer;
+- call `renderer.render(nowMs)` from the already existing game RAF; do not start a second RAF;
+- make `emitSliceImpact()` pass only primitive values to `renderer.emit(...)`; it must not call a React setter or create a timer;
+- clear the renderer on start/restart, pause, finish, unmount and stage resize;
+- keep scoring, target removal, physics, audio, HUD, aggregated score popup and textual feedback unchanged;
+- preserve the current visual hierarchy by placing the noninteractive Canvas above targets and below controls, with `pointer-events: none` and an accessible DOM feedback path.
+
+Delete obsolete DOM-impact budget/lifetime helpers from `src/gameRuntime/miniGamePerformance.ts` if no active caller remains, and update its tests to assert the remaining object/frame budgets exactly. Do not leave a dormant high-impact DOM path.
+
+- [ ] **Step 4: Run source and regression checks**
+
+Run:
+
+```powershell
+npx tsx --test src/gameRuntime/shadowExtractionImpactRenderer.test.ts src/gameRuntime/miniGamePerformance.test.ts
+npm test
+npm run lint
+npm run build
+```
+
+Expected: all tests pass, TypeScript is clean, and the build succeeds.
+
+- [ ] **Step 5: Commit the extraction optimization**
+
+```powershell
+git add src/gameRuntime/shadowExtractionImpactRenderer.ts src/gameRuntime/shadowExtractionImpactRenderer.test.ts src/gameRuntime/miniGamePerformance.ts src/gameRuntime/miniGamePerformance.test.ts src/components/BonusMiniGames.tsx
+git commit -m "perf: bound shadow extraction impact effects"
+```
+
+---
+
+### Task 5: Pokazywać rzeczywiście aktywne 120 Hz
 
 **Files:**
 - Create: `src/services/refreshRateStatus.ts`
@@ -557,11 +664,11 @@ git commit -m "fix: report the active display refresh rate"
 
 ---
 
-### Task 5: Build APK, preserve signing/data, and run the LDPlayer playtest
+### Task 6: Build APK, preserve signing/data, and run the LDPlayer playtest
 
 **Files:**
 - Generated: `android/app/build/outputs/apk/debug/app-debug.apk`
-- Diagnostic artifacts outside Git: `%LOCALAPPDATA%\Temp\solo-leveler-debug\shadow-strike-after.png` and JSON metric output.
+- Diagnostic artifacts outside Git: `%LOCALAPPDATA%\Temp\solo-leveler-debug\shadow-strike-after.png`, `shadow-extraction-after.png` and JSON metric output.
 
 **Interfaces:**
 - Consumes: completed source tasks, running LDPlayer, installed signed app.
@@ -623,7 +730,7 @@ Invoke-RestMethod -Uri 'http://127.0.0.1:9222/json'
 
 Use `Runtime.evaluate` to call `globalThis.__soloFrameTrace?.clear()` and install a raw `requestAnimationFrame` delta collector immediately before the measured round. Read the raw deltas, `globalThis.__soloFrameTrace.summary()` and `globalThis.__soloShadowStrikeRuntime.acceptedInputs` afterward; the rolling overlay alone is not the acceptance source.
 
-- [ ] **Step 6: Execute one 30-second ADB input run**
+- [ ] **Step 6: Execute the 30-second Shadow Strike ADB input run**
 
 Start „Cięcie Cienia”, then send controlled taps at the playfield center no faster than one every 450 ms. Count physical taps in PowerShell. Do not take screenshots during the measured interval because `screencap` itself creates a frame stall.
 
@@ -634,7 +741,20 @@ After the round, assert:
 - frames above 25 ms are <= 0.1% and there is no consecutive series of 25+ ms frames;
 - the post-install idle baseline still reports 118–122 Hz through Android, the app window and WebView.
 
-- [ ] **Step 7: Capture post-test visual evidence**
+- [ ] **Step 7: Stress-test Shadow Extraction hit effects**
+
+Start „Ekstrakcja Cienia”, warm up for 5 seconds, clear the frame collectors and execute normal cuts plus repeated multi-target swipes. Sample the impact renderer's active count and DOM node count before, during and after hits. Pass only if:
+
+- average FPS is at least 115, median is 7.8–9.0 ms, p95 <= 10.5 ms, p99 <= 16.7 ms and worst frame <= 25 ms;
+- there are no frames above 33.33 ms in hit windows;
+- feedback starts by the next paint and remains readable for 250–400 ms;
+- active impacts never exceed 4;
+- firing impacts does not increase the DOM node count;
+- repeated impacts and expiry do not grow backing storage or retained heap monotonically.
+
+If this impact-only boundary fails while impact counts and DOM remain bounded, collect a new trace before considering the larger target/trail Canvas migration.
+
+- [ ] **Step 8: Capture post-test visual evidence**
 
 After measurement finishes:
 
@@ -647,7 +767,9 @@ adb -s emulator-5554 pull /sdcard/shadow-strike-after.png (Join-Path $artifactDi
 
 Inspect the image for a centered fixed target, one visible cursor, unobstructed playfield, readable hint, and no old „Cięcie” button.
 
-- [ ] **Step 8: Commit only source-controlled final adjustments**
+Capture and inspect a separate post-measurement `shadow-extraction-after.png` for a visible but bounded slash/ring/label effect and unobstructed targets. Never run `screencap` during either measured interval.
+
+- [ ] **Step 9: Commit only source-controlled final adjustments**
 
 If runtime verification required source adjustments, rerun Steps 1–6, then commit only repository files:
 
@@ -660,13 +782,13 @@ Do not stage APKs, LDPlayer configuration, backups, temporary screenshots, `dist
 
 ---
 
-### Task 6: Final regression and handoff
+### Task 7: Final regression and handoff
 
 **Files:**
 - Verify only; no required source change.
 
 **Interfaces:**
-- Consumes: clean commits from Tasks 1–5.
+- Consumes: clean commits from Tasks 1–6.
 - Produces: evidence-backed handoff for the user’s manual check before any release.
 
 - [ ] **Step 1: Run final clean verification**
@@ -697,7 +819,7 @@ adb -s emulator-5554 shell dumpsys window | rg -n "com.damia.sololeveler|preferr
 
 Report:
 
-- exact engine/renderer/input changes;
+- exact engine/renderer/input changes in Cięciu Cienia and the bounded Canvas impact path in Ekstrakcji Cienia;
 - automated test counts and build result;
 - measured Hz, median, p95, p99, worst frame, physical taps, accepted inputs;
 - installed APK path and LDPlayer package version;

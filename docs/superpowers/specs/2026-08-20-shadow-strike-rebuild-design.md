@@ -11,6 +11,7 @@ Przebudować mini-grę „Cięcie Cienia” od zera tak, aby zachowała prosty s
 3. Gorąca ścieżka wejścia uruchamia kilka aktualizacji Reacta, dźwięk, feedback DOM i wibrację. Pomiary Event Timing pokazały zdarzenia `click` trwające 64–88 ms.
 4. Bezczynny WebView jest stabilny przy rzeczywistych 120 Hz (mediana 8,3 ms, p95 8,4 ms), natomiast aktywna mini-gra spadała do 100,3 FPS, p95 16,7 ms, p99 41,6 ms i najgorszej przerwy 116,7 ms. `gfxinfo` dodatkowo pokazuje GPU p99 tylko 1 ms. Główny problem leży więc w nieregularnej pracy CPU/UI/React podczas wejścia i efektów, nie w limicie GPU.
 5. LDPlayer, Android, okno aplikacji i WebView udostępniają obecnie rzeczywiste 120 Hz. Konfiguracja ma `basicSettings.fps: 120` i `basicSettings.heightFrameRate: true`, aktywny render Androida wynosi 120 Hz, a bezpośredni pomiar WebView dał 120,22 FPS. Nie ma podstaw do zmiany konfiguracji emulatora ani do dokładania kolejnego mechanizmu wymuszania trybu.
+6. W aktywnej „Ekstrakcji Cienia” jedno trafienie montuje w React/Motion od 15 do około 30 węzłów efektu, a limity pozwalają utrzymywać 8/12/16 efektów przez 850/1000/1200 ms. Wielokrotne cięcie może więc nałożyć setki animowanych węzłów z cieniami, clip-path, cząstkami i timerami. Pojedynczej kontrolowanej klatki zacięcia nie udało się powtórzyć w krótkiej próbie, ale po trafieniu wystąpiło 318 mutacji DOM w 2,7 s, a historia kodu potwierdza ośmiokrotne podniesienie budżetu po dodaniu cięższych efektów.
 
 ## Zakres
 
@@ -26,10 +27,11 @@ Przebudować mini-grę „Cięcie Cienia” od zera tak, aby zachowała prosty s
 - pomiar pełnej rundy przy aktywnych 120 Hz przez ADB i Chrome DevTools Protocol;
 - weryfikacja całego łańcucha LDPlayer → Android → okno aplikacji → WebView;
 - poprawne prezentowanie przez nakładkę częstotliwości aktywnej, a nie tylko najlepszego obsługiwanego trybu.
+- zastąpienie efektów trafienia „Ekstrakcji Cienia” stałopojemnościowym rendererem Canvas bez React state, Motion i timerów na każde trafienie.
 
 ### Poza zakresem
 
-- zmiany pozostałych mini-gier;
+- zmiany pozostałych mini-gier poza „Ekstrakcją Cienia” wprost dodaną do zakresu;
 - migracja do Phaser albo innego silnika;
 - przebudowa wspólnego ekranu wyników i sklepu;
 - publikacja GitHub Release;
@@ -117,6 +119,20 @@ Powstanie `prepareMiniGameAudio()`, wywoływane podczas naciśnięcia Start. Utw
 
 Opis i wskazówki zostaną uproszczone: nieruchomy cel, jeden wskaźnik, jedno dotknięcie. Tekst nie będzie sugerował ruchomej strefy ani osobnego przycisku.
 
+### `src/gameRuntime/shadowExtractionImpactRenderer.ts`
+
+Ciężkie drzewo `SliceImpactLayer`/`SliceImpactBurst`/`SlicedHalf` zostanie zastąpione jednym Canvasem rysowanym z istniejącej pętli RAF Ekstrakcji Cienia. Renderer:
+
+- ma stałą pulę czterech slotów i nadpisuje najstarszy efekt po jej zapełnieniu;
+- nie tworzy RAF, timera ani stanu React;
+- rysuje na efekt jedną linię cięcia, jedną falę, maksymalnie sześć prostych iskier i czytelną etykietę;
+- używa czasu absolutnego, więc efekt ma identyczną fazę przy 60 i 120 Hz;
+- trwa 280–360 ms zależnie od klasy trafienia;
+- skaluje backing store wyłącznie po zmianie rozmiaru, z DPR ograniczonym do 2;
+- nie używa `shadowBlur`, gradientów tworzonych w klatce, obrazów połówek celu, clip-path ani animacji Motion.
+
+Aktywna integracja usuwa `impactEffects`, `impactTimersRef` i wszystkie komponenty DOM efektu. `emitSliceImpact()` zapisuje prymitywy do Canvasowego renderera, a istniejący RAF wywołuje jego `render(nowMs)`. Punktacja, fizyka obiektów, dźwięk, HUD i zasady Ekstrakcji pozostają bez zmian.
+
 ## Przepływ danych
 
 ```text
@@ -129,6 +145,9 @@ requestAnimationFrame -> advanceShadowStrike(runtime) -> renderer.render(runtime
 Canvas HUD -> odczyt prymitywów runtime bez React state
 
 koniec czasu -> pojedynczy onComplete(finalScore) -> istniejący raport/nagrody
+
+trafienie w Ekstrakcji -> emit(prymitywy, nowMs) -> stała pula 4 slotów
+RAF Ekstrakcji -> renderer efektów Canvas -> wygaśnięcie analityczne bez timera
 ```
 
 ## Pauza, błędy i sprzątanie
@@ -139,6 +158,7 @@ koniec czasu -> pojedynczy onComplete(finalScore) -> istniejący raport/nagrody
 - Brak kontekstu Canvas kończy start czytelnym stanem awaryjnym zamiast uruchamiać pustą rundę.
 - Każdy RAF, `ResizeObserver` i odroczony efekt audio/haptics jest anulowany przy unmount.
 - `onComplete` jest chronione flagą jednokrotnego zatwierdzenia.
+- Renderer efektów Ekstrakcji jest czyszczony przy starcie, pauzie, końcu, zmianie rozmiaru i unmount; nie posiada osobnego RAF ani timerów.
 
 ## 120 Hz na LDPlayerze
 
@@ -169,6 +189,9 @@ Test przechodzi dopiero wtedy, gdy po instalacji nowego APK wszystkie cztery war
 - pauza nie przesuwa wskaźnika i nie zużywa czasu;
 - koniec rundy i wynik są emitowane tylko raz;
 - podczas aktywnej rundy nie występują commity React powodowane ruchem lub trafieniami;
+- sto kolejnych efektów Ekstrakcji nie zwiększa puli ponad 4 sloty, a piąty aktywny efekt deterministycznie nadpisuje najstarszy;
+- efekt Ekstrakcji wygasa na granicy 280–360 ms bez timera, jest niezależny od harmonogramu 60/120 Hz i ma stały limit operacji rysowania;
+- `emit()` i `render()` efektów Ekstrakcji nie zmieniają rozmiaru Canvas, a `destroy()` pozostawia renderer obojętny;
 - dotychczasowe testy pozostałych mini-gier nadal przechodzą.
 
 ### Test runtime na LDPlayerze
@@ -183,6 +206,8 @@ Przy 120 Hz:
 - p99 delty RAF: maksymalnie 16,7 ms;
 - klatki powyżej 25 ms: maksymalnie 0,1% podczas samej rundy;
 - jedno fizyczne dotknięcie zwiększa licznik zaakceptowanych wejść najwyżej o 1.
+
+Osobna próba Ekstrakcji Cienia obejmuje zwykłe cięcia oraz serie przecinające kilka celów. Po 5 sekundach rozgrzewki musi utrzymać średnio co najmniej 115 FPS, medianę 7,8–9,0 ms, p95 najwyżej 10,5 ms, p99 najwyżej 16,7 ms, najgorszą klatkę najwyżej 25 ms i zero klatek powyżej 33,33 ms w oknach trafień. Liczba aktywnych efektów nie przekracza 4, a liczba węzłów DOM nie rośnie po trafieniu. Jeżeli ten zakres nie przejdzie pomiaru mimo spełnienia obu limitów, przed migracją celów lub śladu do Canvas wymagany jest nowy profil wskazujący następne wąskie gardło.
 
 Przy 60 Hz, jako tryb awaryjny:
 
