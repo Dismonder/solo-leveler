@@ -1246,7 +1246,6 @@ function ShadowStrikeGame({
   const driftAngleRef = useRef(0);
   const lastFrameTimeRef = useRef(0);
   const lastRemainingRef = useRef(GAME_SECONDS);
-  const hitStopUntilRef = useRef(0);
   const deadlineRef = useRef(0);
   const committedRef = useRef(false);
   const animationRef = useRef<number | null>(null);
@@ -1256,7 +1255,6 @@ function ShadowStrikeGame({
   const cursorElRef = useRef<HTMLDivElement>(null);
   const zoneElRef = useRef<HTMLDivElement>(null);
   const perfectZoneElRef = useRef<HTMLDivElement>(null);
-  const impactFlashElRef = useRef<HTMLDivElement>(null);
 
   const { feedback, showFeedback } = useFeedback();
   const { scorePopup, showScorePopup } = useScorePopup();
@@ -1286,13 +1284,6 @@ function ShadowStrikeGame({
     const tick = (now: number) => {
       if (lastFrameTimeRef.current === 0) {
         lastFrameTimeRef.current = now;
-      }
-
-      // Check hit-stop pause
-      if (hitStopUntilRef.current > now) {
-        lastFrameTimeRef.current = now;
-        animationRef.current = window.requestAnimationFrame(tick);
-        return;
       }
 
       const deltaSeconds = Math.min(0.05, Math.max(0.001, (now - lastFrameTimeRef.current) / 1000));
@@ -1383,7 +1374,6 @@ function ShadowStrikeGame({
     zoneRef.current = 50;
     driftAngleRef.current = 0;
     lastFrameTimeRef.current = performance.now();
-    hitStopUntilRef.current = 0;
     const now = Date.now();
     deadlineRef.current = now + GAME_SECONDS * 1000;
     lastRemainingRef.current = GAME_SECONDS;
@@ -1401,7 +1391,7 @@ function ShadowStrikeGame({
     if (strikeTimerRef.current) window.clearTimeout(strikeTimerRef.current);
     strikeTimerRef.current = window.setTimeout(() => {
       setActiveStrikeEffect((current) => (current?.id === effect.id ? null : current));
-    }, 650);
+    }, 450);
   };
 
   const strike = (e?: React.SyntheticEvent) => {
@@ -1439,12 +1429,11 @@ function ShadowStrikeGame({
       comboRef.current = nextCombo;
       scoreRef.current += gain;
       deadlineRef.current = addGameTime(deadlineRef.current, now, 1400 + nextCombo * 70);
-      hitStopUntilRef.current = performance.now() + 40; // 40ms micro hit-stop freeze
       setCombo(nextCombo);
       setScore(scoreRef.current);
       showScorePopup(gain);
       playMiniGameComboSound();
-      showFeedback("Perfekcyjne cięcie!");
+      showFeedback("👑 Perfekcyjne cięcie!");
       triggerStrikeVisual({
         id: Date.now(),
         tier: "perfect",
@@ -1468,10 +1457,10 @@ function ShadowStrikeGame({
       showScorePopup(gain);
       if (isGreat) {
         playMiniGameComboSound();
-        showFeedback("Czyste cięcie!");
+        showFeedback("⚡ Czyste cięcie!");
       } else {
         playMiniGameHitSound();
-        showFeedback("Trafienie");
+        showFeedback("⚔️ Trafienie");
       }
       triggerStrikeVisual({
         id: Date.now(),
@@ -1487,7 +1476,7 @@ function ShadowStrikeGame({
     deadlineRef.current -= Math.round((1800 + difficulty * 130) * (1 - relicBonuses.timePenaltyResist));
     setCombo(0);
     playMiniGamePenaltySound();
-    showFeedback("-2s spóźniony zamach");
+    showFeedback("💥 Spóźniony zamach -2s");
     triggerStrikeVisual({
       id: Date.now(),
       tier: "miss",
@@ -1521,69 +1510,60 @@ function ShadowStrikeGame({
         }}
         className="relative h-full min-h-[360px] overflow-hidden p-5 select-none touch-manipulation cursor-pointer active:brightness-105"
       >
-        {/* Full-screen strike visual effect overlay */}
-        {activeStrikeEffect && (
-          <ShadowStrikeVisualOverlay effect={activeStrikeEffect} graphicsQuality={graphicsQuality} />
-        )}
-
         <div className="relative z-10 flex h-full flex-col justify-center gap-8 pointer-events-none">
           <div className="sl-input relative rounded-[24px] p-5 shadow-inner overflow-hidden pointer-events-auto">
-            {/* Impact flash glow on the slider */}
-            {activeStrikeEffect && (
-              <div
-                ref={impactFlashElRef}
-                className={`absolute inset-y-0 w-24 -translate-x-1/2 pointer-events-none rounded-full blur-md transition-opacity duration-300 ${
-                  activeStrikeEffect.tier === "perfect"
-                    ? "bg-yellow-300/80 shadow-[0_0_35px_rgba(250,204,21,1)]"
-                    : activeStrikeEffect.tier === "great"
-                      ? "bg-cyan-300/70 shadow-[0_0_28px_rgba(6,182,212,1)]"
-                      : activeStrikeEffect.tier === "good"
-                        ? "bg-purple-300/60 shadow-[0_0_20px_rgba(168,85,247,1)]"
-                        : "bg-red-500/60 shadow-[0_0_24px_rgba(239,68,68,1)]"
-                }`}
-                style={{ left: `${activeStrikeEffect.x}%` }}
-              />
-            )}
-
             {/* Slider track */}
-            <div className="sl-progress-track relative h-16 rounded-full border border-[var(--theme-border)] bg-slate-950/85 shadow-inner">
+            <div className="sl-progress-track relative h-16 rounded-full border border-[var(--theme-border)] bg-slate-950/85 shadow-inner overflow-hidden">
               {/* Weak point strike zone */}
               <div
                 ref={zoneElRef}
-                className="absolute top-1/2 h-12 -translate-y-1/2 rounded-full border border-cyan-400/80 bg-cyan-500/25 shadow-[0_0_25px_rgba(6,182,212,0.45)]"
+                className="absolute top-1/2 h-12 -translate-y-1/2 rounded-full border border-cyan-400/80 bg-cyan-500/25 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                 style={{ left: `${initialBounds.left}%`, width: `${initialBounds.width}%` }}
               />
 
               {/* Perfect strike gold core */}
               <div
                 ref={perfectZoneElRef}
-                className="absolute top-1/2 h-9 -translate-y-1/2 rounded-full border border-yellow-300/90 bg-yellow-400/40 shadow-[0_0_18px_rgba(250,204,21,0.8)] animate-pulse"
+                className="absolute top-1/2 h-9 -translate-y-1/2 rounded-full border border-yellow-300/90 bg-yellow-400/40 shadow-[0_0_12px_rgba(250,204,21,0.7)] animate-pulse"
                 style={{
                   left: `${initialBounds.perfectLeft}%`,
                   width: `${initialBounds.perfectRight - initialBounds.perfectLeft}%`,
                 }}
               />
 
-              {/* Moving cursor with razor-sharp laser blade point */}
+              {/* Clean slice line flash on hit */}
+              {activeStrikeEffect && (
+                <div
+                  className={`absolute inset-y-0 w-1 -translate-x-1/2 pointer-events-none rounded-full transition-opacity duration-200 z-10 ${
+                    activeStrikeEffect.tier === "perfect"
+                      ? "bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,1)]"
+                      : activeStrikeEffect.tier === "great"
+                        ? "bg-cyan-300 shadow-[0_0_10px_rgba(6,182,212,1)]"
+                        : activeStrikeEffect.tier === "good"
+                          ? "bg-purple-300 shadow-[0_0_8px_rgba(168,85,247,1)]"
+                          : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,1)]"
+                  }`}
+                  style={{ left: `${activeStrikeEffect.x}%` }}
+                />
+              )}
+
+              {/* Moving cursor: clean, sleek, simple plain vertical white bar without any diamonds */}
               <div
                 ref={cursorElRef}
-                className="absolute top-1/2 h-16 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,1),0_0_10px_rgba(6,182,212,0.9)] z-20"
+                className="absolute top-1/2 h-14 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)] z-20 pointer-events-none"
                 style={{ left: "0%" }}
-              >
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 h-2.5 w-2.5 rotate-45 bg-cyan-300 shadow-[0_0_8px_#38bdf8]" />
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-2.5 w-2.5 rotate-45 bg-cyan-300 shadow-[0_0_8px_#38bdf8]" />
-              </div>
+              />
             </div>
 
             <p className="sl-muted mt-3 text-center font-mono text-[10px] uppercase tracking-[0.24em]">
-              Dotknij ekranu lub przycisku, gdy wskaźnik minie złoty punkt
+              Dotknij ekranu lub przycisku, gdy pasek minie złoty punkt
             </p>
           </div>
 
           <button
             type="button"
             onClick={(e) => strike(e)}
-            className="sl-button-primary pointer-events-auto min-h-16 rounded-3xl px-6 text-base font-black uppercase tracking-[0.18em] shadow-[0_0_25px_rgba(6,182,212,0.35)] active:scale-[0.96] transition-transform"
+            className="sl-button-primary pointer-events-auto min-h-16 rounded-3xl px-6 text-base font-black uppercase tracking-[0.18em] shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-[0.96] transition-transform"
           >
             ⚔️ Cięcie (Dotknij)
           </button>
@@ -1606,181 +1586,6 @@ function ShadowStrikeGame({
     </MiniGameFrame>
   );
 }
-
-const ShadowStrikeVisualOverlay = memo(function ShadowStrikeVisualOverlay({
-  effect,
-  graphicsQuality,
-}: {
-  effect: ShadowStrikeVisualEffect;
-  graphicsQuality: PlayerState["settings"]["graphicsQuality"];
-}) {
-  const isPerfect = effect.tier === "perfect";
-  const isGreat = effect.tier === "great";
-  const isGood = effect.tier === "good";
-  const isMiss = effect.tier === "miss";
-
-  const particleCount =
-    graphicsQuality === "cinematic"
-      ? isPerfect
-        ? 18
-        : isGreat
-          ? 12
-          : isGood
-            ? 8
-            : 6
-      : isPerfect
-        ? 12
-        : isGreat
-          ? 8
-          : isGood
-            ? 6
-            : 4;
-
-  const particles = useMemo(() => {
-    return Array.from({ length: particleCount }, (_, index) => {
-      const angle = (Math.PI * 2 * index) / particleCount + (Math.random() * 0.3 - 0.15);
-      const dist = (isPerfect ? 110 : isGreat ? 80 : 55) * (0.6 + (index % 3) * 0.2);
-      return {
-        id: `strike_p_${index}`,
-        x: Math.cos(angle) * dist,
-        y: Math.sin(angle) * dist,
-        size: (isPerfect ? 4.5 : isGreat ? 3.5 : 2.5) + (index % 2) * 1.5,
-      };
-    });
-  }, [isGreat, isPerfect, isGood, particleCount]);
-
-  return (
-    <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden">
-      {/* Subtle ambient flash */}
-      <motion.div
-        className={`absolute inset-0 pointer-events-none ${
-          isPerfect
-            ? "bg-amber-400/25"
-            : isGreat
-              ? "bg-cyan-400/20"
-              : isGood
-                ? "bg-purple-500/15"
-                : "bg-red-600/25"
-        }`}
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 0 }}
-        transition={{ duration: 0.26, ease: "easeOut" }}
-      />
-
-      {/* Razor-sharp STRAIGHT vertical laser cut line spanning through effect.x */}
-      <div
-        className="absolute inset-y-0 -translate-x-1/2 pointer-events-none flex items-center justify-center"
-        style={{ left: `${effect.x}%` }}
-      >
-        {/* Outer neon laser beam */}
-        <motion.div
-          className={`absolute h-full rounded-full pointer-events-none ${
-            isPerfect
-              ? "w-2.5 bg-yellow-300/90 shadow-[0_0_25px_rgba(250,204,21,1),0_0_50px_rgba(250,204,21,0.9)]"
-              : isGreat
-                ? "w-2 bg-cyan-300/90 shadow-[0_0_20px_rgba(6,182,212,1),0_0_40px_rgba(6,182,212,0.85)]"
-                : isGood
-                  ? "w-1.5 bg-violet-400/85 shadow-[0_0_15px_rgba(168,85,247,1)]"
-                  : "w-1.5 bg-red-500/85 shadow-[0_0_15px_rgba(239,68,68,1)]"
-          }`}
-          initial={{ scaleY: 0, opacity: 1 }}
-          animate={{ scaleY: 1, opacity: [1, 0.8, 0] }}
-          transition={{ duration: 0.28, ease: "easeOut" }}
-        />
-
-        {/* Ultra-sharp core white razor line */}
-        <motion.div
-          className="absolute h-full w-[2px] bg-white shadow-[0_0_15px_#fff] pointer-events-none rounded-full"
-          initial={{ scaleY: 0, opacity: 1 }}
-          animate={{ scaleY: 1, opacity: [1, 1, 0] }}
-          transition={{ duration: 0.24, ease: "easeOut" }}
-        />
-
-        {/* Orthogonal precision cross-seam flash for Perfect Cut */}
-        {isPerfect && (
-          <motion.div
-            className="absolute top-1/2 h-[2.5px] w-48 -translate-y-1/2 bg-gradient-to-r from-transparent via-yellow-100 to-transparent shadow-[0_0_20px_rgba(250,204,21,1)] pointer-events-none"
-            initial={{ scaleX: 0, opacity: 1 }}
-            animate={{ scaleX: 1, opacity: 0 }}
-            transition={{ duration: 0.28, ease: "easeOut" }}
-          />
-        )}
-      </div>
-
-      {/* Radial Nova Shockwave from the strike point on the track */}
-      <motion.div
-        className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 pointer-events-none ${
-          isPerfect
-            ? "border-yellow-300 shadow-[0_0_35px_rgba(250,204,21,1)]"
-            : isGreat
-              ? "border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,1)]"
-              : isGood
-                ? "border-violet-300 shadow-[0_0_18px_rgba(168,85,247,1)]"
-                : "border-red-400 shadow-[0_0_18px_rgba(239,68,68,1)]"
-        }`}
-        style={{ left: `${effect.x}%` }}
-        initial={{ width: 10, height: 10, opacity: 1 }}
-        animate={{
-          width: isPerfect ? 220 : isGreat ? 170 : 130,
-          height: isPerfect ? 220 : isGreat ? 170 : 130,
-          opacity: 0,
-        }}
-        transition={{ duration: 0.42, ease: "easeOut" }}
-      />
-
-      {/* Clean spark embers radiating from the cut point */}
-      <div className="absolute top-1/2 pointer-events-none" style={{ left: `${effect.x}%` }}>
-        {particles.map((p) => (
-          <motion.span
-            key={p.id}
-            className={`absolute left-0 top-0 rounded-full pointer-events-none ${
-              isPerfect
-                ? "bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,1)]"
-                : isGreat
-                  ? "bg-cyan-300 shadow-[0_0_10px_rgba(6,182,212,1)]"
-                  : isGood
-                    ? "bg-violet-300 shadow-[0_0_8px_rgba(168,85,247,1)]"
-                    : "bg-red-400 shadow-[0_0_8px_rgba(239,68,68,1)]"
-            }`}
-            style={{ width: `${p.size}px`, height: `${p.size}px` }}
-            initial={{ x: 0, y: 0, opacity: 1, scale: 1.2 }}
-            animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
-          />
-        ))}
-      </div>
-
-      {/* Floating Critical Badge positioned in header area (so it doesn't occlude the track) */}
-      <motion.div
-        className="absolute top-[8%] left-1/2 pointer-events-none select-none"
-        style={{ zIndex: 60 }}
-        initial={{ x: "-50%", y: 10, scale: 0.8, opacity: 0 }}
-        animate={{
-          x: "-50%",
-          y: [-4, -18, -32, -44],
-          scale: isPerfect ? [0.8, 1.2, 1.1, 0.95] : [0.8, 1.15, 1.05, 0.9],
-          opacity: [0, 1, 1, 0],
-        }}
-        transition={{ duration: 0.75, times: [0, 0.2, 0.65, 1], ease: "easeOut" }}
-      >
-        <span
-          className={`inline-block whitespace-nowrap rounded-full border-2 px-4 py-1.5 font-mono font-black uppercase tracking-wider ${
-            isPerfect
-              ? "border-yellow-300 bg-black/95 text-yellow-300 text-sm shadow-[0_0_35px_rgba(250,204,21,1)] ring-2 ring-yellow-400/50"
-              : isGreat
-                ? "border-cyan-400 bg-black/90 text-cyan-300 text-xs shadow-[0_0_24px_rgba(6,182,212,1)]"
-                : isGood
-                  ? "border-purple-400 bg-black/90 text-purple-300 text-xs shadow-[0_0_18px_rgba(168,85,247,1)]"
-                  : "border-red-500 bg-black/90 text-red-400 text-xs shadow-[0_0_20px_rgba(239,68,68,1)]"
-          }`}
-          style={{ textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
-        >
-          {effect.label}
-        </span>
-      </motion.div>
-    </div>
-  );
-});
 
 function ManaMemoryGame({ definition, progress, paused = false, stageBackground, relicBonuses, stageEffect, showGrid, graphicsQuality, onComplete, onRuntimeStateChange, onExit }: ActiveGameProps) {
   const [running, setRunning] = useState(false);

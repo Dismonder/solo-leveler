@@ -7,14 +7,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 
-const tag = process.argv[2] || "v1.0.6";
+const tag = process.argv[2] || "v1.0.7";
 const cleanTag = tag.replace(/^v/, "");
 const releaseName = `Solo Leveler ${tag}`;
 const releaseBody = `## Co nowego w wersji ${tag}
-- 📱 **Sterowanie dotykiem w Cięciu Cienia**: możliwość cięcia poprzez dotknięcie dowolnego miejsca areny lub przycisku
-- ⚔️ **Proste i precyzyjne cięcia**: laserowe, proste linie cięcia katana bez rozpraszającego wstrząsu ekranu
-- 📳 **Haptic Touch**: natywne haptyczne wibracje telefonu przy każdym udanym cięciu
-- ⚡ **Stabilność 120 FPS**: brak opóźnień i płynne śledzenie wskaźnika w rytm ruchu słabego punktu
+- ⚡ **Całkowite odchudzenie Cięcia Cienia**: usunięcie ciężkich filtrów GPU i nakładek wizualnych dla maksymalnej płynności
+- 📏 **Czysty, prosty pasek**: klasyczny, minimalistyczny wskaźnik bez zbędnych rombów i nakładek
+- 🗡️ **Natychmiastowa reakcja**: usunięcie sztucznych pauz klatek (hit-stop), super-płynny ruch i czyste trafienia
+- 📱 **Sterowanie dotykowe**: pełne wsparcie dotyku w dowolnym miejscu ekranu oraz wibracji haptycznych
 - 🛡️ **Działanie w tle i alerty**: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień
 - 🎛️ **Mini Player & suwaki głośności**: zintegrowany odtwarzacz w zakładce System z precyzyjną dotykową regulacją SFX i OST
 - 🎵 **Pełny Album Muzyczny**: dedykowany arkusz z biblioteką 10 utworów Solo Leveling OST

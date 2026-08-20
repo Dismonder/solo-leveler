@@ -1,14 +1,14 @@
 {
-  "version": "1.0.6",
-  "versionCode": 7,
+  "version": "1.0.7",
+  "versionCode": 8,
   "releaseDate": "2026-08-20",
   "changelog": [
-    "📱 Sterowanie dotykiem w Cięciu Cienia: możliwość cięcia poprzez dotknięcie dowolnego miejsca areny lub przycisku",
-    "⚔️ Proste i precyzyjne cięcia: laserowe, proste linie cięcia katana bez rozpraszającego wstrząsu ekranu",
-    "📳 Haptic Touch: natywne haptyczne wibracje telefonu przy każdym udanym cięciu",
-    "⚡ Stabilność 120 FPS: brak opóźnień i płynne śledzenie wskaźnika w rytm ruchu słabego punktu"
+    "⚡ Całkowite odchudzenie Cięcia Cienia: usunięcie ciężkich filtrów GPU i nakładek wizualnych dla maksymalnej płynności",
+    "📏 Czysty, prosty pasek: klasyczny, minimalistyczny wskaźnik bez zbędnych rombów i nakładek",
+    "🗡️ Natychmiastowa reakcja: usunięcie sztucznych pauz klatek (hit-stop), super-płynny ruch i czyste trafienia",
+    "📱 Sterowanie dotykowe: pełne wsparcie dotyku w dowolnym miejscu ekranu oraz wibracji haptycznych"
   ],
-  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.6/solo-leveler.apk",
+  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.7/solo-leveler.apk",
   "mandatory": false
 }
 
