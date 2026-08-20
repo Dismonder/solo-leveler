@@ -360,6 +360,8 @@ npm run lint
 
 Expected: TypeScript completes without errors.
 
+Staged-baseline exception: before Task 3, the old integration has the known `BonusMiniGames.tsx` `React.SyntheticEvent` namespace error. Task 2 passes this step when the command reports only that exact pre-existing error and no renderer/engine error; Task 3 must remove it and restore a completely green lint run.
+
 - [ ] **Step 6: Commit the renderer**
 
 ```powershell
