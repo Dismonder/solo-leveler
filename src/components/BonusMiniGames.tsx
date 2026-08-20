@@ -74,11 +74,11 @@ import { isNativeOrientationAvailable, lockAppLandscape, lockAppPortrait } from 
 import { getSmoothUiIntervalMs, setNativeGameState } from "../services/performanceService";
 import { MOBILE_THEME_ASSETS, getMiniGameThemeAsset } from "../services/mobileThemeAssets";
 import { getRankForLevel, type RankLetter } from "../services/systemLogic";
+import { getShadowExtractionObjectBudget } from "../gameRuntime/miniGamePerformance";
 import {
-  getShadowExtractionImpactBudget,
-  getShadowExtractionImpactLifetimeMs,
-  getShadowExtractionObjectBudget,
-} from "../gameRuntime/miniGamePerformance";
+  createShadowExtractionImpactRenderer,
+  type ShadowExtractionImpactRenderer,
+} from "../gameRuntime/shadowExtractionImpactRenderer";
 import {
   createShadowStrikeRenderer,
   type ShadowStrikeRenderer,
@@ -1867,10 +1867,11 @@ function ShadowExtractionGame({
   const [remaining, setRemaining] = useState(GAME_SECONDS);
   const [objects, setObjects] = useState<ShadowSliceObject[]>([]);
   const [trail, setTrail] = useState<SliceTrailPoint[]>([]);
-  const [impactEffects, setImpactEffects] = useState<SliceImpactEffect[]>([]);
   const [signalPercent, setSignalPercent] = useState(100);
   const [playfieldSize, setPlayfieldSize] = useState<PlayfieldSize | null>(null);
   const playfieldRef = useRef<HTMLDivElement | null>(null);
+  const impactCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const impactRendererRef = useRef<ShadowExtractionImpactRenderer | null>(null);
   const playfieldRectRef = useRef<DOMRect | null>(null);
   const objectsRef = useRef<ShadowSliceObject[]>([]);
   const trailRef = useRef<SliceTrailPoint[]>([]);
@@ -1890,7 +1891,6 @@ function ShadowExtractionGame({
   const pauseStartedAtRef = useRef<number | null>(null);
   const animationRef = useRef<number | null>(null);
   const hudSyncFrameRef = useRef<number | null>(null);
-  const impactTimersRef = useRef<number[]>([]);
   const { feedback, showFeedback } = useFeedback();
   const { scorePopup, showScorePopup } = useScorePopup();
 
@@ -1899,10 +1899,8 @@ function ShadowExtractionGame({
     setObjects(next);
   }, []);
 
-  const clearImpactEffects = useCallback(() => {
-    impactTimersRef.current.forEach((timer) => window.clearTimeout(timer));
-    impactTimersRef.current = [];
-    setImpactEffects([]);
+  const clearImpactCanvas = useCallback(() => {
+    impactRendererRef.current?.clear();
   }, []);
 
   const scheduleHudSync = useCallback(() => {
@@ -1916,26 +1914,17 @@ function ShadowExtractionGame({
 
   const emitSliceImpact = useCallback((object: ShadowSliceObject, label: string, slashAngle = 0, tier: SlicePrecisionTier = "good") => {
     const isPerfect = tier === "perfect";
-    const effect: SliceImpactEffect = {
-      id: `impact_${object.id}_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
-      kind: object.kind,
-      x: object.x,
-      y: object.y,
-      sizePx: isPerfect ? Math.max(54, object.sizePx * 1.35) : Math.max(44, object.sizePx * 1.12),
-      rotation: slashAngle || object.rotation,
-      color: isPerfect ? "#facc15" : getSliceImpactColor(object.kind, selectedEffect.id),
+    impactRendererRef.current?.emit(
+      object.x,
+      object.y,
+      isPerfect ? Math.max(54, object.sizePx * 1.35) : Math.max(44, object.sizePx * 1.12),
+      slashAngle || object.rotation,
+      isPerfect ? "#facc15" : getSliceImpactColor(object.kind, selectedEffect.id),
       label,
       tier,
-    };
-    const underFramePressure = framePressureUntilRef.current > performance.now();
-    const maxEffects = getShadowExtractionImpactBudget(graphicsQuality, underFramePressure);
-    setImpactEffects((current) => [...current.slice(-(maxEffects - 1)), effect]);
-    const timer = window.setTimeout(() => {
-      setImpactEffects((current) => current.filter((item) => item.id !== effect.id));
-      impactTimersRef.current = impactTimersRef.current.filter((item) => item !== timer);
-    }, getShadowExtractionImpactLifetimeMs(graphicsQuality, underFramePressure));
-    impactTimersRef.current.push(timer);
-  }, [graphicsQuality, selectedEffect.id]);
+      lastFrameRef.current || performance.now(),
+    );
+  }, [selectedEffect.id]);
 
   const finish = useCallback((finalScore: number) => {
     if (committedRef.current) return;
@@ -1945,7 +1934,7 @@ function ShadowExtractionGame({
     setFinished(true);
     trailRef.current = [];
     setTrail([]);
-    clearImpactEffects();
+    clearImpactCanvas();
     setObjectsSync([]);
     onRuntimeStateChange?.("finished");
     onComplete({
@@ -1956,7 +1945,7 @@ function ShadowExtractionGame({
       statHint: definition.statHint,
       hpRestored: hpRestoredRef.current,
     });
-  }, [clearImpactEffects, definition, onComplete, onRuntimeStateChange, setObjectsSync]);
+  }, [clearImpactCanvas, definition, onComplete, onRuntimeStateChange, setObjectsSync]);
 
   const applyMissPenalty = useCallback((message: string, penaltyMs: number) => {
     comboRef.current = 0;
@@ -2024,7 +2013,7 @@ function ShadowExtractionGame({
     setObjectsSync([]);
     trailRef.current = [];
     setTrail([]);
-    clearImpactEffects();
+    clearImpactCanvas();
     setScore(0);
     setCombo(0);
     setRemaining(GAME_SECONDS);
@@ -2032,13 +2021,38 @@ function ShadowExtractionGame({
     setFinished(false);
     onRuntimeStateChange?.("running");
     setRunning(true);
-  }, [clearImpactEffects, onRuntimeStateChange, setObjectsSync]);
+  }, [clearImpactCanvas, onRuntimeStateChange, setObjectsSync]);
+
+  useEffect(() => {
+    const canvas = impactCanvasRef.current;
+    if (!canvas) return;
+
+    let renderer: ShadowExtractionImpactRenderer;
+    try {
+      renderer = createShadowExtractionImpactRenderer(canvas);
+    } catch {
+      return;
+    }
+    impactRendererRef.current = renderer;
+    const diagnosticGlobal = globalThis as typeof globalThis & {
+      __soloShadowExtractionImpactRenderer?: ShadowExtractionImpactRenderer;
+    };
+    diagnosticGlobal.__soloShadowExtractionImpactRenderer = renderer;
+
+    return () => {
+      renderer.clear();
+      renderer.destroy();
+      if (impactRendererRef.current === renderer) impactRendererRef.current = null;
+      if (diagnosticGlobal.__soloShadowExtractionImpactRenderer === renderer) {
+        delete diagnosticGlobal.__soloShadowExtractionImpactRenderer;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
       if (animationRef.current) window.cancelAnimationFrame(animationRef.current);
       if (hudSyncFrameRef.current) window.cancelAnimationFrame(hudSyncFrameRef.current);
-      impactTimersRef.current.forEach((timer) => window.clearTimeout(timer));
     };
   }, []);
 
@@ -2050,6 +2064,11 @@ function ShadowExtractionGame({
       const rect = element.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
       playfieldRectRef.current = rect;
+      const impactRenderer = impactRendererRef.current;
+      if (impactRenderer) {
+        impactRenderer.resize(rect.width, rect.height, window.devicePixelRatio || 1);
+        impactRenderer.clear();
+      }
       setPlayfieldSize((current) => {
         const width = Math.round(rect.width);
         const height = Math.round(rect.height);
@@ -2079,6 +2098,7 @@ function ShadowExtractionGame({
       if (pauseStartedAtRef.current === null) {
         pauseStartedAtRef.current = Date.now();
       }
+      clearImpactCanvas();
       return;
     }
 
@@ -2100,6 +2120,7 @@ function ShadowExtractionGame({
 
 
       const now = performance.now();
+      impactRendererRef.current?.render(now);
       const lastFrame = lastFrameRef.current || now;
       const deltaMs = Math.max(0, now - lastFrame);
       const delta = Math.min(0.05, Math.max(0.001, deltaMs / 1000));
@@ -2180,7 +2201,7 @@ function ShadowExtractionGame({
       if (animationRef.current) window.cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     };
-  }, [applyMissPenalty, finish, graphicsQuality, paused, progress.level, running, setObjectsSync, spawnObject, upgrades.upgrades.flow]);
+  }, [applyMissPenalty, clearImpactCanvas, finish, graphicsQuality, paused, progress.level, running, setObjectsSync, spawnObject, upgrades.upgrades.flow]);
 
   const handleSliceHit = useCallback((object: ShadowSliceObject, slashAngle = 0, tier: SlicePrecisionTier = "good") => {
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 14);
@@ -2462,8 +2483,11 @@ function ShadowExtractionGame({
             />
           )}
         </div>
-        {/* Impact effects and feedback OUTSIDE overflow-hidden so labels are never clipped */}
-        <SliceImpactLayer effects={impactEffects} graphicsQuality={graphicsQuality} />
+        <canvas
+          ref={impactCanvasRef}
+          className="pointer-events-none absolute inset-0 z-20 h-full w-full"
+          aria-hidden="true"
+        />
         <Feedback text={feedback} />
       </div>
     </MiniGameFrame>
@@ -2952,224 +2976,6 @@ const ShadowSliceToken = memo(function ShadowSliceToken({
   );
 });
 
-const SliceImpactLayer = memo(function SliceImpactLayer({
-  effects,
-  graphicsQuality,
-}: {
-  effects: SliceImpactEffect[];
-  graphicsQuality: PlayerState["settings"]["graphicsQuality"];
-}) {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-40 overflow-visible">
-      <AnimatePresence>
-        {effects.map((effect) => (
-          <SliceImpactBurst key={effect.id} effect={effect} graphicsQuality={graphicsQuality} />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-});
-
-const SliceImpactBurst = memo(function SliceImpactBurst({
-  effect,
-  graphicsQuality,
-}: {
-  key?: string;
-  effect: SliceImpactEffect;
-  graphicsQuality: PlayerState["settings"]["graphicsQuality"];
-}) {
-  const asset = getSliceImpactAsset(effect.kind);
-  const isPerfect = effect.tier === "perfect";
-  const isGreat = effect.tier === "great";
-
-  const particleCount = graphicsQuality === "cinematic"
-    ? isPerfect ? 20 : isGreat ? 14 : effect.kind === "trap" ? 14 : 10
-    : isPerfect ? 14 : isGreat ? 10 : effect.kind === "trap" ? 8 : 6;
-
-  const particles = useMemo(
-    () => Array.from({ length: particleCount }, (_, index) => {
-      const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 180;
-      const distanceMult = isPerfect ? 1.6 : isGreat ? 1.3 : 1.0;
-      const distance = effect.sizePx * (0.45 + (index % 4) * 0.22) * distanceMult;
-      return {
-        id: `${effect.id}_spark_${index}`,
-        x: Math.cos(angle) * distance,
-        y: Math.sin(angle) * distance,
-        size: (isPerfect ? 5 : isGreat ? 4 : 3.2) + (index % 3) * 1.8,
-      };
-    }),
-    [effect.id, effect.rotation, effect.sizePx, particleCount, isPerfect, isGreat]
-  );
-
-  return (
-    <div
-      className="sl-slice-impact-burst absolute pointer-events-none overflow-visible"
-      style={{
-        left: `${effect.x}%`,
-        top: `${effect.y}%`,
-        width: `${effect.sizePx}px`,
-        height: `${effect.sizePx}px`,
-        marginLeft: `-${effect.sizePx / 2}px`,
-        marginTop: `-${effect.sizePx / 2}px`,
-        color: effect.color,
-        zIndex: 50,
-      }}
-    >
-      {/* Perfect Prismatic Aura / Radial Burst */}
-      {isPerfect && (
-        <motion.div
-          className="absolute inset-[-50%] rounded-full border-4 border-yellow-300 shadow-[0_0_40px_rgba(250,204,21,1),inset_0_0_30px_rgba(250,204,21,0.8)] overflow-visible pointer-events-none"
-          initial={{ scale: 0.15, opacity: 1, rotate: 0 }}
-          animate={{ scale: 3.0, opacity: 0, rotate: 120 }}
-          transition={{ duration: 0.52, ease: "easeOut" }}
-        />
-      )}
-
-      {/* Central Slash Line */}
-      <motion.div
-        className={`absolute left-1/2 top-1/2 rounded-full overflow-visible pointer-events-none ${
-          isPerfect
-            ? "h-2 bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-100 shadow-[0_0_30px_rgba(250,204,21,1),0_0_50px_rgba(250,204,21,0.8)]"
-            : isGreat
-              ? "h-1.5 bg-gradient-to-r from-cyan-100 via-cyan-400 to-cyan-100 shadow-[0_0_24px_rgba(6,182,212,1),0_0_40px_rgba(6,182,212,0.8)]"
-              : "h-1 bg-white shadow-[0_0_20px_currentColor,0_0_35px_currentColor]"
-        }`}
-        style={{
-          width: isPerfect ? "320%" : isGreat ? "270%" : "230%",
-        }}
-        initial={{ x: "-50%", y: "-50%", rotate: effect.rotation, scaleX: 0.15, opacity: 1 }}
-        animate={{ x: "-50%", y: "-50%", rotate: effect.rotation, scaleX: 1.35, opacity: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-      />
-
-      {/* Expanding shockwave */}
-      <motion.div
-        className={`absolute inset-[-25%] rounded-full border-2 overflow-visible pointer-events-none ${
-          isPerfect
-            ? "border-yellow-300 shadow-[0_0_25px_rgba(250,204,21,0.9)]"
-            : isGreat
-              ? "border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.9)]"
-              : "border-current shadow-[0_0_15px_currentColor]"
-        }`}
-        initial={{ scale: 0.25, opacity: 1 }}
-        animate={{ scale: isPerfect ? 2.8 : 2.2, opacity: 0 }}
-        transition={{ duration: 0.48, ease: "easeOut" }}
-      />
-
-      {/* Sliced two halves flying outward */}
-      <SlicedHalf asset={asset} effect={effect} side="left" />
-      <SlicedHalf asset={asset} effect={effect} side="right" />
-
-      {/* Particle sparks */}
-      {particles.map((particle) => (
-        <motion.span
-          key={particle.id}
-          className={`absolute left-1/2 top-1/2 rounded-full pointer-events-none ${
-            isPerfect
-              ? "bg-yellow-300 shadow-[0_0_18px_rgba(250,204,21,1)]"
-              : isGreat
-                ? "bg-cyan-300 shadow-[0_0_14px_rgba(6,182,212,1)]"
-                : "bg-current shadow-[0_0_12px_currentColor]"
-          }`}
-          style={{ width: `${particle.size}px`, height: `${particle.size}px` }}
-          initial={{ x: 0, y: 0, opacity: 1, scale: 1.2 }}
-          animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.2 }}
-          transition={{ duration: 0.58, ease: "easeOut" }}
-        />
-      ))}
-
-      {/* Label popup */}
-      <motion.div
-        className="absolute left-1/2 top-0 pointer-events-none select-none overflow-visible"
-        style={{ zIndex: 70 }}
-        initial={{ x: "-50%", y: 8, scale: 0.7, opacity: 0 }}
-        animate={{
-          x: "-50%",
-          y: [-4, -24, -48, -70, -90],
-          scale: isPerfect ? [0.7, 1.35, 1.2, 1.05, 0.9] : [0.7, 1.2, 1.1, 1, 0.85],
-          opacity: [0, 1, 1, 0.9, 0],
-        }}
-        transition={{ duration: 0.95, times: [0, 0.15, 0.45, 0.75, 1], ease: "easeOut" }}
-      >
-        <span
-          className={`inline-block whitespace-nowrap rounded-full border-2 px-3.5 py-1 font-mono font-black uppercase tracking-wider ${
-            isPerfect
-              ? "border-yellow-300 bg-black/95 text-yellow-300 text-sm shadow-[0_0_30px_rgba(250,204,21,1)] ring-2 ring-yellow-400/50"
-              : isGreat
-                ? "border-cyan-400 bg-black/90 text-cyan-300 text-xs shadow-[0_0_22px_rgba(6,182,212,1)]"
-                : "border-current/70 bg-black/90 text-current text-xs shadow-[0_0_16px_currentColor]"
-          }`}
-          style={{ textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
-        >
-          {effect.label}
-        </span>
-      </motion.div>
-    </div>
-  );
-});
-
-const SlicedHalf = memo(function SlicedHalf({
-  asset,
-  effect,
-  side,
-}: {
-  asset: string | null;
-  effect: SliceImpactEffect;
-  side: "left" | "right";
-}) {
-  const direction = side === "left" ? -1 : 1;
-  const perpAngle = ((effect.rotation + (side === "left" ? -90 : 90)) * Math.PI) / 180;
-  const throwDist = effect.sizePx * 0.85;
-  const targetX = Math.cos(perpAngle) * throwDist;
-  const targetY = Math.sin(perpAngle) * throwDist + effect.sizePx * 0.4;
-
-  const clipPath = side === "left"
-    ? "polygon(0 0, 52% 0, 48% 100%, 0 100%)"
-    : "polygon(52% 0, 100% 0, 100% 100%, 48% 100%)";
-
-  return (
-    <motion.div
-      className="absolute inset-0 grid place-items-center will-change-transform pointer-events-none overflow-visible"
-      initial={{ x: 0, y: 0, rotate: effect.rotation, opacity: 1, scale: 1 }}
-      animate={{
-        x: targetX,
-        y: targetY,
-        rotate: effect.rotation + direction * 45,
-        opacity: 0,
-        scale: 0.8,
-      }}
-      transition={{ duration: 0.65, ease: [0.12, 0.8, 0.32, 1] }}
-      style={{ clipPath, WebkitClipPath: clipPath }}
-    >
-      {asset ? (
-        <img
-          src={asset}
-          alt=""
-          className="h-[140%] w-[140%] object-contain drop-shadow-[0_0_16px_currentColor] pointer-events-none select-none"
-        />
-      ) : effect.kind === "gold" ? (
-        <div className="relative grid h-[70%] w-[70%] place-items-center rounded-full bg-amber-300/40">
-          <Coins className="relative h-6 w-6 text-yellow-100 drop-shadow-[0_0_10px_rgba(250,204,21,0.95)]" />
-        </div>
-      ) : effect.kind === "trap" ? (
-        <div className="relative grid h-[74%] w-[74%] place-items-center rounded-full border-2 border-red-200/90 bg-red-600/50 shadow-[0_0_24px_rgba(248,113,113,0.9)]">
-          <Bomb className="h-6 w-6 text-red-100 drop-shadow-[0_0_12px_rgba(248,113,113,1)]" />
-        </div>
-      ) : effect.kind === "heart" ? (
-        <div className="relative grid h-[72%] w-[72%] place-items-center rounded-full border border-rose-100/90 bg-rose-500/50 shadow-[0_0_24px_rgba(251,113,133,0.9)]">
-          <HeartPulse className="h-6 w-6 text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,1)]" />
-        </div>
-      ) : effect.kind === "time" ? (
-        <div className="relative grid h-[74%] w-[74%] place-items-center rounded-full border border-cyan-100/95 bg-cyan-400/50 shadow-[0_0_28px_rgba(103,232,249,0.9)]">
-          <Clock3 className="h-6 w-6 text-cyan-50 drop-shadow-[0_0_12px_rgba(103,232,249,1)]" />
-        </div>
-      ) : (
-        <div className="h-[68%] w-[68%] rounded-full bg-current shadow-[0_0_22px_currentColor]" />
-      )}
-    </motion.div>
-  );
-});
-
 const ShadowExtractionChanceMeter = memo(function ShadowExtractionChanceMeter({ remaining, signalPercent }: { remaining: number; signalPercent: number }) {
   return (
     <div
@@ -3573,18 +3379,6 @@ type SliceTrailPoint = SegmentPoint & {
 
 type SlicePrecisionTier = "perfect" | "great" | "good";
 
-type SliceImpactEffect = {
-  id: string;
-  kind: ShadowSliceKind;
-  x: number;
-  y: number;
-  sizePx: number;
-  rotation: number;
-  color: string;
-  label: string;
-  tier?: SlicePrecisionTier;
-};
-
 function getShadowSliceHitRadius(object: ShadowSliceObject, orientationMode: MiniGameOrientationMode) {
   const visualRadiusMultiplier = object.kind === "true" || object.kind === "decoy" || object.kind === "heart" || object.kind === "time" ? 0.7 : 0.55;
   const portraitAssist = orientationMode === "portrait" ? 5 : 0;
@@ -3774,10 +3568,4 @@ function getSliceImpactColor(kind: ShadowSliceKind, effectId: ShadowExtractionEf
   if (kind === "time") return "#67e8f9";
   if (kind === "decoy") return "#38bdf8";
   return getTrailColor(effectId);
-}
-
-function getSliceImpactAsset(kind: ShadowSliceKind) {
-  if (kind === "true") return MOBILE_THEME_ASSETS.miniGames.shadowTrue;
-  if (kind === "decoy") return MOBILE_THEME_ASSETS.miniGames.shadowDecoy;
-  return null;
 }
