@@ -1,7 +1,8 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import type { NotificationScheduleEntry } from "../game/notifications";
+import type { HunterNotificationContext, NotificationScheduleEntry } from "../game/notifications";
 import { buildDailyReminderSchedule } from "../game/notifications";
 import type { DailyPenalty, NotificationSettings } from "../types";
+
 
 export type HunterNotificationStatus = {
   android: boolean;
@@ -20,7 +21,9 @@ export type NativeScheduledNotification = {
   body: string;
   atMs: number;
   exact: boolean;
+  action?: string;
 };
+
 
 type HunterNotificationsPlugin = {
   getStatus(): Promise<HunterNotificationStatus>;
@@ -105,13 +108,18 @@ export async function testLocalNotification(channelId = "daily_training") {
   });
 }
 
-export async function scheduleDailyTrainingNotifications(settings: NotificationSettings, dailyCompleted: boolean) {
+export async function scheduleDailyTrainingNotifications(
+  settings: NotificationSettings,
+  dailyCompleted: boolean,
+  context?: HunterNotificationContext
+) {
   if (!Capacitor.isNativePlatform()) {
     return { scheduledCount: 0, message: WEB_STATUS.message };
   }
-  const notifications = buildDailyReminderSchedule(settings, new Date(), dailyCompleted).map(toNativeNotification);
+  const notifications = buildDailyReminderSchedule(settings, new Date(), dailyCompleted, context).map(toNativeNotification);
   await HunterNotifications.cancelNotifications({ channelId: "daily_training" });
   await HunterNotifications.cancelNotifications({ channelId: "deadline_alert" });
+  await HunterNotifications.cancelNotifications({ channelId: "rewards" });
   if (!notifications.length) return { scheduledCount: 0, message: "Brak alertów do zaplanowania." };
   return HunterNotifications.scheduleNotifications({ notifications });
 }
@@ -120,7 +128,8 @@ export async function cancelDailyTrainingNotifications() {
   if (!Capacitor.isNativePlatform()) return { cancelled: 0, message: WEB_STATUS.message };
   const daily = await HunterNotifications.cancelNotifications({ channelId: "daily_training" });
   const deadline = await HunterNotifications.cancelNotifications({ channelId: "deadline_alert" });
-  return { cancelled: daily.cancelled + deadline.cancelled, message: "Dzisiejsze przypomnienia treningowe anulowane." };
+  const rewards = await HunterNotifications.cancelNotifications({ channelId: "rewards" });
+  return { cancelled: daily.cancelled + deadline.cancelled + rewards.cancelled, message: "Dzisiejsze przypomnienia treningowe anulowane." };
 }
 
 export async function getScheduledNotifications(): Promise<NativeScheduledNotification[]> {
@@ -196,8 +205,22 @@ export function addMediaActionListener(callback: (action: string) => void) {
   }
 }
 
-export async function consumeNotificationLaunchAction(): Promise<string | null> {
+export function addHunterActionListener(callback: (action: string) => void) {
+  if (!Capacitor.isNativePlatform()) return () => {};
+  try {
+    const handlePromise = (HunterNotifications as unknown as { addListener: (event: string, cb: (data: { action: string }) => void) => Promise<{ remove: () => void }> })
+      .addListener("hunterAction", (data) => {
+        if (data?.action) callback(data.action);
+      });
+    return () => {
+      void handlePromise.then((h) => h?.remove?.()).catch(() => {});
+    };
+  } catch {
+    return () => {};
+  }
+}
 
+export async function consumeNotificationLaunchAction(): Promise<string | null> {
   if (!Capacitor.isNativePlatform()) return null;
   try {
     const result = await HunterNotifications.getLaunchAction();
@@ -216,9 +239,11 @@ function toNativeNotification(entry: NotificationScheduleEntry): NativeScheduled
     body: entry.body,
     atMs: entry.atMs,
     exact: entry.exact,
+    action: entry.action,
   };
 }
 
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
+

@@ -4,12 +4,15 @@ import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  root: fileURLToPath(new URL('.', import.meta.url)),
+  base: './',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+
   server: {
     port: 3000,
     host: '0.0.0.0',

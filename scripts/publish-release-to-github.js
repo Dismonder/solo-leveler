@@ -11,12 +11,16 @@ const tag = process.argv[2] || "v1.0.1";
 const cleanTag = tag.replace(/^v/, "");
 const releaseName = `Solo Leveler ${tag}`;
 const releaseBody = `## Co nowego w wersji ${tag}
+- ⚖️ **System Kar**: domyślnie wyłączono karne ćwiczenia z wymuszonego systemu kar (pełna kontrola w opcjach Systemu)
+- 🔔 **Spersonalizowane Powiadomienia**:
+  - 💧 Przypomnienia o Eliksirze Many (nawodnieniu)
+  - 🎮 Wyzwania bramy lochów z losowymi mini-grami
+  - ⚔️ Propozycje ćwiczeń kalistenicznych bez sprzętu z bazy techniki
+- 🎯 **Precyzyjny Deep Linking**: kliknięcie powiadomienia natychmiast przenosi i podświetla dane ćwiczenie, uruchamia mini-grę lub otwiera Eliksir Many
 - 🎵 **System Soundtracków**: automatyczna muzyka w tle, bitwy i treningu
-- 🚀 **Aktualizacje OTA**: automatyczne wykrywanie wydań przez GitHub Releases
-- 🎮 **Optymalizacje Mini-Gier**: poprawiona płynność renderowania i sterowania
-- 📱 **Powiększone Ikony**: 32dp ikony multimedialne na pasku powiadomień Androida
-- 🛠️ **Poprawki stabilności i odtwarzacza**
+- 🚀 **Aktualizacje OTA**: natywna obsługa pobierania i instalacji aktualizacji
 `;
+
 
 // 1. Get GitHub Token from Git Credential Manager
 function getGitHubToken() {
@@ -93,6 +97,21 @@ async function main() {
     console.log(`✅ Utworzono GitHub Release ${tag} (ID: ${releaseId})!`);
   }
 
+  // Check and clean existing assets if needed
+  const assetsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/${releaseId}/assets`, { headers });
+  if (assetsRes.ok) {
+    const existingAssets = await assetsRes.json();
+    for (const asset of existingAssets) {
+      if (asset.name === "solo-leveler.apk" || asset.name === `solo-leveler-${tag}.apk`) {
+        console.log(`🗑️ Usuwam stary asset ${asset.name} (ID: ${asset.id})...`);
+        await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/assets/${asset.id}`, {
+          method: "DELETE",
+          headers,
+        });
+      }
+    }
+  }
+
   // Upload APK asset
   const apkPath = path.join(rootDir, "android", "app", "build", "outputs", "apk", "debug", "app-debug.apk");
   if (!fs.existsSync(apkPath)) {
@@ -125,13 +144,10 @@ async function main() {
       console.log(`  ✅ Wgrano ${assetName}: ${assetData.browser_download_url}`);
     } else {
       const errText = await uploadRes.text();
-      if (errText.includes("already_exists")) {
-        console.log(`  ℹ️ Asset ${assetName} już istnieje w wydaniu.`);
-      } else {
-        console.warn(`  ⚠️ Ostrzeżenie przy ${assetName}: HTTP ${uploadRes.status} - ${errText}`);
-      }
+      console.warn(`  ⚠️ Błąd przy ${assetName}: HTTP ${uploadRes.status} - ${errText}`);
     }
   }
+
 
   console.log(`
 🎉 SUKCES! Wydanie ${tag} jest oficjalnie opublikowane na GitHubie!

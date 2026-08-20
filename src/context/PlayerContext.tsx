@@ -250,8 +250,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!player || loading) return;
-    void scheduleDailyTrainingNotifications(player.settings.notifications, Boolean(player.dailyQuest.completedAt));
-  }, [loading, notificationSettingsKey, player?.dailyQuest.completedAt]);
+    void scheduleDailyTrainingNotifications(
+      player.settings.notifications,
+      Boolean(player.dailyQuest.completedAt),
+      {
+        name: player.name,
+        rank: getRankForLevel(player.level),
+        level: player.level,
+      }
+    );
+  }, [loading, notificationSettingsKey, player?.dailyQuest.completedAt, player?.level, player?.name]);
+
 
   useEffect(() => {
     if (!player || loading) return;

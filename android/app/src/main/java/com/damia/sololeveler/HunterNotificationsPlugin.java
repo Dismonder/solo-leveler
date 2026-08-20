@@ -454,13 +454,17 @@ public class HunterNotificationsPlugin extends Plugin {
 
     public static void showNotificationFromIntent(Context context, Intent intent) {
         ensureChannels(context);
+        String action = intent.getStringExtra("hunter_action");
+        if (action == null || action.trim().isEmpty()) {
+            action = "open_training";
+        }
         showNow(
                 context,
                 intent.getStringExtra("id"),
                 intent.getStringExtra("channelId"),
                 intent.getStringExtra("title"),
                 intent.getStringExtra("body"),
-                "open_training",
+                action,
                 "deadline_alert".equals(intent.getStringExtra("channelId"))
         );
     }
@@ -472,6 +476,7 @@ public class HunterNotificationsPlugin extends Plugin {
             item.put("channelId", source.getStringExtra("channelId") != null ? source.getStringExtra("channelId") : "daily_training");
             item.put("title", source.getStringExtra("title") != null ? source.getStringExtra("title") : "Daily Quest czeka");
             item.put("body", "Drzemka zakończona. System wraca z przypomnieniem.");
+            item.put("action", source.getStringExtra("hunter_action") != null ? source.getStringExtra("hunter_action") : "open_training");
             item.put("atMs", System.currentTimeMillis() + minutes * 60_000L);
             item.put("exact", false);
             scheduleOne(context, item, true);
@@ -506,6 +511,11 @@ public class HunterNotificationsPlugin extends Plugin {
     public static void openMainActivity(Context context, String hunterAction) {
         if (hunterAction != null) {
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(LAST_ACTION, hunterAction).apply();
+            if (instance != null) {
+                JSObject data = new JSObject();
+                data.put("action", hunterAction);
+                instance.notifyListeners("hunterAction", data);
+            }
         }
         Intent open = new Intent(context, MainActivity.class);
         open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -523,6 +533,8 @@ public class HunterNotificationsPlugin extends Plugin {
         intent.putExtra("channelId", item.optString("channelId", "daily_training"));
         intent.putExtra("title", item.optString("title", "System Łowcy"));
         intent.putExtra("body", item.optString("body", "Przypomnienie Systemu."));
+        intent.putExtra("hunter_action", item.optString("action", "open_training"));
+
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode(item.optString("id")), intent, flags());
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

@@ -13,14 +13,29 @@ import { searchExercises } from "../game/exerciseSearch";
 type ExerciseCatalogPanelProps = {
   plannedExerciseIds?: string[];
   onAddToPlan?: (exercise: ExerciseCatalogEntry) => void;
+  highlightExerciseId?: string | null;
 };
 
-export function ExerciseCatalogPanel({ plannedExerciseIds = [], onAddToPlan }: ExerciseCatalogPanelProps) {
+export function ExerciseCatalogPanel({
+  plannedExerciseIds = [],
+  onAddToPlan,
+  highlightExerciseId = null,
+}: ExerciseCatalogPanelProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [category, setCategory] = useState("all");
   const [difficulty, setDifficulty] = useState<ExerciseDifficulty | "all">("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(highlightExerciseId || null);
+
+  React.useEffect(() => {
+    if (highlightExerciseId) {
+      setSelectedId(highlightExerciseId);
+      setCategory("all");
+      setDifficulty("all");
+      setQuery("");
+    }
+  }, [highlightExerciseId]);
+
   const plannedIds = useMemo(() => new Set(plannedExerciseIds), [plannedExerciseIds]);
 
   const filteredExercises = useMemo(() => {

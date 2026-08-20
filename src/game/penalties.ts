@@ -42,6 +42,7 @@ export const PENALTY_EXERCISES = [
 export type PenaltyExerciseTemplate = (typeof PENALTY_EXERCISES)[number];
 
 export const DEFAULT_PENALTY_SETTINGS: PenaltySettings = {
+  penaltyExercisesEnabled: false,
   funnyPenaltiesEnabled: false,
   phonePranksEnabled: false,
   wallpaperPenaltyEnabled: false,
@@ -58,6 +59,7 @@ export function normalizePenaltySettings(settings?: Partial<PenaltySettings> | n
   const normalized = {
     ...DEFAULT_PENALTY_SETTINGS,
     ...(settings || {}),
+    penaltyExercisesEnabled: Boolean(settings?.penaltyExercisesEnabled),
     penaltyIntensity: isPenaltyIntensity(intensity) ? intensity : DEFAULT_PENALTY_SETTINGS.penaltyIntensity,
   };
 
@@ -102,17 +104,23 @@ export function getPenaltyRewardMultiplier(penalties?: DailyPenalty[] | null) {
 export function ensureDailyPenalty(
   penalties: DailyPenalty[] | undefined,
   missedDateKey: string,
-  settings: PenaltySettings,
+  settingsInput: PenaltySettings,
   nowIso = new Date().toISOString()
 ) {
+  const settings = normalizePenaltySettings(settingsInput);
   const normalized = normalizePenalties(penalties);
   const existing = normalized.find((penalty) => penalty.missedDateKey === missedDateKey);
   if (existing) {
     return normalized;
   }
 
+  if (!settings.penaltyExercisesEnabled && !settings.phonePranksEnabled) {
+    return normalized;
+  }
+
   return [...normalized, createDailyPenalty(missedDateKey, settings, nowIso)];
 }
+
 
 export function createDailyPenalty(
   missedDateKey: string,

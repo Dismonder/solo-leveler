@@ -211,6 +211,7 @@ export type BonusGameResult = {
 export type PenaltyIntensity = "light" | "normal" | "hard";
 
 export type PenaltySettings = {
+  penaltyExercisesEnabled: boolean;
   funnyPenaltiesEnabled: boolean;
   phonePranksEnabled: boolean;
   wallpaperPenaltyEnabled: boolean;
@@ -234,6 +235,9 @@ export type NotificationSettings = {
   workoutOngoingEnabled: boolean;
   rewardNotifications: boolean;
   penaltyNotifications: boolean;
+  hydrationReminders: boolean;
+  miniGameReminders: boolean;
+  exerciseTipReminders: boolean;
 };
 
 export type MusicTrackSettings = {

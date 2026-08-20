@@ -18,13 +18,23 @@ test("notification settings migrate old saves with defaults", () => {
 
 test("daily reminders are skipped after completion", () => {
   const schedule = buildDailyReminderSchedule(
-    { enabled: true, dailyReminderTimes: ["09:00"], quietHours: { enabled: false, from: "22:00", to: "07:00" } },
+    {
+      enabled: true,
+      dailyReminderTimes: ["09:00"],
+      hydrationReminders: false,
+      miniGameReminders: false,
+      exerciseTipReminders: false,
+      deadlineAlertEnabled: true,
+      quietHours: { enabled: false, from: "22:00", to: "07:00" },
+    },
     new Date("2026-05-25T07:00:00"),
     true
   );
 
+  assert.equal(schedule.some((entry) => entry.type === "daily" || entry.type === "deadline"), false);
   assert.equal(schedule.length, 0);
 });
+
 
 test("quiet hours handle overnight range", () => {
   const quietHours = { enabled: true, from: "22:00", to: "07:00" };
@@ -49,3 +59,37 @@ test("deadline reminder becomes exact only when enabled", () => {
 
   assert.equal(schedule.some((entry) => entry.channelId === "deadline_alert" && entry.exact), true);
 });
+
+test("personalized schedule generates hydration, minigame and exercise tip reminders with actions", () => {
+  const schedule = buildDailyReminderSchedule(
+    {
+      enabled: true,
+      dailyReminderTimes: ["09:00"],
+      hydrationReminders: true,
+      miniGameReminders: true,
+      exerciseTipReminders: true,
+      quietHours: { enabled: false, from: "22:00", to: "07:00" },
+    },
+    new Date("2026-05-25T08:00:00"),
+    false,
+    { name: "Damian", rank: "S" }
+  );
+
+  const hydration = schedule.find((e) => e.type === "hydration");
+  assert.ok(hydration, "Hydration reminder should exist");
+  assert.equal(hydration?.action, "open_hydration");
+  assert.ok(hydration?.body.includes("Damian"));
+
+  const minigame = schedule.find((e) => e.type === "minigame");
+  assert.ok(minigame, "Minigame reminder should exist");
+  assert.ok(minigame?.action?.startsWith("open_minigame:"));
+
+  const exercise = schedule.find((e) => e.type === "exercise_tip");
+  assert.ok(exercise, "Exercise tip reminder should exist");
+  assert.ok(exercise?.action?.startsWith("open_exercise:"));
+
+  const daily = schedule.find((e) => e.type === "daily");
+  assert.ok(daily, "Daily reminder should exist");
+  assert.ok(daily?.title.includes("Ranga S"));
+});
+

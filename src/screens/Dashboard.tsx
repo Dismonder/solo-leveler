@@ -177,9 +177,11 @@ import {
   scheduleDailyTrainingNotifications,
   testLocalNotification,
   consumeNotificationLaunchAction,
+  addHunterActionListener,
   type HunterNotificationStatus,
   type NativeScheduledNotification,
 } from "../services/notificationService";
+
 import { getPerformanceStatus, type HunterPerformanceStatus } from "../services/performanceService";
 import { getGlobalVolume, getSystemAudioEnabled, setGlobalVolume, setSystemAudioEnabled } from "../utils/audio";
 import { subscribeRewardAnimations } from "../services/rewardAnimationBus";
@@ -321,10 +323,53 @@ export function Dashboard() {
   const [penaltyExerciseAttempt, setPenaltyExerciseAttempt] = useState<{ penaltyId: string; openedAt: number; message: string | null } | null>(null);
   const [rewardEvents, setRewardEvents] = useState<RewardAnimationEvent[]>([]);
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [catalogHighlightId, setCatalogHighlightId] = useState<string | null>(null);
   const healthAutoSyncRef = useRef({ lastDateKey: "", lastRunAt: 0 });
   const contentScrollRef = useRef<HTMLElement | null>(null);
   const musicTracks = useMemo(() => getLocalMusicTracks(), []);
   const resetCountdown = useDailyResetCountdown();
+
+  useEffect(() => {
+    const handleAction = (action: string) => {
+      if (!action) return;
+      if (action.startsWith("open_exercise:")) {
+        const exerciseId = action.replace("open_exercise:", "").trim();
+        setActiveTab("training");
+        setTrainingView("catalog");
+        setCatalogHighlightId(exerciseId);
+        const ex = EXERCISE_CATALOG.find((e) => e.id === exerciseId);
+        toast.info(`⚔️ ${ex ? ex.name : "Ćwiczenie Łowcy"}: Zobacz technikę i wskazówki!`, { duration: 4500 });
+      } else if (action.startsWith("open_minigame:")) {
+        const gameId = action.replace("open_minigame:", "").trim() as MiniGameId;
+        setActiveTab("bonus");
+        setActiveGameId(gameId);
+        toast.success("🎮 Brama lochu otwarta! Zmierz się z wyzwaniem!", { duration: 4000 });
+      } else if (action === "open_hydration") {
+        setActiveTab("status");
+        toast.success("💧 Eliksir Many: Nawodnij organizm szklanką wody i zregeneruj siły!", { duration: 5000 });
+      } else if (action === "open_training") {
+        setActiveTab("training");
+        setTrainingView("quest");
+      } else if (action === "open_plan") {
+        setActiveTab("training");
+        setTrainingView("plan");
+      } else if (action === "open_system") {
+        setActiveTab("system");
+      }
+    };
+
+    void consumeNotificationLaunchAction().then((action) => {
+      if (action) handleAction(action);
+    });
+
+    const removeListener = addHunterActionListener((action) => {
+      handleAction(action);
+    });
+
+    return () => {
+      removeListener();
+    };
+  }, []);
 
   useEffect(() => {
     void checkForUpdate().then((info) => {
@@ -333,6 +378,7 @@ export function Dashboard() {
       }
     });
   }, []);
+
 
   const handleManualCheckUpdate = async () => {
     toast.loading("Sprawdzam dostępność aktualizacji na GitHub...", { id: "check-update" });
@@ -1066,9 +1112,14 @@ export function Dashboard() {
                   </Suspense>
                 ) : (
                   <Suspense fallback={<CatalogLoading />}>
-                    <ExerciseCatalogPanel plannedExerciseIds={workoutPlan.map((exercise) => exercise.catalogExerciseId)} onAddToPlan={addCatalogExercise} />
+                    <ExerciseCatalogPanel
+                      plannedExerciseIds={workoutPlan.map((exercise) => exercise.catalogExerciseId)}
+                      onAddToPlan={addCatalogExercise}
+                      highlightExerciseId={catalogHighlightId}
+                    />
                   </Suspense>
                 )}
+
               </div>
             )}
 
@@ -2978,6 +3029,27 @@ function SystemPanel({
               onToggle={() => onUpdateNotificationSettings({ penaltyNotifications: !player.settings.notifications.penaltyNotifications })}
             />
           </div>
+          <div className="grid grid-cols-3 gap-2">
+            <TogglePill
+              icon={<Sparkles className="h-4 w-4" />}
+              label="Nawodnienie"
+              enabled={player.settings.notifications.hydrationReminders}
+              onToggle={() => onUpdateNotificationSettings({ hydrationReminders: !player.settings.notifications.hydrationReminders })}
+            />
+            <TogglePill
+              icon={<Gamepad2 className="h-4 w-4" />}
+              label="Mini-Gry"
+              enabled={player.settings.notifications.miniGameReminders}
+              onToggle={() => onUpdateNotificationSettings({ miniGameReminders: !player.settings.notifications.miniGameReminders })}
+            />
+            <TogglePill
+              icon={<BookOpen className="h-4 w-4" />}
+              label="Ćwiczenia"
+              enabled={player.settings.notifications.exerciseTipReminders}
+              onToggle={() => onUpdateNotificationSettings({ exerciseTipReminders: !player.settings.notifications.exerciseTipReminders })}
+            />
+          </div>
+
           <ToggleRow
             label="Cisza nocna"
             description={`${player.settings.notifications.quietHours.from} - ${player.settings.notifications.quietHours.to}. System nie planuje wtedy zwykłych przypomnień.`}
@@ -3374,11 +3446,18 @@ function SystemPanel({
               {penaltiesOpen && (
                 <div className="mt-3 space-y-3">
                   <ToggleRow
+                    label="Karne ćwiczenia za ominięty quest"
+                    description="Domyślnie wyłączone. Po włączeniu System naliczy karne ćwiczenie przy ominięciu dnia."
+                    enabled={player.settings.penaltyExercisesEnabled}
+                    onToggle={() => onUpdatePenaltySettings({ penaltyExercisesEnabled: !player.settings.penaltyExercisesEnabled })}
+                  />
+                  <ToggleRow
                     label="Śmieszne kary"
                     description="OFF blokuje zmiany telefonu, kara zostaje tylko w aplikacji."
                     enabled={player.settings.funnyPenaltiesEnabled}
                     onToggle={() => onUpdatePenaltySettings({ funnyPenaltiesEnabled: !player.settings.funnyPenaltiesEnabled })}
                   />
+
                   <ToggleRow
                     label="Psoty telefonu"
                     description="Tapeta i czcionka tylko przy aktywnej karze i zgodach."
