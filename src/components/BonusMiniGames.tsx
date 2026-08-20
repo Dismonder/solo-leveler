@@ -2060,15 +2060,9 @@ function ShadowExtractionGame({
     const element = playfieldRef.current;
     if (!element) return;
 
-    const updateSize = () => {
-      const rect = element.getBoundingClientRect();
+    const updateMeasuredSize = (rect: DOMRect) => {
       if (!rect.width || !rect.height) return;
       playfieldRectRef.current = rect;
-      const impactRenderer = impactRendererRef.current;
-      if (impactRenderer) {
-        impactRenderer.resize(rect.width, rect.height, window.devicePixelRatio || 1);
-        impactRenderer.clear();
-      }
       setPlayfieldSize((current) => {
         const width = Math.round(rect.width);
         const height = Math.round(rect.height);
@@ -2077,13 +2071,26 @@ function ShadowExtractionGame({
       });
     };
 
-    updateSize();
+    const updateSizeWithoutBackingResize = () => {
+      impactRendererRef.current?.clear();
+      updateMeasuredSize(element.getBoundingClientRect());
+    };
+
+    updateSizeWithoutBackingResize();
     if (typeof ResizeObserver === "undefined") {
-      window.addEventListener("resize", updateSize);
-      return () => window.removeEventListener("resize", updateSize);
+      window.addEventListener("resize", updateSizeWithoutBackingResize);
+      return () => window.removeEventListener("resize", updateSizeWithoutBackingResize);
     }
 
-    const observer = new ResizeObserver(updateSize);
+    const observer = new ResizeObserver(() => {
+      const rect = element.getBoundingClientRect();
+      const impactRenderer = impactRendererRef.current;
+      if (impactRenderer) {
+        impactRenderer.clear();
+        impactRenderer.resize(rect.width, rect.height, window.devicePixelRatio || 1);
+      }
+      updateMeasuredSize(rect);
+    });
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
