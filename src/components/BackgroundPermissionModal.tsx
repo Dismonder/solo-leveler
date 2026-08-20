@@ -277,7 +277,7 @@ export function useBackgroundPermissionCheck() {
   const [notificationStatus, setNotificationStatus] = useState<HunterNotificationStatus | null>(null);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     async function check() {
       try {
         const status = await getNotificationStatus();

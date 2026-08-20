@@ -5,6 +5,7 @@ import {
   Activity,
   AlertTriangle,
   Battery,
+  Bell,
   BellRing,
   BookOpen,
   Bluetooth,
@@ -2627,6 +2628,7 @@ function SystemPanel({
   onOpenWearableSensor,
   onCheckUpdate,
   onOpenWhatsNew,
+  onOpenBackgroundPermissions,
 }: {
   player: PlayerState;
   volume: number;
