@@ -37,6 +37,10 @@ export const getSystemAudioEnabled = () => {
   return systemAudioEnabled;
 };
 
+export function shouldPrepareMiniGameAudio(enabled: boolean, volume: number) {
+  return enabled && volume > 0;
+}
+
 const initAudio = () => {
   if (!audioCtx) {
     audioCtx = new window.AudioContext();
@@ -46,6 +50,16 @@ const initAudio = () => {
   }
   return audioCtx;
 };
+
+export function prepareMiniGameAudio() {
+  if (!shouldPrepareMiniGameAudio(systemAudioEnabled, globalVolume)) return;
+  try {
+    const context = initAudio();
+    if (context.state === "suspended") void context.resume().catch(() => undefined);
+  } catch {
+    // Audio is optional and must never block game start.
+  }
+}
 
 const playTone = (type: OscillatorType, from: number, to: number, duration: number, volume: number) => {
   if (globalVolume <= 0 || !systemAudioEnabled) return;

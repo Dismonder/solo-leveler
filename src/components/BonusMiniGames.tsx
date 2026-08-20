@@ -6,13 +6,10 @@ import { Bomb, Brain, Clock3, Coins, Crosshair, Gamepad2, Grid2X2, HeartPulse, K
 import { MINI_GAME_CATALOG, canUseMiniGameRank, type MiniGameDefinition } from "../game/miniGameCatalog";
 import { XP_REQUIRED } from "../game/gameConfig";
 import {
-  advanceShadowStrikeMotion,
   getExtractionSignalWindowMs,
   getMemoryStepMs,
   getMiniGameDifficulty,
   getRuneLockWindowMs,
-  getStrikeWindow,
-  getStrikeZoneWidth,
 } from "../game/miniGameDifficulty";
 import {
   createDefaultMiniGameProgress,
@@ -56,6 +53,16 @@ import {
   type MiniGameRelicBonusSummary,
 } from "../game/equipment";
 import {
+  advanceShadowStrike,
+  createShadowStrikeConfig,
+  createShadowStrikeRuntime,
+  pauseShadowStrike,
+  resumeShadowStrike,
+  tryShadowStrike,
+  type ShadowStrikeRuntime,
+  type ShadowStrikeTier,
+} from "../game/shadowStrikeEngine";
+import {
   getAvailableBackgroundsForGame,
   getSelectedBackgroundForGame,
   isMiniGameBackgroundOwned,
@@ -72,6 +79,10 @@ import {
   getShadowExtractionImpactLifetimeMs,
   getShadowExtractionObjectBudget,
 } from "../gameRuntime/miniGamePerformance";
+import {
+  createShadowStrikeRenderer,
+  type ShadowStrikeRenderer,
+} from "../gameRuntime/shadowStrikeRenderer";
 import type { MiniGameBackgroundsState, MiniGameSettlement, PlayerState } from "../types";
 import {
   playGameFailSound,
@@ -80,6 +91,7 @@ import {
   playMiniGameHitSound,
   playMiniGamePenaltySound,
   playRewardSound,
+  prepareMiniGameAudio,
 } from "../utils/audio";
 
 type BonusMiniGamesPanelProps = {
@@ -1211,14 +1223,6 @@ function GateReflexGame({ definition, progress, paused = false, stageBackground,
   );
 }
 
-type ShadowStrikeVisualEffect = {
-  id: number;
-  tier: "perfect" | "great" | "good" | "miss";
-  x: number;
-  gain?: number;
-  label: string;
-};
-
 function ShadowStrikeGame({
   definition,
   progress,
@@ -1232,343 +1236,253 @@ function ShadowStrikeGame({
   onRuntimeStateChange,
   onExit,
 }: ActiveGameProps) {
-  const [running, setRunning] = useState(false);
-  const [finished, setFinished] = useState(false);
-  const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(0);
-  const [remaining, setRemaining] = useState(GAME_SECONDS);
+  const [phase, setPhase] = useState<MiniGameRuntimeState>("ready");
+  const [finalScore, setFinalScore] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const scoreRef = useRef(0);
-  const comboRef = useRef(0);
-  const cursorRef = useRef(0);
-  const zoneRef = useRef(50);
-  const driftAngleRef = useRef(0);
-  const lastFrameTimeRef = useRef(0);
-  const lastRemainingRef = useRef(GAME_SECONDS);
-  const deadlineRef = useRef(0);
-  const committedRef = useRef(false);
+  const staticCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const dynamicCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const runtimeRef = useRef<ShadowStrikeRuntime | null>(null);
+  const rendererRef = useRef<ShadowStrikeRenderer | null>(null);
   const animationRef = useRef<number | null>(null);
-  const pauseStartedAtRef = useRef<number | null>(null);
-  const hitFlashRef = useRef<{ tier: string; x: number; until: number } | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const deferredFeedbackTimersRef = useRef<Set<number>>(new Set());
+  const committedRef = useRef(false);
 
-  const { feedback, showFeedback } = useFeedback();
-  const { scorePopup, showScorePopup } = useScorePopup();
+  const clearDeferredFeedback = useCallback(() => {
+    deferredFeedbackTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    deferredFeedbackTimersRef.current.clear();
+  }, []);
 
   const finish = useCallback(
-    (finalScore: number) => {
-      if (committedRef.current) return;
+    (runtime: ShadowStrikeRuntime) => {
+      if (runtimeRef.current !== runtime || committedRef.current) return;
       committedRef.current = true;
-      playMiniGameFinishCue(finalScore, definition);
-      setRunning(false);
-      setFinished(true);
+      clearDeferredFeedback();
+      playMiniGameFinishCue(runtime.score, definition);
+      setFinalScore(runtime.score);
+      setPhase("finished");
       onRuntimeStateChange?.("finished");
       onComplete({
         gameId: definition.id,
-        score: finalScore,
+        score: runtime.score,
         survivedSeconds: GAME_SECONDS,
-        won: finalScore >= definition.winScore,
+        won: runtime.score >= definition.winScore,
         statHint: definition.statHint,
       });
     },
-    [definition, onComplete, onRuntimeStateChange]
+    [clearDeferredFeedback, definition, onComplete, onRuntimeStateChange]
   );
 
   useEffect(() => {
-    if (!running || paused) return;
+    const staticCanvas = staticCanvasRef.current;
+    const dynamicCanvas = dynamicCanvasRef.current;
+    if (!staticCanvas || !dynamicCanvas) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-    if (!ctx) return;
+    let renderer: ShadowStrikeRenderer;
+    try {
+      renderer = createShadowStrikeRenderer(staticCanvas, dynamicCanvas);
+      rendererRef.current = renderer;
+    } catch {
+      setError("Canvas 2D jest niedostępny na tym urządzeniu.");
+      return;
+    }
+
+    const resizeAndDrawStatic = () => {
+      const rect = staticCanvas.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      renderer.resize(rect.width, rect.height, window.devicePixelRatio || 1);
+      const runtime = runtimeRef.current;
+      if (runtime) renderer.drawStatic(runtime.config);
+    };
+
+    resizeAndDrawStatic();
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(resizeAndDrawStatic);
+      resizeObserverRef.current = observer;
+      observer.observe(staticCanvas);
+    } else {
+      window.addEventListener("resize", resizeAndDrawStatic);
+    }
+
+    return () => {
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
+      window.removeEventListener("resize", resizeAndDrawStatic);
+      if (animationRef.current !== null) window.cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+      clearDeferredFeedback();
+      renderer.destroy();
+      if (rendererRef.current === renderer) rendererRef.current = null;
+      const runtime = runtimeRef.current;
+      if (runtime) {
+        const diagnosticGlobal = globalThis as typeof globalThis & {
+          __soloShadowStrikeRuntime?: ShadowStrikeRuntime;
+        };
+        if (diagnosticGlobal.__soloShadowStrikeRuntime === runtime) {
+          delete diagnosticGlobal.__soloShadowStrikeRuntime;
+        }
+        if (runtimeRef.current === runtime) runtimeRef.current = null;
+      }
+    };
+  }, [clearDeferredFeedback]);
+
+  useEffect(() => {
+    if (phase !== "running") return;
+    const runtime = runtimeRef.current;
+    if (!runtime || runtime.finished) return;
+    const now = performance.now();
+    if (paused) pauseShadowStrike(runtime, now);
+    else resumeShadowStrike(runtime, now);
+  }, [paused, phase]);
+
+  useEffect(() => {
+    if (phase !== "running" || paused) return;
+    let active = true;
 
     const tick = (now: number) => {
-      if (lastFrameTimeRef.current === 0) {
-        lastFrameTimeRef.current = now;
+      if (!active) return;
+      const runtime = runtimeRef.current;
+      const renderer = rendererRef.current;
+      if (!runtime || !renderer) {
+        animationRef.current = null;
+        return;
       }
 
-      const deltaSeconds = Math.min(0.05, Math.max(0.001, (now - lastFrameTimeRef.current) / 1000));
-      lastFrameTimeRef.current = now;
-
-      const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 12);
-      const cycleMs = Math.max(360, 1120 - difficulty * 65);
-      const driftMs = Math.max(420, 850 - difficulty * 35);
-
-      const motion = advanceShadowStrikeMotion({
-        cursorPosition: cursorRef.current,
-        driftAngle: driftAngleRef.current,
-        deltaSeconds,
-        cycleMs,
-        driftMs,
-        difficulty,
-      });
-
-      cursorRef.current = motion.nextCursor;
-      driftAngleRef.current = motion.nextAngle;
-      zoneRef.current = motion.nextZone;
-
-      const windowBounds = getStrikeWindow(
-        motion.nextZone,
-        getStrikeZoneWidth(scoreRef.current, progress.level) * (1 + relicBonuses.hitWindow)
-      );
-
-      // Hardware-Accelerated 2D Canvas Drawing (sub-0.2ms render time)
-      const width = canvas.width;
-      const height = canvas.height;
-      ctx.clearRect(0, 0, width, height);
-
-      const trackHeight = height * 0.68;
-      const trackY = (height - trackHeight) / 2;
-      const trackRadius = trackHeight / 2;
-
-      // 1. Draw sleek track base
-      ctx.fillStyle = "rgba(2, 6, 23, 0.9)";
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(4, trackY, width - 8, trackHeight, trackRadius);
-      ctx.fill();
-      ctx.stroke();
-
-      // 2. Draw Cyan Strike Zone
-      const zoneX = Math.max(6, (windowBounds.left / 100) * width);
-      const zoneW = Math.min(width - zoneX - 6, (windowBounds.width / 100) * width);
-      const zoneH = trackHeight * 0.78;
-      const zoneY = (height - zoneH) / 2;
-      ctx.fillStyle = "rgba(6, 182, 212, 0.3)";
-      ctx.strokeStyle = "rgba(34, 211, 238, 0.85)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(zoneX, zoneY, zoneW, zoneH, zoneH / 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // 3. Draw Gold Perfect Zone
-      const perfX = Math.max(zoneX, (windowBounds.perfectLeft / 100) * width);
-      const perfW = Math.min(width - perfX - 6, ((windowBounds.perfectRight - windowBounds.perfectLeft) / 100) * width);
-      const perfH = trackHeight * 0.58;
-      const perfY = (height - perfH) / 2;
-      ctx.fillStyle = "rgba(250, 204, 21, 0.5)";
-      ctx.strokeStyle = "rgba(253, 224, 71, 1)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(perfX, perfY, perfW, perfH, perfH / 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // 4. Draw Hit Flash (if active)
-      if (hitFlashRef.current && hitFlashRef.current.until > now) {
-        const flashX = (hitFlashRef.current.x / 100) * width;
-        const color =
-          hitFlashRef.current.tier === "perfect"
-            ? "rgba(250, 204, 21, 0.95)"
-            : hitFlashRef.current.tier === "great"
-              ? "rgba(34, 211, 238, 0.9)"
-              : hitFlashRef.current.tier === "good"
-                ? "rgba(192, 132, 252, 0.85)"
-                : "rgba(239, 68, 68, 0.85)";
-        ctx.fillStyle = color;
-        ctx.fillRect(flashX - 2, trackY, 4, trackHeight);
-      }
-
-      // 5. Draw Clean Simple Sleek Vertical White Bar (No Diamonds / No Artifacts)
-      const cursorX = (motion.nextCursor / 100) * (width - 16) + 8;
-      ctx.fillStyle = "#ffffff";
-      ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
-      ctx.shadowBlur = 6;
-      ctx.beginPath();
-      ctx.roundRect(cursorX - 2, trackY + 3, 4, trackHeight - 6, 2);
-      ctx.fill();
-      ctx.shadowBlur = 0; // reset shadow
-
-      // Only trigger React state update when the integer second actually changes
-      const left = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
-      if (left !== lastRemainingRef.current) {
-        lastRemainingRef.current = left;
-        setRemaining(left);
-      }
-
-      if (left <= 0) {
-        finish(scoreRef.current);
+      advanceShadowStrike(runtime, now);
+      renderer.render(runtime, now);
+      if (runtime.finished) {
+        animationRef.current = null;
+        const timer = window.setTimeout(() => {
+          deferredFeedbackTimersRef.current.delete(timer);
+          finish(runtime);
+        }, 0);
+        deferredFeedbackTimersRef.current.add(timer);
         return;
       }
 
       animationRef.current = window.requestAnimationFrame(tick);
     };
 
-    lastFrameTimeRef.current = performance.now();
     animationRef.current = window.requestAnimationFrame(tick);
     return () => {
-      if (animationRef.current) window.cancelAnimationFrame(animationRef.current);
+      active = false;
+      if (animationRef.current !== null) window.cancelAnimationFrame(animationRef.current);
       animationRef.current = null;
     };
-  }, [finish, paused, progress.level, relicBonuses.hitWindow, running]);
+  }, [finish, paused, phase]);
 
-  useEffect(() => {
-    if (!running) {
-      pauseStartedAtRef.current = null;
+  const start = useCallback(() => {
+    const renderer = rendererRef.current;
+    if (!renderer) {
+      setError("Canvas 2D jest niedostępny na tym urządzeniu.");
       return;
     }
-    if (paused) {
-      if (pauseStartedAtRef.current === null) pauseStartedAtRef.current = Date.now();
-      return;
-    }
-    if (pauseStartedAtRef.current !== null) {
-      const pausedFor = Date.now() - pauseStartedAtRef.current;
-      deadlineRef.current += pausedFor;
-      lastFrameTimeRef.current = performance.now();
-      pauseStartedAtRef.current = null;
-    }
-  }, [paused, running]);
 
-  const start = () => {
-    playMiniGameStartCue();
-    committedRef.current = false;
-    scoreRef.current = 0;
-    comboRef.current = 0;
-    cursorRef.current = 0;
-    zoneRef.current = 50;
-    driftAngleRef.current = 0;
-    lastFrameTimeRef.current = performance.now();
-    const now = Date.now();
-    deadlineRef.current = now + GAME_SECONDS * 1000;
-    lastRemainingRef.current = GAME_SECONDS;
-    setScore(0);
-    setCombo(0);
-    setRemaining(GAME_SECONDS);
-    setFinished(false);
-    hitFlashRef.current = null;
-    onRuntimeStateChange?.("running");
-    setRunning(true);
-  };
-
-  const strike = (e?: React.SyntheticEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    if (!running || paused) return;
-    const now = Date.now();
-    const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 12);
-    const windowBounds = getStrikeWindow(
-      zoneRef.current,
-      getStrikeZoneWidth(scoreRef.current, progress.level) * (1 + relicBonuses.hitWindow)
+    prepareMiniGameAudio();
+    const now = performance.now();
+    const config = createShadowStrikeConfig(
+      progress.level,
+      relicBonuses.hitWindow,
+      relicBonuses.scoreBonus,
+      relicBonuses.timePenaltyResist
     );
-    const cursorPosition = cursorRef.current;
-    const nextCombo = comboRef.current + 1;
-    const zoneCenter = (windowBounds.left + windowBounds.right) / 2;
-    const halfWidth = (windowBounds.right - windowBounds.left) / 2;
-    const distRatio = halfWidth > 0 ? Math.abs(cursorPosition - zoneCenter) / halfWidth : 1;
-
-    // Haptic vibration feedback for mobile touch
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      try {
-        navigator.vibrate(
-          cursorPosition >= windowBounds.perfectLeft && cursorPosition <= windowBounds.perfectRight
-            ? [18, 24, 18]
-            : 12
-        );
-      } catch {
-        // ignore
+    const previousRuntime = runtimeRef.current;
+    if (previousRuntime) {
+      const diagnosticGlobal = globalThis as typeof globalThis & {
+        __soloShadowStrikeRuntime?: ShadowStrikeRuntime;
+      };
+      if (diagnosticGlobal.__soloShadowStrikeRuntime === previousRuntime) {
+        delete diagnosticGlobal.__soloShadowStrikeRuntime;
       }
     }
 
-    if (cursorPosition >= windowBounds.perfectLeft && cursorPosition <= windowBounds.perfectRight) {
-      const gain = Math.round((75 + Math.min(90, nextCombo * 8)) * (1 + relicBonuses.scoreBonus));
-      comboRef.current = nextCombo;
-      scoreRef.current += gain;
-      deadlineRef.current = addGameTime(deadlineRef.current, now, 1400 + nextCombo * 70);
-      setCombo(nextCombo);
-      setScore(scoreRef.current);
-      showScorePopup(gain);
-      playMiniGameComboSound();
-      showFeedback("👑 Perfekcyjne cięcie!");
-      hitFlashRef.current = { tier: "perfect", x: cursorPosition, until: performance.now() + 200 };
-      return;
-    }
+    clearDeferredFeedback();
+    const runtime = createShadowStrikeRuntime(now, config);
+    if (paused) pauseShadowStrike(runtime, now);
+    runtimeRef.current = runtime;
+    (globalThis as typeof globalThis & {
+      __soloShadowStrikeRuntime?: ShadowStrikeRuntime;
+    }).__soloShadowStrikeRuntime = runtime;
+    renderer.drawStatic(config);
+    renderer.render(runtime, now);
+    committedRef.current = false;
+    playMiniGameStartCue();
+    setError(null);
+    setFinalScore(0);
+    setPhase("running");
+    onRuntimeStateChange?.("running");
+  }, [clearDeferredFeedback, onRuntimeStateChange, paused, progress.level, relicBonuses]);
 
-    if (cursorPosition >= windowBounds.left && cursorPosition <= windowBounds.right) {
-      const isGreat = distRatio <= 0.65;
-      const gain = isGreat
-        ? Math.round((52 + Math.min(65, nextCombo * 6)) * (1 + relicBonuses.scoreBonus))
-        : Math.round((34 + Math.min(50, nextCombo * 5)) * (1 + relicBonuses.scoreBonus));
-      comboRef.current = nextCombo;
-      scoreRef.current += gain;
-      deadlineRef.current = addGameTime(deadlineRef.current, now, isGreat ? 850 : 550);
-      setCombo(nextCombo);
-      setScore(scoreRef.current);
-      showScorePopup(gain);
-      if (isGreat) {
-        playMiniGameComboSound();
-        showFeedback("⚡ Czyste cięcie!");
-      } else {
-        playMiniGameHitSound();
-        showFeedback("⚔️ Trafienie");
+  const scheduleStrikeFeedback = useCallback((tier: ShadowStrikeTier) => {
+    const timer = window.setTimeout(() => {
+      deferredFeedbackTimersRef.current.delete(timer);
+      if (tier === "perfect" || tier === "great") playMiniGameComboSound();
+      else if (tier === "good") playMiniGameHitSound();
+      else playMiniGamePenaltySound();
+
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        try {
+          navigator.vibrate(tier === "perfect" ? 10 : tier === "miss" ? 6 : 8);
+        } catch {
+          // Haptics are optional feedback.
+        }
       }
-      hitFlashRef.current = { tier: isGreat ? "great" : "good", x: cursorPosition, until: performance.now() + 180 };
-      return;
-    }
+    }, 0);
+    deferredFeedbackTimersRef.current.add(timer);
+  }, []);
 
-    comboRef.current = 0;
-    deadlineRef.current -= Math.round((1800 + difficulty * 130) * (1 - relicBonuses.timePenaltyResist));
-    setCombo(0);
-    playMiniGamePenaltySound();
-    showFeedback("💥 Spóźniony zamach -2s");
-    hitFlashRef.current = { tier: "miss", x: cursorPosition, until: performance.now() + 180 };
-  };
+  const handleStrike = useCallback((event: PointerEvent<HTMLButtonElement>) => {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    const runtime = runtimeRef.current;
+    const renderer = rendererRef.current;
+    if (!runtime || !renderer || runtime.paused || runtime.finished) return;
+
+    event.preventDefault();
+    const now = performance.now();
+    const outcome = tryShadowStrike(runtime, now);
+    if (!outcome) return;
+    renderer.flash(outcome, now);
+    scheduleStrikeFeedback(outcome.tier);
+  }, [scheduleStrikeFeedback]);
 
   return (
     <MiniGameFrame
       definition={definition}
-      score={score}
-      combo={combo}
-      remaining={remaining}
-      scorePopup={scorePopup}
-      finished={finished}
-      showHud={running}
+      score={finalScore}
+      combo={0}
+      remaining={0}
+      scorePopup={null}
+      finished={phase === "finished"}
+      showHud={false}
       stageBackground={stageBackground}
       stageEffect={stageEffect}
       showGrid={showGrid}
       graphicsQuality={graphicsQuality}
+      staticStageEffect={phase === "running"}
+      shadowStrikeState={phase === "running" && paused ? "paused" : phase}
     >
-      <div
-        onPointerDown={(e) => {
-          if (running && !finished) strike(e);
-        }}
-        className="relative h-full min-h-[360px] overflow-hidden p-5 select-none touch-manipulation cursor-pointer active:brightness-105 flex flex-col justify-center"
-      >
-        <div className="relative z-10 flex flex-col justify-center gap-8 pointer-events-none w-full max-w-lg mx-auto">
-          <div className="sl-input relative rounded-[24px] p-5 shadow-inner overflow-hidden pointer-events-auto">
-            {/* Direct GPU-Accelerated 2D Canvas Track (<0.2ms frame time) */}
-            <div className="relative w-full h-16 flex items-center justify-center">
-              <canvas
-                ref={canvasRef}
-                width={480}
-                height={64}
-                className="w-full h-16 rounded-full block pointer-events-none"
-              />
-            </div>
+      <div className="relative flex h-full min-h-[360px] select-none items-center justify-center overflow-hidden p-5">
+        <button
+          type="button"
+          onPointerDown={handleStrike}
+          aria-label="Wykonaj Cięcie Cienia"
+          data-shadow-strike-input-surface="true"
+          className="sl-input relative h-44 w-full max-w-2xl touch-none overflow-hidden rounded-[28px] border border-cyan-200/25 p-0 shadow-[0_0_34px_rgba(6,182,212,0.16)] active:brightness-110"
+        >
+          <canvas ref={staticCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
+          <canvas ref={dynamicCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
+          <span className="sl-muted pointer-events-none absolute inset-x-3 bottom-3 font-mono text-[10px] font-black uppercase tracking-[0.2em]">
+            DOTKNIJ GDZIEKOLWIEK · CEL JEST NIERUCHOMY
+          </span>
+        </button>
 
-            <p className="sl-muted mt-3 text-center font-mono text-[10px] uppercase tracking-[0.24em]">
-              Dotknij ekranu lub przycisku, gdy pasek minie złoty punkt
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={(e) => strike(e)}
-            className="sl-button-primary pointer-events-auto min-h-16 rounded-3xl px-6 text-base font-black uppercase tracking-[0.18em] shadow-[0_0_20px_rgba(6,182,212,0.3)] active:scale-[0.96] transition-transform"
-          >
-            ⚔️ Cięcie (Dotknij)
-          </button>
-        </div>
-
-        <Feedback text={feedback} />
-        {!running && (
+        {phase !== "running" && (
           <StartOverlay
-            finished={finished}
-            score={score}
-            title={finished ? "Wynik zapisany" : definition.title}
-            text={definition.shortGoal}
+            finished={phase === "finished"}
+            score={finalScore}
+            title={phase === "finished" ? "Wynik zapisany" : definition.title}
+            text={error ?? definition.shortGoal}
             tips={definition.readyTips}
             relicBonuses={relicBonuses}
             onStart={start}
@@ -2802,6 +2716,8 @@ function MiniGameFrame({
   showGrid,
   graphicsQuality,
   compact = false,
+  staticStageEffect = false,
+  shadowStrikeState,
   children,
 }: {
   definition: MiniGameDefinition;
@@ -2816,6 +2732,8 @@ function MiniGameFrame({
   showGrid: boolean;
   graphicsQuality: PlayerState["settings"]["graphicsQuality"];
   compact?: boolean;
+  staticStageEffect?: boolean;
+  shadowStrikeState?: MiniGameRuntimeState | "paused";
   children: ReactNode;
 }) {
   return (
@@ -2824,6 +2742,7 @@ function MiniGameFrame({
       aria-label={definition.title}
       data-game-stage={definition.id}
       data-graphics-quality={graphicsQuality}
+      data-shadow-strike-state={shadowStrikeState}
     >
       <img
         src={stageBackground.asset}
@@ -2835,7 +2754,14 @@ function MiniGameFrame({
         className="pointer-events-none absolute inset-0"
         style={{ background: `color-mix(in srgb, var(--theme-bg) ${Math.round(stageBackground.overlayStrength * 100)}%, transparent)` }}
       />
-      <MiniGameStageEffectLayer effect={stageEffect} graphicsQuality={graphicsQuality} />
+      {staticStageEffect ? (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-35"
+          style={{ background: "radial-gradient(circle at 50% 45%, rgba(34,211,238,0.16), transparent 42%), linear-gradient(180deg, rgba(15,23,42,0.08), rgba(2,6,23,0.28))" }}
+        />
+      ) : (
+        <MiniGameStageEffectLayer effect={stageEffect} graphicsQuality={graphicsQuality} />
+      )}
       {showGrid && <PlayfieldGrid />}
       {!finished && showHud && <GameHud score={score} combo={combo} remaining={remaining} scorePopup={scorePopup} compact={compact} />}
       <div className={`relative z-10 h-full min-h-0 ${finished ? "bg-[var(--theme-accent-soft)]" : ""}`}>
