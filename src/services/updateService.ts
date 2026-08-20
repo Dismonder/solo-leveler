@@ -1,15 +1,15 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
-export const CURRENT_APP_VERSION = "1.0.4";
-export const CURRENT_APP_BUILD = 5;
+export const CURRENT_APP_VERSION = "1.0.5";
+export const CURRENT_APP_BUILD = 6;
 
 
 
 export const CURRENT_VERSION_CHANGELOG: string[] = [
-  "⚔️ Cięcie Cienia: spektakularne anime efekty cięcia laserowego, złota/błękitna nova shockwave, iskry i oceny precyzji (👑 Perfekcyjne, ⚡ Czyste, ⚔️ Trafienie)",
+  "⚡ Optymalizacja Cięcia Cienia: płynne 120 FPS bez lagów dzięki bezpośredniej manipulacji DOM w pętli renderowania",
+  "⚔️ Precyzyjne efekty cięcia: podwójne cięcia laserowe anime X-Slash, radialna nova shockwave i 24 iskry wyśrodkowane w punkcie uderzenia",
+  "💥 Hit-Stop & Recoil: 45ms kinowy freeze-frame przy perfekcyjnym trafieniu dla maksymalnej satysfakcji z uderzenia",
   "🛡️ Działanie w tle i alerty: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień",
-  "🎛️ Mini Player & suwaki głośności: zintegrowany odtwarzacz w zakładce System z precyzyjną dotykową regulacją SFX i OST",
-  "🔔 Automatyczne powiadomienia o aktualizacjach przy każdym nowym wydaniu aplikacji",
 ];
 
 export const DEFAULT_GITHUB_REPO = "Dismonder/solo-leveler";

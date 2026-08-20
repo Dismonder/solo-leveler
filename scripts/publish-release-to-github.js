@@ -7,14 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 
-const tag = process.argv[2] || "v1.0.4";
+const tag = process.argv[2] || "v1.0.5";
 const cleanTag = tag.replace(/^v/, "");
 const releaseName = `Solo Leveler ${tag}`;
 const releaseBody = `## Co nowego w wersji ${tag}
-- ⚔️ **Cięcie Cienia**: spektakularne anime efekty cięcia laserowego, złota/błękitna nova shockwave, iskry i oceny precyzji (👑 Perfekcyjne, ⚡ Czyste, ⚔️ Trafienie)
+- ⚡ **Optymalizacja Cięcia Cienia**: płynne 120 FPS bez lagów dzięki bezpośredniej manipulacji DOM w pętli renderowania
+- ⚔️ **Precyzyjne efekty cięcia**: podwójne cięcia laserowe anime X-Slash, radialna nova shockwave i 24 iskry wyśrodkowane w punkcie uderzenia
+- 💥 **Hit-Stop & Recoil**: 45ms kinowy freeze-frame przy perfekcyjnym trafieniu dla maksymalnej satysfakcji z uderzenia
 - 🛡️ **Działanie w tle i alerty**: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień
 - 🎛️ **Mini Player & suwaki głośności**: zintegrowany odtwarzacz w zakładce System z precyzyjną dotykową regulacją SFX i OST
-- 🔔 **Automatyczne powiadomienia o aktualizacjach**: powiadomienie push w telefonie przy każdym nowym wydaniu
 - 🎵 **Pełny Album Muzyczny**: dedykowany arkusz z biblioteką 10 utworów Solo Leveling OST
 `;
 
