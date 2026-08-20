@@ -1238,7 +1238,6 @@ function ShadowStrikeGame({
   const [combo, setCombo] = useState(0);
   const [remaining, setRemaining] = useState(GAME_SECONDS);
   const [activeStrikeEffect, setActiveStrikeEffect] = useState<ShadowStrikeVisualEffect | null>(null);
-  const [isShaking, setIsShaking] = useState(false);
 
   const scoreRef = useRef(0);
   const comboRef = useRef(0);
@@ -1253,7 +1252,6 @@ function ShadowStrikeGame({
   const animationRef = useRef<number | null>(null);
   const pauseStartedAtRef = useRef<number | null>(null);
   const strikeTimerRef = useRef<number | null>(null);
-  const shakeTimerRef = useRef<number | null>(null);
 
   const cursorElRef = useRef<HTMLDivElement>(null);
   const zoneElRef = useRef<HTMLDivElement>(null);
@@ -1394,7 +1392,6 @@ function ShadowStrikeGame({
     setRemaining(GAME_SECONDS);
     setFinished(false);
     setActiveStrikeEffect(null);
-    setIsShaking(false);
     onRuntimeStateChange?.("running");
     setRunning(true);
   };
@@ -1404,17 +1401,13 @@ function ShadowStrikeGame({
     if (strikeTimerRef.current) window.clearTimeout(strikeTimerRef.current);
     strikeTimerRef.current = window.setTimeout(() => {
       setActiveStrikeEffect((current) => (current?.id === effect.id ? null : current));
-    }, 750);
-
-    // Screen recoil shake on great/perfect
-    if (effect.tier === "perfect" || effect.tier === "great") {
-      setIsShaking(true);
-      if (shakeTimerRef.current) window.clearTimeout(shakeTimerRef.current);
-      shakeTimerRef.current = window.setTimeout(() => setIsShaking(false), 220);
-    }
+    }, 650);
   };
 
-  const strike = () => {
+  const strike = (e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     if (!running || paused) return;
     const now = Date.now();
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 12);
@@ -1428,12 +1421,25 @@ function ShadowStrikeGame({
     const halfWidth = (windowBounds.right - windowBounds.left) / 2;
     const distRatio = halfWidth > 0 ? Math.abs(cursorPosition - zoneCenter) / halfWidth : 1;
 
+    // Haptic vibration feedback for mobile touch
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(
+          cursorPosition >= windowBounds.perfectLeft && cursorPosition <= windowBounds.perfectRight
+            ? [20, 30, 20]
+            : 15
+        );
+      } catch {
+        // ignore
+      }
+    }
+
     if (cursorPosition >= windowBounds.perfectLeft && cursorPosition <= windowBounds.perfectRight) {
       const gain = Math.round((75 + Math.min(90, nextCombo * 8)) * (1 + relicBonuses.scoreBonus));
       comboRef.current = nextCombo;
       scoreRef.current += gain;
       deadlineRef.current = addGameTime(deadlineRef.current, now, 1400 + nextCombo * 70);
-      hitStopUntilRef.current = performance.now() + 45; // 45ms anime hit-stop freeze!
+      hitStopUntilRef.current = performance.now() + 40; // 40ms micro hit-stop freeze
       setCombo(nextCombo);
       setScore(scoreRef.current);
       showScorePopup(gain);
@@ -1510,22 +1516,23 @@ function ShadowStrikeGame({
       graphicsQuality={graphicsQuality}
     >
       <div
-        className={`relative h-full min-h-[360px] overflow-hidden p-5 transition-transform duration-75 ${
-          isShaking ? "translate-x-[-2px] translate-y-[2px]" : ""
-        }`}
+        onPointerDown={(e) => {
+          if (running && !finished) strike(e);
+        }}
+        className="relative h-full min-h-[360px] overflow-hidden p-5 select-none touch-manipulation cursor-pointer active:brightness-105"
       >
         {/* Full-screen strike visual effect overlay */}
         {activeStrikeEffect && (
           <ShadowStrikeVisualOverlay effect={activeStrikeEffect} graphicsQuality={graphicsQuality} />
         )}
 
-        <div className="relative z-10 flex h-full flex-col justify-center gap-8">
-          <div className="sl-input relative rounded-[24px] p-5 shadow-inner overflow-hidden">
+        <div className="relative z-10 flex h-full flex-col justify-center gap-8 pointer-events-none">
+          <div className="sl-input relative rounded-[24px] p-5 shadow-inner overflow-hidden pointer-events-auto">
             {/* Impact flash glow on the slider */}
             {activeStrikeEffect && (
               <div
                 ref={impactFlashElRef}
-                className={`absolute inset-y-0 w-28 -translate-x-1/2 pointer-events-none rounded-full blur-md transition-opacity duration-300 ${
+                className={`absolute inset-y-0 w-24 -translate-x-1/2 pointer-events-none rounded-full blur-md transition-opacity duration-300 ${
                   activeStrikeEffect.tier === "perfect"
                     ? "bg-yellow-300/80 shadow-[0_0_35px_rgba(250,204,21,1)]"
                     : activeStrikeEffect.tier === "great"
@@ -1539,7 +1546,7 @@ function ShadowStrikeGame({
             )}
 
             {/* Slider track */}
-            <div className="sl-progress-track relative h-16 rounded-full border border-[var(--theme-border)] bg-slate-950/80 shadow-inner">
+            <div className="sl-progress-track relative h-16 rounded-full border border-[var(--theme-border)] bg-slate-950/85 shadow-inner">
               {/* Weak point strike zone */}
               <div
                 ref={zoneElRef}
@@ -1550,14 +1557,14 @@ function ShadowStrikeGame({
               {/* Perfect strike gold core */}
               <div
                 ref={perfectZoneElRef}
-                className="absolute top-1/2 h-9 -translate-y-1/2 rounded-full border border-yellow-300/90 bg-yellow-400/40 shadow-[0_0_18px_rgba(250,204,21,0.8)]"
+                className="absolute top-1/2 h-9 -translate-y-1/2 rounded-full border border-yellow-300/90 bg-yellow-400/40 shadow-[0_0_18px_rgba(250,204,21,0.8)] animate-pulse"
                 style={{
                   left: `${initialBounds.perfectLeft}%`,
                   width: `${initialBounds.perfectRight - initialBounds.perfectLeft}%`,
                 }}
               />
 
-              {/* Moving cursor with sharp laser blade head */}
+              {/* Moving cursor with razor-sharp laser blade point */}
               <div
                 ref={cursorElRef}
                 className="absolute top-1/2 h-16 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,1),0_0_10px_rgba(6,182,212,0.9)] z-20"
@@ -1569,16 +1576,16 @@ function ShadowStrikeGame({
             </div>
 
             <p className="sl-muted mt-3 text-center font-mono text-[10px] uppercase tracking-[0.24em]">
-              Uderz, gdy wskaźnik przejdzie przez złoty słaby punkt
+              Dotknij ekranu lub przycisku, gdy wskaźnik minie złoty punkt
             </p>
           </div>
 
           <button
             type="button"
-            onClick={strike}
-            className="sl-button-primary min-h-16 rounded-3xl px-6 text-base font-black uppercase tracking-[0.18em] shadow-[0_0_25px_rgba(6,182,212,0.35)] active:scale-[0.97]"
+            onClick={(e) => strike(e)}
+            className="sl-button-primary pointer-events-auto min-h-16 rounded-3xl px-6 text-base font-black uppercase tracking-[0.18em] shadow-[0_0_25px_rgba(6,182,212,0.35)] active:scale-[0.96] transition-transform"
           >
-            ⚔️ Cięcie
+            ⚔️ Cięcie (Dotknij)
           </button>
         </div>
 
@@ -1615,145 +1622,146 @@ const ShadowStrikeVisualOverlay = memo(function ShadowStrikeVisualOverlay({
   const particleCount =
     graphicsQuality === "cinematic"
       ? isPerfect
-        ? 24
-        : isGreat
-          ? 16
-          : isGood
-            ? 10
-            : 8
-      : isPerfect
-        ? 16
+        ? 18
         : isGreat
           ? 12
           : isGood
             ? 8
-            : 6;
+            : 6
+      : isPerfect
+        ? 12
+        : isGreat
+          ? 8
+          : isGood
+            ? 6
+            : 4;
 
   const particles = useMemo(() => {
     return Array.from({ length: particleCount }, (_, index) => {
-      const angle = (Math.PI * 2 * index) / particleCount + (Math.random() * 0.4 - 0.2);
-      const dist = (isPerfect ? 130 : isGreat ? 95 : 65) * (0.6 + (index % 4) * 0.2);
+      const angle = (Math.PI * 2 * index) / particleCount + (Math.random() * 0.3 - 0.15);
+      const dist = (isPerfect ? 110 : isGreat ? 80 : 55) * (0.6 + (index % 3) * 0.2);
       return {
         id: `strike_p_${index}`,
         x: Math.cos(angle) * dist,
         y: Math.sin(angle) * dist,
-        size: (isPerfect ? 5 : isGreat ? 4 : 3) + (index % 3) * 1.5,
+        size: (isPerfect ? 4.5 : isGreat ? 3.5 : 2.5) + (index % 2) * 1.5,
       };
     });
   }, [isGreat, isPerfect, isGood, particleCount]);
 
   return (
     <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden">
-      {/* Full screen ambient flash */}
+      {/* Subtle ambient flash */}
       <motion.div
         className={`absolute inset-0 pointer-events-none ${
           isPerfect
-            ? "bg-amber-400/30"
+            ? "bg-amber-400/25"
             : isGreat
-              ? "bg-cyan-400/25"
+              ? "bg-cyan-400/20"
               : isGood
-                ? "bg-purple-500/20"
-                : "bg-red-600/30"
+                ? "bg-purple-500/15"
+                : "bg-red-600/25"
         }`}
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ duration: 0.32, ease: "easeOut" }}
+        transition={{ duration: 0.26, ease: "easeOut" }}
       />
 
-      {/* Primary Diagonal Blade Laser Slash centered at hit x */}
-      <motion.div
-        className={`absolute top-[40%] rounded-full pointer-events-none ${
-          isPerfect
-            ? "h-4 bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-100 shadow-[0_0_40px_rgba(250,204,21,1),0_0_80px_rgba(250,204,21,0.9)]"
-            : isGreat
-              ? "h-3 bg-gradient-to-r from-cyan-100 via-cyan-400 to-cyan-100 shadow-[0_0_30px_rgba(6,182,212,1),0_0_60px_rgba(6,182,212,0.85)]"
-              : isGood
-                ? "h-2 bg-gradient-to-r from-purple-200 via-violet-400 to-purple-200 shadow-[0_0_24px_rgba(168,85,247,1)]"
-                : "h-2.5 bg-gradient-to-r from-red-200 via-rose-500 to-red-200 shadow-[0_0_24px_rgba(239,68,68,1)]"
-        }`}
-        style={{
-          left: `${effect.x}%`,
-          width: "180%",
-          transformOrigin: "center center",
-        }}
-        initial={{ x: "-50%", y: "-50%", rotate: -26, scaleX: 0.05, opacity: 1 }}
-        animate={{ x: "-50%", y: "-50%", rotate: -26, scaleX: 1.4, opacity: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-      />
-
-      {/* Secondary Counter-Cross Laser Slice for Perfect Hit (Anime X-Slash) */}
-      {isPerfect && (
+      {/* Razor-sharp STRAIGHT vertical laser cut line spanning through effect.x */}
+      <div
+        className="absolute inset-y-0 -translate-x-1/2 pointer-events-none flex items-center justify-center"
+        style={{ left: `${effect.x}%` }}
+      >
+        {/* Outer neon laser beam */}
         <motion.div
-          className="absolute top-[40%] h-3.5 bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 shadow-[0_0_40px_rgba(250,204,21,1),0_0_70px_rgba(250,204,21,0.8)] rounded-full pointer-events-none"
-          style={{
-            left: `${effect.x}%`,
-            width: "180%",
-            transformOrigin: "center center",
-          }}
-          initial={{ x: "-50%", y: "-50%", rotate: 26, scaleX: 0.05, opacity: 1 }}
-          animate={{ x: "-50%", y: "-50%", rotate: 26, scaleX: 1.3, opacity: 0 }}
-          transition={{ duration: 0.35, delay: 0.04, ease: "easeOut" }}
+          className={`absolute h-full rounded-full pointer-events-none ${
+            isPerfect
+              ? "w-2.5 bg-yellow-300/90 shadow-[0_0_25px_rgba(250,204,21,1),0_0_50px_rgba(250,204,21,0.9)]"
+              : isGreat
+                ? "w-2 bg-cyan-300/90 shadow-[0_0_20px_rgba(6,182,212,1),0_0_40px_rgba(6,182,212,0.85)]"
+                : isGood
+                  ? "w-1.5 bg-violet-400/85 shadow-[0_0_15px_rgba(168,85,247,1)]"
+                  : "w-1.5 bg-red-500/85 shadow-[0_0_15px_rgba(239,68,68,1)]"
+          }`}
+          initial={{ scaleY: 0, opacity: 1 }}
+          animate={{ scaleY: 1, opacity: [1, 0.8, 0] }}
+          transition={{ duration: 0.28, ease: "easeOut" }}
         />
-      )}
 
-      {/* Radial Nova Shockwave precisely from the strike point on the track */}
+        {/* Ultra-sharp core white razor line */}
+        <motion.div
+          className="absolute h-full w-[2px] bg-white shadow-[0_0_15px_#fff] pointer-events-none rounded-full"
+          initial={{ scaleY: 0, opacity: 1 }}
+          animate={{ scaleY: 1, opacity: [1, 1, 0] }}
+          transition={{ duration: 0.24, ease: "easeOut" }}
+        />
+
+        {/* Orthogonal precision cross-seam flash for Perfect Cut */}
+        {isPerfect && (
+          <motion.div
+            className="absolute top-1/2 h-[2.5px] w-48 -translate-y-1/2 bg-gradient-to-r from-transparent via-yellow-100 to-transparent shadow-[0_0_20px_rgba(250,204,21,1)] pointer-events-none"
+            initial={{ scaleX: 0, opacity: 1 }}
+            animate={{ scaleX: 1, opacity: 0 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+          />
+        )}
+      </div>
+
+      {/* Radial Nova Shockwave from the strike point on the track */}
       <motion.div
-        className={`absolute top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full border-4 pointer-events-none ${
+        className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 pointer-events-none ${
           isPerfect
-            ? "border-yellow-300 shadow-[0_0_45px_rgba(250,204,21,1),inset_0_0_25px_rgba(250,204,21,0.8)]"
+            ? "border-yellow-300 shadow-[0_0_35px_rgba(250,204,21,1)]"
             : isGreat
-              ? "border-cyan-300 shadow-[0_0_35px_rgba(6,182,212,1)]"
+              ? "border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,1)]"
               : isGood
-                ? "border-violet-300 shadow-[0_0_25px_rgba(168,85,247,1)]"
-                : "border-red-400 shadow-[0_0_25px_rgba(239,68,68,1)]"
+                ? "border-violet-300 shadow-[0_0_18px_rgba(168,85,247,1)]"
+                : "border-red-400 shadow-[0_0_18px_rgba(239,68,68,1)]"
         }`}
         style={{ left: `${effect.x}%` }}
-        initial={{ width: 12, height: 12, opacity: 1 }}
+        initial={{ width: 10, height: 10, opacity: 1 }}
         animate={{
-          width: isPerfect ? 300 : isGreat ? 230 : 170,
-          height: isPerfect ? 300 : isGreat ? 230 : 170,
+          width: isPerfect ? 220 : isGreat ? 170 : 130,
+          height: isPerfect ? 220 : isGreat ? 170 : 130,
           opacity: 0,
         }}
-        transition={{ duration: 0.48, ease: "easeOut" }}
+        transition={{ duration: 0.42, ease: "easeOut" }}
       />
 
-      {/* Spark particles radiating from the strike point on the track */}
-      <div className="absolute top-[40%] pointer-events-none" style={{ left: `${effect.x}%` }}>
+      {/* Clean spark embers radiating from the cut point */}
+      <div className="absolute top-1/2 pointer-events-none" style={{ left: `${effect.x}%` }}>
         {particles.map((p) => (
           <motion.span
             key={p.id}
             className={`absolute left-0 top-0 rounded-full pointer-events-none ${
               isPerfect
-                ? "bg-yellow-300 shadow-[0_0_16px_rgba(250,204,21,1)]"
+                ? "bg-yellow-300 shadow-[0_0_12px_rgba(250,204,21,1)]"
                 : isGreat
-                  ? "bg-cyan-300 shadow-[0_0_14px_rgba(6,182,212,1)]"
+                  ? "bg-cyan-300 shadow-[0_0_10px_rgba(6,182,212,1)]"
                   : isGood
-                    ? "bg-violet-300 shadow-[0_0_12px_rgba(168,85,247,1)]"
-                    : "bg-red-400 shadow-[0_0_12px_rgba(239,68,68,1)]"
+                    ? "bg-violet-300 shadow-[0_0_8px_rgba(168,85,247,1)]"
+                    : "bg-red-400 shadow-[0_0_8px_rgba(239,68,68,1)]"
             }`}
             style={{ width: `${p.size}px`, height: `${p.size}px` }}
-            initial={{ x: 0, y: 0, opacity: 1, scale: 1.3 }}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 1.2 }}
             animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2 }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
           />
         ))}
       </div>
 
-      {/* Floating Critical Badge directly anchored to the hit point */}
+      {/* Floating Critical Badge positioned in header area (so it doesn't occlude the track) */}
       <motion.div
-        className="absolute top-[22%] pointer-events-none select-none"
-        style={{
-          left: `${Math.max(25, Math.min(75, effect.x))}%`,
-          zIndex: 60,
-        }}
-        initial={{ x: "-50%", y: 15, scale: 0.7, opacity: 0 }}
+        className="absolute top-[8%] left-1/2 pointer-events-none select-none"
+        style={{ zIndex: 60 }}
+        initial={{ x: "-50%", y: 10, scale: 0.8, opacity: 0 }}
         animate={{
           x: "-50%",
-          y: [-6, -26, -48, -66, -80],
-          scale: isPerfect ? [0.7, 1.3, 1.15, 1.05, 0.9] : [0.7, 1.2, 1.1, 1, 0.85],
-          opacity: [0, 1, 1, 0.9, 0],
+          y: [-4, -18, -32, -44],
+          scale: isPerfect ? [0.8, 1.2, 1.1, 0.95] : [0.8, 1.15, 1.05, 0.9],
+          opacity: [0, 1, 1, 0],
         }}
-        transition={{ duration: 0.85, times: [0, 0.15, 0.45, 0.75, 1], ease: "easeOut" }}
+        transition={{ duration: 0.75, times: [0, 0.2, 0.65, 1], ease: "easeOut" }}
       >
         <span
           className={`inline-block whitespace-nowrap rounded-full border-2 px-4 py-1.5 font-mono font-black uppercase tracking-wider ${

@@ -1,14 +1,14 @@
 {
-  "version": "1.0.5",
-  "versionCode": 6,
+  "version": "1.0.6",
+  "versionCode": 7,
   "releaseDate": "2026-08-20",
   "changelog": [
-    "⚡ Optymalizacja Cięcia Cienia: płynne 120 FPS bez lagów dzięki bezpośredniej manipulacji DOM w pętli renderowania",
-    "⚔️ Precyzyjne efekty cięcia: podwójne cięcia laserowe anime X-Slash, radialna nova shockwave i 24 iskry wyśrodkowane w punkcie uderzenia",
-    "💥 Hit-Stop & Recoil: 45ms kinowy freeze-frame przy perfekcyjnym trafieniu dla maksymalnej satysfakcji z uderzenia",
-    "🛡️ Działanie w tle i alerty: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień"
+    "📱 Sterowanie dotykiem w Cięciu Cienia: możliwość cięcia poprzez dotknięcie dowolnego miejsca areny lub przycisku",
+    "⚔️ Proste i precyzyjne cięcia: laserowe, proste linie cięcia katana bez rozpraszającego wstrząsu ekranu",
+    "📳 Haptic Touch: natywne haptyczne wibracje telefonu przy każdym udanym cięciu",
+    "⚡ Stabilność 120 FPS: brak opóźnień i płynne śledzenie wskaźnika w rytm ruchu słabego punktu"
   ],
-  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.5/solo-leveler.apk",
+  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.6/solo-leveler.apk",
   "mandatory": false
 }
 
