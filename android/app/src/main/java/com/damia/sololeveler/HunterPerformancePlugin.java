@@ -69,12 +69,26 @@ public class HunterPerformancePlugin extends Plugin {
         );
 
         RefreshSelection selection = selectRefreshMode(activity, mode);
-        WindowManager.LayoutParams params = window.getAttributes();
-        params.preferredRefreshRate = selection.refreshRate;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && selection.displayModeId > 0) {
-            params.preferredDisplayModeId = selection.displayModeId;
+        try {
+            WindowManager.LayoutParams params = window.getAttributes();
+            params.preferredRefreshRate = selection.refreshRate;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && selection.displayModeId > 0) {
+                params.preferredDisplayModeId = selection.displayModeId;
+            }
+            if (Build.VERSION.SDK_INT >= 31) {
+                try {
+                    params.getClass().getField("preferredMinDisplayRefreshRate").setFloat(params, selection.refreshRate);
+                    params.getClass().getField("preferredMaxDisplayRefreshRate").setFloat(params, selection.refreshRate);
+                } catch (Throwable ignored) {}
+            }
+            window.setAttributes(params);
+        } catch (Throwable ignored) {}
+
+        if (Build.VERSION.SDK_INT >= 30) {
+            try {
+                window.getDecorView().getClass().getMethod("setFrameRate", float.class, int.class).invoke(window.getDecorView(), selection.refreshRate, 0);
+            } catch (Throwable ignored) {}
         }
-        window.setAttributes(params);
         return selection;
     }
 
@@ -82,10 +96,20 @@ public class HunterPerformancePlugin extends Plugin {
         applyGameState(activity, state);
     }
 
+    private static Display getActiveDisplay(Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                Display display = activity.getDisplay();
+                if (display != null) return display;
+            } catch (Throwable ignored) {}
+        }
+        return activity.getWindowManager().getDefaultDisplay();
+    }
+
     private static RefreshSelection selectRefreshMode(Activity activity, String mode) {
+        Display display = getActiveDisplay(activity);
+        float currentRate = display.getRefreshRate();
         if ("battery60".equals(mode)) {
-            Display display = activity.getWindowManager().getDefaultDisplay();
-            float currentRate = display.getRefreshRate();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 Display.Mode activeMode = display.getMode();
                 Display.Mode[] modes = display.getSupportedModes();
@@ -110,9 +134,9 @@ public class HunterPerformancePlugin extends Plugin {
     }
 
     private static RefreshSelection selectBestRefreshMode(Activity activity) {
-        Display display = activity.getWindowManager().getDefaultDisplay();
+        Display display = getActiveDisplay(activity);
         float currentRate = display.getRefreshRate();
-        RefreshSelection fallback = new RefreshSelection(currentRate, 0, false, currentRate);
+        RefreshSelection fallback = new RefreshSelection(Math.max(currentRate, 120f), 0, true, currentRate);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return fallback;
@@ -120,6 +144,10 @@ public class HunterPerformancePlugin extends Plugin {
 
         Display.Mode activeMode = display.getMode();
         Display.Mode[] modes = display.getSupportedModes();
+        if (modes == null || modes.length == 0) {
+            return fallback;
+        }
+
         Display.Mode bestSameResolution = null;
         Display.Mode bestAnyResolution = null;
 
@@ -155,6 +183,11 @@ public class HunterPerformancePlugin extends Plugin {
 
         WebView webView = getBridge().getWebView();
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        if (Build.VERSION.SDK_INT >= 30) {
+            try {
+                webView.getClass().getMethod("setFrameRate", float.class, int.class).invoke(webView, 120f, 0);
+            } catch (Throwable ignored) {}
+        }
         WebSettings settings = webView.getSettings();
         settings.setTextZoom(100);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

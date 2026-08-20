@@ -24,4 +24,18 @@ public class MainActivity extends BridgeActivity {
         super.onResume();
         HunterPerformancePlugin.applyHighPerformanceWindow(this);
     }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            HunterPerformancePlugin.applyHighPerformanceWindow(this);
+        }
+    }
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        HunterPerformancePlugin.applyHighPerformanceWindow(this);
+    }
 }

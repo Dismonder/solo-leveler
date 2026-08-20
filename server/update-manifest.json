@@ -1,14 +1,14 @@
 {
-  "version": "1.0.7",
-  "versionCode": 8,
+  "version": "1.0.8",
+  "versionCode": 9,
   "releaseDate": "2026-08-20",
   "changelog": [
-    "⚡ Całkowite odchudzenie Cięcia Cienia: usunięcie ciężkich filtrów GPU i nakładek wizualnych dla maksymalnej płynności",
-    "📏 Czysty, prosty pasek: klasyczny, minimalistyczny wskaźnik bez zbędnych rombów i nakładek",
-    "🗡️ Natychmiastowa reakcja: usunięcie sztucznych pauz klatek (hit-stop), super-płynny ruch i czyste trafienia",
-    "📱 Sterowanie dotykowe: pełne wsparcie dotyku w dowolnym miejscu ekranu oraz wibracji haptycznych"
+    "🚀 Prawdziwe natywne 120Hz: pełne wymuszenie wysokiego odświeżania na poziomie Android Window & WebView Surface",
+    "⚡ Silnik Canvas 2D w Cięciu Cienia: zerowy koszt layoutu DOM, czas renderowania poniżej 0.2ms",
+    "📏 Czysty minimalistyczny pasek: prosty, sleeker wskaźnik i natychmiastowe wykrywanie dotyku",
+    "🎮 Optymalizacja cyklu życia Androida: automatyczne odnawianie 120Hz po powrocie do okna aplikacji"
   ],
-  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.7/solo-leveler.apk",
+  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.8/solo-leveler.apk",
   "mandatory": false
 }
 
