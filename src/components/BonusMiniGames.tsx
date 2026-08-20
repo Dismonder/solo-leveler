@@ -55,10 +55,10 @@ import {
 import {
   advanceShadowStrike,
   createShadowStrikeConfig,
+  createShadowStrikeInteractionController,
   createShadowStrikeRuntime,
   pauseShadowStrike,
   resumeShadowStrike,
-  tryShadowStrike,
   type ShadowStrikeRuntime,
   type ShadowStrikeTier,
 } from "../game/shadowStrikeEngine";
@@ -1244,10 +1244,13 @@ function ShadowStrikeGame({
   const dynamicCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const runtimeRef = useRef<ShadowStrikeRuntime | null>(null);
   const rendererRef = useRef<ShadowStrikeRenderer | null>(null);
+  const interactionControllerRef = useRef<ReturnType<typeof createShadowStrikeInteractionController> | null>(null);
   const animationRef = useRef<number | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const deferredFeedbackTimersRef = useRef<Set<number>>(new Set());
-  const committedRef = useRef(false);
+  if (interactionControllerRef.current === null) {
+    interactionControllerRef.current = createShadowStrikeInteractionController();
+  }
 
   const clearDeferredFeedback = useCallback(() => {
     deferredFeedbackTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -1256,8 +1259,7 @@ function ShadowStrikeGame({
 
   const finish = useCallback(
     (runtime: ShadowStrikeRuntime) => {
-      if (runtimeRef.current !== runtime || committedRef.current) return;
-      committedRef.current = true;
+      if (runtimeRef.current !== runtime || !interactionControllerRef.current?.claimCompletion(runtime)) return;
       clearDeferredFeedback();
       playMiniGameFinishCue(runtime.score, definition);
       setFinalScore(runtime.score);
@@ -1409,12 +1411,12 @@ function ShadowStrikeGame({
     const runtime = createShadowStrikeRuntime(now, config);
     if (paused) pauseShadowStrike(runtime, now);
     runtimeRef.current = runtime;
+    interactionControllerRef.current.activate(runtime);
     (globalThis as typeof globalThis & {
       __soloShadowStrikeRuntime?: ShadowStrikeRuntime;
     }).__soloShadowStrikeRuntime = runtime;
     renderer.drawStatic(config);
     renderer.render(runtime, now);
-    committedRef.current = false;
     playMiniGameStartCue();
     setError(null);
     setFinalScore(0);
@@ -1441,14 +1443,24 @@ function ShadowStrikeGame({
   }, []);
 
   const handleStrike = useCallback((event: PointerEvent<HTMLButtonElement>) => {
-    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
     const runtime = runtimeRef.current;
     const renderer = rendererRef.current;
     if (!runtime || !renderer || runtime.paused || runtime.finished) return;
 
-    event.preventDefault();
     const now = performance.now();
-    const outcome = tryShadowStrike(runtime, now);
+    const dispatch = interactionControllerRef.current?.handleInput(
+      runtime,
+      {
+        eventType: event.type,
+        isPrimary: event.isPrimary,
+        pointerType: event.pointerType,
+        button: event.button,
+      },
+      now,
+    );
+    if (!dispatch?.consume) return;
+    event.preventDefault();
+    const outcome = dispatch.outcome;
     if (!outcome) return;
     renderer.flash(outcome, now);
     scheduleStrikeFeedback(outcome.tier);

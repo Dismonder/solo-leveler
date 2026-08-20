@@ -77,6 +77,43 @@ test("resize caps DPR at two and emit or render never resize the backing store",
   assert.equal(layer.backingStoreWrites, writesAfterResize);
 });
 
+test("clean idle renders perform zero canvas operations", () => {
+  const layer = createFakeCanvas();
+  const renderer = createShadowExtractionImpactRenderer(layer.canvas);
+  renderer.resize(320, 180, 1);
+  layer.context.resetHistory();
+
+  renderer.render(0);
+  renderer.render(1_000);
+
+  assert.equal(layer.context.callCount, 0);
+  assert.equal(layer.context.operationCount("clearRect"), 0);
+});
+
+test("an active impact renders and its final expiry clears the canvas exactly once", () => {
+  const layer = createFakeCanvas();
+  const renderer = createShadowExtractionImpactRenderer(layer.canvas);
+  renderer.resize(320, 180, 1);
+  emit(renderer, "impact", "good", 0);
+  layer.context.resetHistory();
+
+  renderer.render(100);
+
+  assert.equal(layer.context.operationCount("clearRect"), 1);
+  assert.equal(layer.context.operationCount("stroke"), 2);
+  assert.equal(layer.context.operationCount("fillText"), 1);
+
+  layer.context.resetHistory();
+  renderer.render(280);
+  assert.equal(layer.context.callCount, 1);
+  assert.equal(layer.context.operationCount("clearRect"), 1);
+
+  renderer.render(281);
+  renderer.render(10_000);
+  assert.equal(layer.context.callCount, 1);
+  assert.equal(layer.context.operationCount("clearRect"), 1);
+});
+
 test("four perfect impacts stay within the fixed canvas operation budget", () => {
   const layer = createFakeCanvas();
   const renderer = createShadowExtractionImpactRenderer(layer.canvas);

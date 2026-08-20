@@ -53,6 +53,7 @@ export function createShadowExtractionImpactRenderer(
   let live = true;
   let width = 0;
   let height = 0;
+  let hasRenderedContent = false;
 
   function resize(cssWidth: number, cssHeight: number, dpr: number): void {
     if (!live) return;
@@ -63,6 +64,7 @@ export function createShadowExtractionImpactRenderer(
     canvas.width = Math.round(width * pixelRatio);
     canvas.height = Math.round(height * pixelRatio);
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    hasRenderedContent = false;
   }
 
   function emit(
@@ -110,20 +112,30 @@ export function createShadowExtractionImpactRenderer(
   function render(nowMs: number): void {
     if (!live) return;
 
+    expireSlots(nowMs);
+    let activeSlots = 0;
+    for (let index = 0; index < slots.length; index += 1) {
+      if (slots[index].active) activeSlots += 1;
+    }
+    if (activeSlots === 0) {
+      if (hasRenderedContent) {
+        context.clearRect(0, 0, width, height);
+        hasRenderedContent = false;
+      }
+      return;
+    }
+
     context.clearRect(0, 0, width, height);
     for (let index = 0; index < slots.length; index += 1) {
       const slot = slots[index];
       if (!slot.active) continue;
 
       const elapsedMs = nowMs - slot.startedAtMs;
-      if (elapsedMs >= slot.lifetimeMs) {
-        slot.active = false;
-        continue;
-      }
       const progress = Math.max(0, elapsedMs / slot.lifetimeMs);
       drawSlot(context, slot, index, width, height, progress);
     }
     context.globalAlpha = 1;
+    hasRenderedContent = true;
   }
 
   function clear(): void {
@@ -131,6 +143,7 @@ export function createShadowExtractionImpactRenderer(
 
     deactivateSlots();
     context.clearRect(0, 0, width, height);
+    hasRenderedContent = false;
   }
 
   function activeCount(nowMs: number): number {
@@ -149,6 +162,7 @@ export function createShadowExtractionImpactRenderer(
 
     deactivateSlots();
     context.clearRect(0, 0, width, height);
+    hasRenderedContent = false;
     live = false;
   }
 

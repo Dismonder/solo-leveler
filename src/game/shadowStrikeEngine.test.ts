@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   advanceShadowStrike,
   createShadowStrikeConfig,
+  createShadowStrikeInteractionController,
   createShadowStrikeRuntime,
   getShadowStrikeSnapshot,
   pauseShadowStrike,
@@ -38,6 +39,60 @@ test("one physical contact cannot score twice", () => {
   assert.equal(first?.tier, "perfect");
   assert.equal(duplicate, null);
   assert.equal(runtime.acceptedInputs, 1);
+});
+
+test("the active input controller accepts one primary pointerdown but rejects its click and non-primary contacts", () => {
+  const runtime = createShadowStrikeRuntime(0, createShadowStrikeConfig(1, 0, 0, 0));
+  runtime.lastAdvancedAtMs = 500;
+  runtime.cursorPosition = 50;
+  const controller = createShadowStrikeInteractionController();
+  controller.activate(runtime);
+
+  const pointerDown = controller.handleInput(
+    runtime,
+    { eventType: "pointerdown", isPrimary: true, pointerType: "touch", button: 0 },
+    500,
+  );
+  assert.equal(pointerDown.consume, true);
+  assert.equal(pointerDown.outcome?.tier, "perfect");
+  assert.equal(runtime.acceptedInputs, 1);
+
+  const synthesizedClick = controller.handleInput(
+    runtime,
+    { eventType: "click", isPrimary: true, pointerType: "mouse", button: 0 },
+    700,
+  );
+  const nonPrimaryTouch = controller.handleInput(
+    runtime,
+    { eventType: "pointerdown", isPrimary: false, pointerType: "touch", button: 0 },
+    900,
+  );
+  const secondaryMouseButton = controller.handleInput(
+    runtime,
+    { eventType: "pointerdown", isPrimary: true, pointerType: "mouse", button: 2 },
+    1_100,
+  );
+
+  assert.deepEqual(synthesizedClick, { consume: false, outcome: null });
+  assert.deepEqual(nonPrimaryTouch, { consume: false, outcome: null });
+  assert.deepEqual(secondaryMouseButton, { consume: false, outcome: null });
+  assert.equal(runtime.acceptedInputs, 1);
+});
+
+test("the active completion gate accepts its runtime once and rejects stale runtime identities", () => {
+  const config = createShadowStrikeConfig(1, 0, 0, 0);
+  const firstRuntime = createShadowStrikeRuntime(0, config);
+  const nextRuntime = createShadowStrikeRuntime(1_000, config);
+  const controller = createShadowStrikeInteractionController();
+  controller.activate(firstRuntime);
+
+  assert.equal(controller.claimCompletion(firstRuntime), true);
+  assert.equal(controller.claimCompletion(firstRuntime), false);
+
+  controller.activate(nextRuntime);
+  assert.equal(controller.claimCompletion(firstRuntime), false);
+  assert.equal(controller.claimCompletion(nextRuntime), true);
+  assert.equal(controller.claimCompletion(nextRuntime), false);
 });
 
 test("fixed target classifies perfect, great, good and miss", () => {

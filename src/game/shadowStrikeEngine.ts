@@ -37,6 +37,28 @@ export type ShadowStrikeOutcome = {
   combo: number;
 };
 
+export type ShadowStrikeInputDescriptor = {
+  eventType: string;
+  isPrimary: boolean;
+  pointerType: string;
+  button: number;
+};
+
+export type ShadowStrikeInputDispatch = {
+  consume: boolean;
+  outcome: ShadowStrikeOutcome | null;
+};
+
+export type ShadowStrikeInteractionController = {
+  activate(runtime: ShadowStrikeRuntime): void;
+  handleInput(
+    runtime: ShadowStrikeRuntime,
+    input: ShadowStrikeInputDescriptor,
+    nowMs: number,
+  ): ShadowStrikeInputDispatch;
+  claimCompletion(runtime: ShadowStrikeRuntime): boolean;
+};
+
 export type ShadowStrikeSnapshot = {
   score: number;
   combo: number;
@@ -159,6 +181,32 @@ export function tryShadowStrike(runtime: ShadowStrikeRuntime, nowMs: number): Sh
     cursorPosition: runtime.cursorPosition,
     score: runtime.score,
     combo: runtime.combo,
+  };
+}
+
+export function createShadowStrikeInteractionController(): ShadowStrikeInteractionController {
+  let activeRuntime: ShadowStrikeRuntime | null = null;
+  let completionClaimed = false;
+
+  return {
+    activate(runtime) {
+      activeRuntime = runtime;
+      completionClaimed = false;
+    },
+    handleInput(runtime, input, nowMs) {
+      const isPrimaryPointerDown = input.eventType === "pointerdown"
+        && input.isPrimary
+        && (input.pointerType !== "mouse" || input.button === 0);
+      if (activeRuntime !== runtime || !isPrimaryPointerDown) {
+        return { consume: false, outcome: null };
+      }
+      return { consume: true, outcome: tryShadowStrike(runtime, nowMs) };
+    },
+    claimCompletion(runtime) {
+      if (activeRuntime !== runtime || completionClaimed) return false;
+      completionClaimed = true;
+      return true;
+    },
   };
 }
 
