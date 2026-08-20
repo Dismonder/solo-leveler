@@ -7,38 +7,69 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 
-const tag = process.argv[2] || "v1.0.8";
-const cleanTag = tag.replace(/^v/, "");
+// Read package.json version
+const pkgPath = path.join(rootDir, "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+
+// Read manifest changelog
+let changelogItems = [];
+const manifestPath = path.join(rootDir, "server", "update-manifest.json");
+if (fs.existsSync(manifestPath)) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    if (Array.isArray(manifest.changelog)) {
+      changelogItems = manifest.changelog;
+    }
+  } catch {}
+}
+
+const tagArg = process.argv.find((arg) => arg.startsWith("v") || /^\d+\.\d+\.\d+$/.test(arg));
+const tag = tagArg ? (tagArg.startsWith("v") ? tagArg : `v${tagArg}`) : `v${pkg.version}`;
 const releaseName = `Solo Leveler ${tag}`;
+
+const formattedChangelog = changelogItems.length > 0
+  ? changelogItems.map((item) => `- ${item}`).join("\n")
+  : `- Aktualizacja aplikacji Solo Leveler ${tag}`;
+
 const releaseBody = `## Co nowego w wersji ${tag}
-- 🚀 **Prawdziwe natywne 120Hz**: pełne wymuszenie wysokiego odświeżania na poziomie Android Window & WebView Surface
-- ⚡ **Silnik Canvas 2D w Cięciu Cienia**: zerowy koszt layoutu DOM, czas renderowania poniżej 0.2ms
-- 📏 **Czysty minimalistyczny pasek**: prosty, sleeker wskaźnik i natychmiastowe wykrywanie dotyku
-- 🎮 **Optymalizacja cyklu życia Androida**: automatyczne odnawianie 120Hz po powrocie do okna aplikacji
-- 🛡️ **Działanie w tle i alerty**: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień
-- 🎛️ **Mini Player & suwaki głośności**: zintegrowany odtwarzacz w zakładce System z precyzyjną dotykową regulacją SFX i OST
-- 🎵 **Pełny Album Muzyczny**: dedykowany arkusz z biblioteką 10 utworów Solo Leveling OST
+${formattedChangelog}
 `;
 
-
-
-// 1. Get GitHub Token from Git Credential Manager
+// Get GitHub Token from ENV, .env, or Git Credential Manager
 function getGitHubToken() {
+  if (process.env.GITHUB_TOKEN && process.env.GITHUB_TOKEN.trim()) {
+    return process.env.GITHUB_TOKEN.trim();
+  }
+  if (process.env.GH_TOKEN && process.env.GH_TOKEN.trim()) {
+    return process.env.GH_TOKEN.trim();
+  }
+
+  // Check .env
+  const envPath = path.join(rootDir, ".env");
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, "utf-8");
+    const match = envContent.match(/GITHUB_TOKEN=(.+)/i);
+    if (match && match[1].trim()) {
+      return match[1].trim();
+    }
+  }
+
+  // Fallback to Git Credential Manager
   const result = spawnSync("git", ["credential", "fill"], {
     input: "protocol=https\nhost=github.com\n\n",
     encoding: "utf-8",
   });
 
-  if (result.status !== 0 || !result.stdout) {
-    throw new Error("Nie udało się pobrać poświadczeń z Git Credential Manager");
+  if (result.status === 0 && result.stdout) {
+    const match = result.stdout.match(/password=(.+)/);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
   }
 
-  const match = result.stdout.match(/password=(.+)/);
-  if (!match || !match[1]) {
-    throw new Error("Brak hasła/tokenu w Git Credential Manager");
-  }
-
-  return match[1].trim();
+  throw new Error(
+    "Nie znaleziono tokenu GitHub! Ustaw zmienną środowiskową GITHUB_TOKEN, wpisz ją do pliku .env (GITHUB_TOKEN=twoj_token) lub zaloguj się przez Git Credential Manager."
+  );
 }
 
 async function main() {

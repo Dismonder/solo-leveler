@@ -15,7 +15,8 @@
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
     "android:build": "npm run android:sync && cd android && gradlew.bat assembleDebug",
-    "release": "node scripts/publish-github-release.js"
+    "release": "node scripts/publish-release-to-github.js",
+    "publish:all": "cmd /c Wyrzuc-Aktualizacje-Na-Github.bat"
   },
   "dependencies": {
     "@capacitor-community/bluetooth-le": "^8.1.3",
