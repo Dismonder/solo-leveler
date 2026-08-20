@@ -201,6 +201,7 @@ import {
 
 import { BackgroundPermissionModal, useBackgroundPermissionCheck } from "../components/BackgroundPermissionModal";
 import { getPerformanceStatus, type HunterPerformanceStatus } from "../services/performanceService";
+import { selectActiveRefreshRate } from "../services/refreshRateStatus";
 import { getGlobalVolume, getSystemAudioEnabled, setGlobalVolume, setSystemAudioEnabled } from "../utils/audio";
 import { subscribeRewardAnimations } from "../services/rewardAnimationBus";
 import type { RewardAnimationEvent } from "../types";
@@ -3321,7 +3322,7 @@ function SystemPanel({
                 value={player.settings.performanceMode === "always120" ? "120 Hz" : player.settings.performanceMode === "battery60" ? "60 Hz" : "Auto"}
               />
               <MiniStat icon={<Activity className="h-4 w-4" />} label="Cel" value={`${Math.round(performanceStatus?.targetRefreshRate || 120)} Hz`} />
-              <MiniStat icon={<Zap className="h-4 w-4" />} label="Aktywne" value={`${Math.round(performanceStatus?.refreshRate || performanceStatus?.currentRefreshRate || 0)} Hz`} />
+              <MiniStat icon={<Zap className="h-4 w-4" />} label="Aktywne" value={`${Math.round(selectActiveRefreshRate(performanceStatus || {}))} Hz`} />
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
               <SmallButton onClick={() => onUpdateSettings({ performanceMode: "always120" })} icon={<Zap className="h-3.5 w-3.5" />} label="120Hz" />

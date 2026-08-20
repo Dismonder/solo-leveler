@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { getGlobalFrameTraceBuffer } from "../gameRuntime/performanceTrace";
 import { summarizeFrameDeltas, type FrameStatsSummary } from "../services/frameStats";
 import { getPerformanceStatus, type HunterPerformanceStatus } from "../services/performanceService";
+import { selectActiveRefreshRate } from "../services/refreshRateStatus";
 
 type FpsOverlayProps = {
   enabled: boolean;
@@ -37,7 +38,7 @@ export function FpsOverlay({ enabled, mode = "app" }: FpsOverlayProps) {
 
     const writeNativeStatus = (status: HunterPerformanceStatus | null) => {
       nativeStatusRef.current = status;
-      const hz = status?.refreshRate || status?.currentRefreshRate || 0;
+      const hz = status ? selectActiveRefreshRate(status) : 0;
       const targetHz = status?.targetRefreshRate || 120;
       if (hzTextRef.current) hzTextRef.current.textContent = `${Math.round(hz)}/${Math.round(targetHz)}Hz`;
       if (gameModeTextRef.current) gameModeTextRef.current.textContent = status?.gameMode ? ` · ${status.gameMode}` : "";
@@ -73,7 +74,7 @@ export function FpsOverlay({ enabled, mode = "app" }: FpsOverlayProps) {
         lastPaintRef.current = now;
         const samples = framesRef.current;
         if (samples.length > 0) {
-          const hz = nativeStatusRef.current?.refreshRate || nativeStatusRef.current?.currentRefreshRate || 120;
+          const hz = nativeStatusRef.current ? selectActiveRefreshRate(nativeStatusRef.current) : 120;
           const stats = summarizeFrameDeltas(samples, hz);
           const globalWithStats = globalThis as typeof globalThis & { __soloFpsStats?: FrameStatsSummary };
           globalWithStats.__soloFpsStats = stats;

@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import type { PerformanceMode } from "../types";
+import { selectActiveRefreshRate } from "./refreshRateStatus";
 
 export type HunterPerformanceStatus = {
   applied: boolean;
@@ -48,7 +49,7 @@ export async function enableHighPerformanceMode(mode: PerformanceMode = "always1
 
   try {
     const status = await HunterPerformance.enableHighPerformanceMode({ mode });
-    applyRefreshRateHint(status.refreshRate);
+    applyRefreshRateHint(selectActiveRefreshRate(status));
     return status;
   } catch {
     return WEB_STATUS;
@@ -63,7 +64,7 @@ export async function getPerformanceStatus(): Promise<HunterPerformanceStatus> {
 
   try {
     const status = await HunterPerformance.getStatus();
-    applyRefreshRateHint(status.refreshRate || status.currentRefreshRate);
+    applyRefreshRateHint(selectActiveRefreshRate(status));
     return status;
   } catch {
     return WEB_STATUS;
