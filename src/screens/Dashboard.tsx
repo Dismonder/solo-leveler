@@ -193,6 +193,7 @@ import {
   testLocalNotification,
   consumeNotificationLaunchAction,
   addHunterActionListener,
+  notifyAppUpdateAvailable,
   type HunterNotificationStatus,
   type NativeScheduledNotification,
 } from "../services/notificationService";
@@ -405,6 +406,11 @@ export function Dashboard() {
     void checkForUpdate().then((info) => {
       if (info.hasUpdate) {
         setUpdateInfo(info);
+        const lastNotifiedVersion = localStorage.getItem("last_notified_update_version");
+        if (lastNotifiedVersion !== info.latestVersion) {
+          localStorage.setItem("last_notified_update_version", info.latestVersion);
+          void notifyAppUpdateAvailable(info);
+        }
       }
     });
   }, []);
@@ -416,6 +422,7 @@ export function Dashboard() {
     if (info.hasUpdate) {
       toast.dismiss("check-update");
       setUpdateInfo(info);
+      void notifyAppUpdateAvailable(info);
     } else if (info.error) {
       toast.info(info.error, { id: "check-update", duration: 5000 });
     } else {
@@ -2967,7 +2974,7 @@ function SystemPanel({
       </div>
 
       <div className="sl-card rounded-[22px] p-4 border border-cyan-500/30">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400">
               <Sparkles className="h-5 w-5 animate-pulse" />
@@ -2982,7 +2989,7 @@ function SystemPanel({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2 shrink-0">
             <a
               href="https://github.com/Dismonder/solo-leveler/releases"
               target="_blank"
@@ -2996,175 +3003,148 @@ function SystemPanel({
             <button
               type="button"
               onClick={onOpenWhatsNew}
-              className="shrink-0 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-3 py-2 text-xs font-mono font-bold text-slate-200 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
+              className="h-9 shrink-0 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-3 text-xs font-mono font-bold text-slate-200 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
             >
               Nowości
             </button>
             <button
               type="button"
               onClick={onCheckUpdate}
-              className="shrink-0 rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-4 py-2 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
+              className="h-9 shrink-0 rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-4 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
             >
               Sprawdź
             </button>
           </div>
-
         </div>
       </div>
 
-
-
-
-      {activeSheet === "dev" && advancedOpen && advancedUnlocked && notificationsOpen && (
       <div className="sl-card rounded-[22px] p-4">
-        <div className="flex items-start justify-between gap-4">
-          <button type="button" onClick={() => setNotificationsOpen((open) => !open)} className="min-w-0 flex-1 text-left active:scale-[0.99]">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Powiadomienia</h3>
-            <p className="sl-muted mt-1 text-xs font-bold">
-              {notificationStatus?.permissionGranted ? "Zgoda aktywna" : "Zgoda wymagana"} · {scheduledNotifications.length} alertów
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => onUpdateNotificationSettings({ enabled: !player.settings.notifications.enabled })}
-            className={`min-h-10 shrink-0 rounded-2xl border px-3 text-xs font-black uppercase tracking-widest active:scale-[0.98] ${
-              player.settings.notifications.enabled
-                ? "sl-toggle-active"
-                : "sl-toggle"
-            }`}
-          >
-            {player.settings.notifications.enabled ? "ON" : "OFF"}
-          </button>
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <SmallButton onClick={requestNotifications} icon={<Shield className="h-3.5 w-3.5" />} label={notificationBusy ? "..." : "Włącz"} />
-          <SmallButton onClick={rescheduleNotifications} icon={<RotateCcw className="h-3.5 w-3.5" />} label="Plan" muted />
-          <SmallButton onClick={runNotificationTest} icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Test" muted />
-        </div>
-
-        {notificationsOpen && <div className="mt-4 grid gap-2">
-          <div className="grid grid-cols-3 gap-2">
-            <MiniStat icon={<Shield className="h-4 w-4" />} label="Zgoda" value={notificationStatus?.permissionGranted ? "OK" : "Brak"} />
-            <MiniStat icon={<Clock3 className="h-4 w-4" />} label="Alerty" value={scheduledNotifications.length} />
-            <MiniStat icon={<AlertTriangle className="h-4 w-4" />} label="Exact" value={notificationStatus?.exactAlarmGranted ? "OK" : "Opcj."} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {player.settings.notifications.dailyReminderTimes.map((time, index) => (
-              <label key={`${time}_${index}`} className="sl-input rounded-2xl p-3">
-                <span className="sl-muted block text-[10px] font-black uppercase tracking-widest">Przypomnienie {index + 1}</span>
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(event) => {
-                    const next = [...player.settings.notifications.dailyReminderTimes];
-                    next[index] = event.target.value;
-                    onUpdateNotificationSettings({ dailyReminderTimes: next });
-                  }}
-                  className="mt-2 w-full bg-transparent text-lg font-black text-[var(--theme-text)] outline-none"
-                />
-              </label>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <TogglePill
-              icon={<AlertTriangle className="h-4 w-4" />}
-              label="Deadline"
-              enabled={player.settings.notifications.deadlineAlertEnabled}
-              onToggle={() => onUpdateNotificationSettings({ deadlineAlertEnabled: !player.settings.notifications.deadlineAlertEnabled })}
-            />
-            <TogglePill
-              icon={<Trophy className="h-4 w-4" />}
-              label="Nagrody"
-              enabled={player.settings.notifications.rewardNotifications}
-              onToggle={() => onUpdateNotificationSettings({ rewardNotifications: !player.settings.notifications.rewardNotifications })}
-            />
-            <TogglePill
-              icon={<Dumbbell className="h-4 w-4" />}
-              label="Sesja"
-              enabled={player.settings.notifications.workoutOngoingEnabled}
-              onToggle={() => onUpdateNotificationSettings({ workoutOngoingEnabled: !player.settings.notifications.workoutOngoingEnabled })}
-            />
-            <TogglePill
-              icon={<Shield className="h-4 w-4" />}
-              label="Kary"
-              enabled={player.settings.notifications.penaltyNotifications}
-              onToggle={() => onUpdateNotificationSettings({ penaltyNotifications: !player.settings.notifications.penaltyNotifications })}
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <TogglePill
-              icon={<Sparkles className="h-4 w-4" />}
-              label="Nawodnienie"
-              enabled={player.settings.notifications.hydrationReminders}
-              onToggle={() => onUpdateNotificationSettings({ hydrationReminders: !player.settings.notifications.hydrationReminders })}
-            />
-            <TogglePill
-              icon={<Gamepad2 className="h-4 w-4" />}
-              label="Mini-Gry"
-              enabled={player.settings.notifications.miniGameReminders}
-              onToggle={() => onUpdateNotificationSettings({ miniGameReminders: !player.settings.notifications.miniGameReminders })}
-            />
-            <TogglePill
-              icon={<BookOpen className="h-4 w-4" />}
-              label="Ćwiczenia"
-              enabled={player.settings.notifications.exerciseTipReminders}
-              onToggle={() => onUpdateNotificationSettings({ exerciseTipReminders: !player.settings.notifications.exerciseTipReminders })}
-            />
-          </div>
-
-          <ToggleRow
-            label="Cisza nocna"
-            description={`${player.settings.notifications.quietHours.from} - ${player.settings.notifications.quietHours.to}. System nie planuje wtedy zwykłych przypomnień.`}
-            enabled={player.settings.notifications.quietHours.enabled}
-            onToggle={() => onUpdateNotificationSettings({ quietHours: { ...player.settings.notifications.quietHours, enabled: !player.settings.notifications.quietHours.enabled } })}
-          />
-
-          <div className="grid grid-cols-2 gap-2">
-            <SmallButton onClick={enableExactAlarms} icon={<Clock3 className="h-3.5 w-3.5" />} label="Exact" muted />
-            <SmallButton onClick={refreshNotifications} icon={<Activity className="h-3.5 w-3.5" />} label="Status" muted />
-          </div>
-          {notificationMessage && <p className="sl-muted text-xs leading-relaxed">{notificationMessage}</p>}
-        </div>}
-      </div>
-      )}
-
-      <div className="sl-card rounded-[22px] p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Dźwięk & Album</h3>
-            <p className="sl-muted mt-1 text-xs font-bold">
-              Efekty {systemAudioEnabled ? "ON" : "OFF"} · Muzyka {backgroundMusicEnabled ? "ON" : "OFF"} · {musicTracks.length} utworów
-            </p>
-          </div>
+        {/* Top Mini Player */}
+        <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => setActiveSheet("audio")}
-            className="sl-icon-button grid h-11 w-11 shrink-0 place-items-center rounded-2xl active:scale-[0.98]"
-            aria-label="Otwórz album muzyczny"
+            className="flex items-center gap-3 min-w-0 flex-1 text-left cursor-pointer active:scale-[0.99]"
           >
-            {systemAudioEnabled || backgroundMusicEnabled ? <Disc3 className="h-5 w-5 animate-spin text-cyan-400" style={{ animationDuration: "8s" }} /> : <VolumeX className="h-5 w-5" />}
+            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-400/40 bg-cyan-950/80 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)]">
+              <Disc3 className={`h-6 w-6 text-cyan-400 ${backgroundMusicEnabled ? "animate-spin" : ""}`} style={{ animationDuration: "6s" }} />
+              {backgroundMusicEnabled && (
+                <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-cyan-400 text-[7px] font-black text-black">
+                  ▶
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-xs font-black uppercase tracking-wide text-[var(--theme-text-strong)]">
+                  {musicTracks.find((t) => t.id === (musicTrackSettings?.appTrackId ?? "symphonic-suite-lv1"))?.title || "Solo Leveling OST"}
+                </span>
+              </div>
+              <p className="sl-muted truncate text-[10px] font-bold">
+                {musicTracks.find((t) => t.id === (musicTrackSettings?.appTrackId ?? "symphonic-suite-lv1"))?.artist || "Hiroyuki Sawano"} · {musicTracks.length} utworów
+              </p>
+            </div>
           </button>
+
+          {/* Quick Mini Controls */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={async () => {
+                const prevId = await playPreviousTrack();
+                if (prevId) onUpdateMusicTrackSettings({ appTrackId: prevId });
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 hover:text-white active:scale-95"
+              title="Poprzedni utwór"
+              aria-label="Poprzedni utwór"
+            >
+              <SkipBack className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-black shadow-[0_0_12px_rgba(6,182,212,0.4)] active:scale-95"
+              title={backgroundMusicEnabled ? "Pauza" : "Graj"}
+              aria-label={backgroundMusicEnabled ? "Pauza" : "Graj"}
+            >
+              {backgroundMusicEnabled ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current translate-x-0.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                const nextId = await playNextTrack();
+                if (nextId) onUpdateMusicTrackSettings({ appTrackId: nextId });
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-800 bg-slate-900/60 text-slate-300 hover:text-white active:scale-95"
+              title="Następny utwór"
+              aria-label="Następny utwór"
+            >
+              <SkipForward className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveSheet("audio")}
+              className="flex h-9 px-2.5 items-center justify-center gap-1 rounded-xl border border-cyan-500/40 bg-cyan-950/60 text-[10px] font-mono font-black uppercase tracking-wider text-cyan-300 hover:bg-cyan-900/60 active:scale-95"
+              title="Otwórz pełny album"
+              aria-label="Otwórz pełny album"
+            >
+              <Headphones className="h-3.5 w-3.5" />
+              <span>Album</span>
+            </button>
+          </div>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <AudioQuickTile
-            activeIcon={Volume2}
-            mutedIcon={VolumeX}
-            label="SFX"
-            value={`${Math.round(volume * 100)}%`}
-            enabled={systemAudioEnabled}
-            onOpen={() => setActiveSheet("audio")}
-            onToggle={() => onToggleSystemAudio(!systemAudioEnabled)}
-          />
-          <AudioQuickTile
-            activeIcon={Music2}
-            mutedIcon={VolumeX}
-            label="Album OST"
-            value={`${Math.round(musicVolume * 100)}%`}
-            enabled={backgroundMusicEnabled}
-            onOpen={() => setActiveSheet("audio")}
-            onToggle={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
-          />
+
+        {/* Thin Touch-Friendly Volume Sliders */}
+        <div className="mt-3.5 space-y-2.5 border-t border-slate-800/80 pt-3">
+          {/* SFX Bar */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onToggleSystemAudio(!systemAudioEnabled)}
+              className="flex items-center gap-1.5 w-24 shrink-0 text-left cursor-pointer"
+            >
+              {systemAudioEnabled ? <Volume2 className="h-3.5 w-3.5 text-cyan-400" /> : <VolumeX className="h-3.5 w-3.5 text-slate-500" />}
+              <span className={`text-[10px] font-mono font-black uppercase tracking-wider ${systemAudioEnabled ? "text-cyan-300" : "text-slate-500"}`}>
+                SFX {systemAudioEnabled ? `${Math.round(volume * 100)}%` : "OFF"}
+              </span>
+            </button>
+            <div className="relative flex-1 flex items-center">
+              <input
+                className="h-1.5 w-full accent-cyan-400 bg-slate-800 rounded-full appearance-none cursor-pointer"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={volume}
+                onChange={onVolumeChange}
+              />
+            </div>
+          </div>
+
+          {/* Music Bar */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => onToggleBackgroundMusic(!backgroundMusicEnabled)}
+              className="flex items-center gap-1.5 w-24 shrink-0 text-left cursor-pointer"
+            >
+              {backgroundMusicEnabled ? <Music2 className="h-3.5 w-3.5 text-violet-400" /> : <VolumeX className="h-3.5 w-3.5 text-slate-500" />}
+              <span className={`text-[10px] font-mono font-black uppercase tracking-wider ${backgroundMusicEnabled ? "text-violet-300" : "text-slate-500"}`}>
+                OST {backgroundMusicEnabled ? `${Math.round(musicVolume * 100)}%` : "OFF"}
+              </span>
+            </button>
+            <div className="relative flex-1 flex items-center">
+              <input
+                className="h-1.5 w-full accent-violet-400 bg-slate-800 rounded-full appearance-none cursor-pointer"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={musicVolume}
+                onChange={onMusicVolumeChange}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

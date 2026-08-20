@@ -1792,16 +1792,18 @@ function ShadowExtractionGame({
     });
   }, []);
 
-  const emitSliceImpact = useCallback((object: ShadowSliceObject, label: string) => {
+  const emitSliceImpact = useCallback((object: ShadowSliceObject, label: string, slashAngle = 0, tier: SlicePrecisionTier = "good") => {
+    const isPerfect = tier === "perfect";
     const effect: SliceImpactEffect = {
       id: `impact_${object.id}_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
       kind: object.kind,
       x: object.x,
       y: object.y,
-      sizePx: Math.max(44, object.sizePx * 1.12),
-      rotation: object.rotation,
-      color: getSliceImpactColor(object.kind, selectedEffect.id),
+      sizePx: isPerfect ? Math.max(54, object.sizePx * 1.35) : Math.max(44, object.sizePx * 1.12),
+      rotation: slashAngle || object.rotation,
+      color: isPerfect ? "#facc15" : getSliceImpactColor(object.kind, selectedEffect.id),
       label,
+      tier,
     };
     const underFramePressure = framePressureUntilRef.current > performance.now();
     const maxEffects = getShadowExtractionImpactBudget(graphicsQuality, underFramePressure);
@@ -2058,12 +2060,14 @@ function ShadowExtractionGame({
     };
   }, [applyMissPenalty, finish, graphicsQuality, paused, progress.level, running, setObjectsSync, spawnObject, upgrades.upgrades.flow]);
 
-  const handleSliceHit = useCallback((object: ShadowSliceObject, slashAngle = 0) => {
+  const handleSliceHit = useCallback((object: ShadowSliceObject, slashAngle = 0, tier: SlicePrecisionTier = "good") => {
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 14);
+    const isPerfect = tier === "perfect";
+    const isGreat = tier === "great";
 
     if (object.kind === "trap") {
       playMiniGamePenaltySound();
-      emitSliceImpact(object, "💥 -CZAS!", slashAngle);
+      emitSliceImpact(object, "💥 -CZAS!", slashAngle, tier);
       const penalty = Math.round((3100 + difficulty * 120) * (1 - upgrades.upgrades.ward * 0.12 - relicBonuses.timePenaltyResist));
       comboRef.current = 0;
       scoreRef.current = Math.max(0, scoreRef.current - 30);
@@ -2076,7 +2080,7 @@ function ShadowExtractionGame({
 
     if (object.kind === "decoy") {
       playMiniGamePenaltySound();
-      emitSliceImpact(object, "fałsz", slashAngle);
+      emitSliceImpact(object, "fałsz", slashAngle, tier);
       comboRef.current = 0;
       deadlineRef.current -= Math.round((950 + difficulty * 70) * (1 - relicBonuses.timePenaltyResist));
       scheduleHudSync();
@@ -2086,48 +2090,57 @@ function ShadowExtractionGame({
 
     if (object.kind === "heart") {
       playRewardSound();
-      const heal = Math.max(1, Math.floor(player.maxHp * SHADOW_HEART_HEAL_RATIO));
+      const healMultiplier = isPerfect ? 1.5 : 1;
+      const heal = Math.max(1, Math.floor(player.maxHp * SHADOW_HEART_HEAL_RATIO * healMultiplier));
       hpRestoredRef.current += heal;
       comboRef.current += 1;
-      scoreRef.current += 75;
+      const bonusScore = isPerfect ? 120 : 75;
+      scoreRef.current += bonusScore;
       deadlineRef.current = applyCappedTimeBonus({
         deadline: deadlineRef.current,
         now: Date.now(),
-        bonusMs: 1200,
+        bonusMs: isPerfect ? 2000 : 1200,
         capMs: MAX_REMAINING_TIME_MS,
         diminishingFactor: 0.8,
       });
       scheduleHudSync();
-      showScorePopup(75);
-      emitSliceImpact(object, `❤️ +${heal} HP`, slashAngle);
-      showFeedback("❤️ Serce Monarchy!");
+      showScorePopup(bonusScore);
+      emitSliceImpact(object, isPerfect ? `👑 +${heal} HP!` : `❤️ +${heal} HP`, slashAngle, tier);
+      showFeedback(isPerfect ? "👑 IDEALNE SERCE MONARCHY!" : "❤️ Serce Monarchy!");
       return;
     }
 
     if (object.kind === "time") {
       playRewardSound();
       comboRef.current += 1;
-      scoreRef.current += 35;
+      const bonusScore = isPerfect ? 70 : 35;
+      scoreRef.current += bonusScore;
+      const timeMs = isPerfect ? SHADOW_TIME_BUBBLE_BONUS_MS * 1.5 : SHADOW_TIME_BUBBLE_BONUS_MS;
       deadlineRef.current = applyCappedTimeBonus({
         deadline: deadlineRef.current,
         now: Date.now(),
-        bonusMs: SHADOW_TIME_BUBBLE_BONUS_MS,
+        bonusMs: timeMs,
         capMs: MAX_REMAINING_TIME_MS,
         diminishingFactor: 1,
       });
       scheduleHudSync();
-      showScorePopup(35);
-      emitSliceImpact(object, `⏱️ +${formatBonusSeconds(SHADOW_TIME_BUBBLE_BONUS_MS)}`, slashAngle);
-      showFeedback("⏱️ Bańka Czasu!");
+      showScorePopup(bonusScore);
+      emitSliceImpact(object, isPerfect ? `👑 ⏱️ +${formatBonusSeconds(timeMs)}!` : `⏱️ +${formatBonusSeconds(SHADOW_TIME_BUBBLE_BONUS_MS)}`, slashAngle, tier);
+      showFeedback(isPerfect ? "👑 PERFEKCYJNA BAŃKA CZASU!" : "⏱️ Bańka Czasu!");
       return;
     }
 
     const nextCombo = comboRef.current + 1;
-    const baseGain = object.kind === "gold" ? 28 : 52;
-    const gain = Math.round((baseGain + Math.min(140, nextCombo * 12)) * (1 + relicBonuses.scoreBonus));
-    const timeBonus = object.kind === "gold"
-      ? 700
+    let baseGain = object.kind === "gold" ? 28 : 52;
+    if (isPerfect) baseGain = Math.round(baseGain * 1.75 + 40);
+    else if (isGreat) baseGain = Math.round(baseGain * 1.25 + 15);
+
+    const gain = Math.round((baseGain + Math.min(160, nextCombo * 14)) * (1 + relicBonuses.scoreBonus));
+    let timeBonus = object.kind === "gold"
+      ? (isPerfect ? 1100 : 700)
       : Math.max(450, 880 + nextCombo * 60 + upgrades.upgrades.flow * 115 - difficulty * 25);
+    if (isPerfect) timeBonus = Math.round(timeBonus * 1.35);
+
     const diminishingFactor = Math.max(0.40, 1 - nextCombo * 0.025 - difficulty * 0.016);
     comboRef.current = nextCombo;
     scoreRef.current += gain;
@@ -2140,9 +2153,24 @@ function ShadowExtractionGame({
     });
     scheduleHudSync();
     showScorePopup(gain);
-    emitSliceImpact(object, object.kind === "gold" ? "🪙 +Złoto" : `⚔️ +${gain}`, slashAngle);
-    showFeedback(object.kind === "gold" ? "🪙 Odłamek Złota" : "✨ Ekstrakcja Cienia");
-    if (object.kind === "gold" || nextCombo % 5 === 0) {
+
+    const label = isPerfect
+      ? (object.kind === "gold" ? "👑 +2x ZŁOTO!" : `👑 +${gain} PERFEKT!`)
+      : isGreat
+        ? (object.kind === "gold" ? "⚡ +Złoto" : `⚡ +${gain}`)
+        : (object.kind === "gold" ? "🪙 +Złoto" : `⚔️ +${gain}`);
+
+    emitSliceImpact(object, label, slashAngle, tier);
+
+    const feedbackText = isPerfect
+      ? (object.kind === "gold" ? "👑 Perfekcyjny Skarb Złota!" : "👑 PERFEKCYJNE CIĘCIE!")
+      : isGreat
+        ? (object.kind === "gold" ? "⚡ Złoty Odłamek" : "⚡ Czyste cięcie!")
+        : (object.kind === "gold" ? "🪙 Odłamek Złota" : "✨ Ekstrakcja Cienia");
+
+    showFeedback(feedbackText);
+
+    if (isPerfect || object.kind === "gold" || nextCombo % 5 === 0) {
       playMiniGameComboSound();
     } else {
       playMiniGameHitSound();
@@ -2155,6 +2183,7 @@ function ShadowExtractionGame({
 
     const pathPx = path.map((point) => pointToPixels(point, rect));
     const hitIds = new Set<string>();
+    const hitObjectTiers = new Map<string, SlicePrecisionTier>();
     const bladeWidth = orientationMode === "portrait" ? 34 : 30;
 
     let slashAngle = 0;
@@ -2175,6 +2204,18 @@ function ShadowExtractionGame({
       }
       if (slicePathIntersectsTarget(pathPx, center, { bladeWidth, maxSegmentLength: 5 })) {
         hitIds.add(object.id);
+        let minDistance = Number.POSITIVE_INFINITY;
+        if (pathPx.length === 1) {
+          minDistance = Math.hypot(pathPx[0].x - center.x, pathPx[0].y - center.y);
+        } else {
+          for (let i = 1; i < pathPx.length; i++) {
+            const d = getDistanceToSegment(center, pathPx[i - 1], pathPx[i]);
+            if (d < minDistance) minDistance = d;
+          }
+        }
+        const accuracyRatio = minDistance / (center.radius || 25);
+        const tier: SlicePrecisionTier = accuracyRatio <= 0.30 ? "perfect" : accuracyRatio <= 0.65 ? "great" : "good";
+        hitObjectTiers.set(object.id, tier);
       }
     }
 
@@ -2195,7 +2236,7 @@ function ShadowExtractionGame({
       showFeedback("⚔️ Podwójne cięcie!");
     }
 
-    hitObjects.forEach((obj) => handleSliceHit(obj, slashAngle));
+    hitObjects.forEach((obj) => handleSliceHit(obj, slashAngle, hitObjectTiers.get(obj.id) || "good"));
   }, [handleSliceHit, orientationMode, scheduleHudSync, setObjectsSync, showFeedback, showScorePopup]);
 
   const addTrailPoint = useCallback((point: SliceTrailPoint) => {
@@ -2804,22 +2845,26 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
   graphicsQuality: PlayerState["settings"]["graphicsQuality"];
 }) {
   const asset = getSliceImpactAsset(effect.kind);
+  const isPerfect = effect.tier === "perfect";
+  const isGreat = effect.tier === "great";
+
   const particleCount = graphicsQuality === "cinematic"
-    ? effect.kind === "trap" ? 14 : effect.kind === "time" ? 12 : effect.kind === "heart" ? 10 : 8
-    : effect.kind === "trap" ? 8 : effect.kind === "time" ? 7 : effect.kind === "heart" ? 6 : 5;
+    ? isPerfect ? 20 : isGreat ? 14 : effect.kind === "trap" ? 14 : 10
+    : isPerfect ? 14 : isGreat ? 10 : effect.kind === "trap" ? 8 : 6;
 
   const particles = useMemo(
     () => Array.from({ length: particleCount }, (_, index) => {
       const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 180;
-      const distance = effect.sizePx * (0.45 + (index % 4) * 0.18);
+      const distanceMult = isPerfect ? 1.55 : isGreat ? 1.25 : 1.0;
+      const distance = effect.sizePx * (0.45 + (index % 4) * 0.22) * distanceMult;
       return {
         id: `${effect.id}_spark_${index}`,
         x: Math.cos(angle) * distance,
         y: Math.sin(angle) * distance,
-        size: 3.5 + (index % 3) * 1.8,
+        size: (isPerfect ? 4.5 : isGreat ? 3.8 : 3.2) + (index % 3) * 1.8,
       };
     }),
-    [effect.id, effect.rotation, effect.sizePx, particleCount]
+    [effect.id, effect.rotation, effect.sizePx, particleCount, isPerfect, isGreat]
   );
 
   return (
@@ -2836,20 +2881,34 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Perfect Prismatic Aura / Radial Burst */}
+      {isPerfect && (
+        <motion.div
+          className="absolute inset-[-40%] rounded-full border-4 border-yellow-300 shadow-[0_0_35px_rgba(250,204,21,0.95)] overflow-visible pointer-events-none"
+          initial={{ scale: 0.15, opacity: 1, rotate: 0 }}
+          animate={{ scale: 2.8, opacity: 0, rotate: 90 }}
+          transition={{ duration: 0.52, ease: "easeOut" }}
+        />
+      )}
+
       {/* Central Slash Line */}
       <motion.div
-        className="absolute left-1/2 top-1/2 h-[6px] w-[240%] origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_20px_currentColor] overflow-visible pointer-events-none"
+        className={`absolute left-1/2 top-1/2 origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_24px_currentColor] overflow-visible pointer-events-none ${
+          isPerfect ? "h-[8px] w-[280%]" : isGreat ? "h-[6px] w-[250%]" : "h-[5px] w-[220%]"
+        }`}
         style={{ transform: `translate(-50%, -50%) rotate(${effect.rotation}deg)` }}
         initial={{ scaleX: 0.1, opacity: 1 }}
-        animate={{ scaleX: 1.2, opacity: 0 }}
-        transition={{ duration: 0.28, ease: "easeOut" }}
+        animate={{ scaleX: isPerfect ? 1.4 : 1.2, opacity: 0 }}
+        transition={{ duration: 0.32, ease: "easeOut" }}
       />
 
       {/* Expanding shockwave */}
       <motion.div
-        className="absolute inset-[-25%] rounded-full border-2 border-current overflow-visible pointer-events-none"
+        className={`absolute inset-[-25%] rounded-full border-2 border-current overflow-visible pointer-events-none ${
+          isPerfect ? "border-amber-300 shadow-[0_0_20px_rgba(250,204,21,0.8)]" : ""
+        }`}
         initial={{ scale: 0.3, opacity: 0.95 }}
-        animate={{ scale: 2.2, opacity: 0 }}
+        animate={{ scale: isPerfect ? 2.8 : 2.2, opacity: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
       />
 
@@ -2861,7 +2920,9 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
       {particles.map((particle) => (
         <motion.span
           key={particle.id}
-          className="absolute left-1/2 top-1/2 rounded-full bg-current shadow-[0_0_12px_currentColor] pointer-events-none"
+          className={`absolute left-1/2 top-1/2 rounded-full pointer-events-none ${
+            isPerfect ? "bg-amber-300 shadow-[0_0_16px_rgba(250,204,21,1)]" : "bg-current shadow-[0_0_12px_currentColor]"
+          }`}
           style={{ width: particle.size, height: particle.size }}
           initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
           animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.2 }}
@@ -2871,11 +2932,17 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 
       {/* Label popup */}
       <motion.span
-        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-current/60 bg-black/90 px-3 py-1 font-mono text-[13px] font-black uppercase tracking-wider text-current pointer-events-none select-none shadow-[0_0_18px_currentColor]"
+        className={`absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 bg-black/90 px-3 py-1 font-mono font-black uppercase tracking-wider pointer-events-none select-none ${
+          isPerfect
+            ? "border-yellow-300 text-yellow-300 text-[14px] shadow-[0_0_24px_rgba(250,204,21,0.9)]"
+            : isGreat
+              ? "border-cyan-400 text-cyan-300 text-[13px] shadow-[0_0_18px_rgba(6,182,212,0.8)]"
+              : "border-current/60 text-current text-[12px] shadow-[0_0_14px_currentColor]"
+        }`}
         style={{ zIndex: 60, textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
         initial={{ opacity: 0, y: 6, scale: 0.7 }}
-        animate={{ opacity: [0, 1, 1, 0.9, 0], y: [6, -18, -38, -56, -72], scale: [0.7, 1.2, 1.1, 1, 0.85] }}
-        transition={{ duration: 0.9, times: [0, 0.12, 0.4, 0.75, 1], ease: "easeOut" }}
+        animate={{ opacity: [0, 1, 1, 0.9, 0], y: [6, -20, -42, -62, -80], scale: isPerfect ? [0.7, 1.35, 1.2, 1.05, 0.9] : [0.7, 1.2, 1.1, 1, 0.85] }}
+        transition={{ duration: 0.95, times: [0, 0.12, 0.4, 0.75, 1], ease: "easeOut" }}
       >
         {effect.label}
       </motion.span>
@@ -3330,6 +3397,8 @@ type SliceTrailPoint = SegmentPoint & {
   time: number;
 };
 
+type SlicePrecisionTier = "perfect" | "great" | "good";
+
 type SliceImpactEffect = {
   id: string;
   kind: ShadowSliceKind;
@@ -3339,6 +3408,7 @@ type SliceImpactEffect = {
   rotation: number;
   color: string;
   label: string;
+  tier?: SlicePrecisionTier;
 };
 
 function getShadowSliceHitRadius(object: ShadowSliceObject, orientationMode: MiniGameOrientationMode) {
@@ -3474,6 +3544,18 @@ function createShadowSliceObject({
 }
 
 
+
+function getDistanceToSegment(p: { x: number; y: number }, a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const l2 = dx * dx + dy * dy;
+  if (l2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  const projX = a.x + t * dx;
+  const projY = a.y + t * dy;
+  return Math.hypot(p.x - projX, p.y - projY);
+}
 
 function pointToPixels(point: SegmentPoint, rect: DOMRect): SegmentPoint {
   return {

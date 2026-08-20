@@ -243,6 +243,19 @@ function toNativeNotification(entry: NotificationScheduleEntry): NativeScheduled
   };
 }
 
+export async function notifyAppUpdateAvailable(updateInfo: { latestVersion: string; changelog?: string[] }) {
+  if (!Capacitor.isNativePlatform()) return;
+  try {
+    const title = `⚡ Nowa wersja Solo Leveler v${updateInfo.latestVersion}!`;
+    const body = updateInfo.changelog?.length
+      ? `Nowości: ${updateInfo.changelog.slice(0, 2).join(" · ")}. Kliknij, aby pobrać aktualizację.`
+      : `Aktualizacja v${updateInfo.latestVersion} jest gotowa do pobrania. Sprawdź nowe funkcje!`;
+    await HunterNotifications.showRewardNotification({ title, body });
+  } catch {
+    // Ignore notification errors
+  }
+}
+
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
