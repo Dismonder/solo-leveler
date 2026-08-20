@@ -1,15 +1,13 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
-export const CURRENT_APP_VERSION = "1.0.8";
-export const CURRENT_APP_BUILD = 9;
-
-
+export const CURRENT_APP_VERSION = "1.0.9";
+export const CURRENT_APP_BUILD = 10;
 
 export const CURRENT_VERSION_CHANGELOG: string[] = [
-  "🚀 Prawdziwe natywne 120Hz: pełne wymuszenie wysokiego odświeżania na poziomie Android Window & WebView Surface",
-  "⚡ Silnik Canvas 2D w Cięciu Cienia: zerowy koszt layoutu DOM, czas renderowania poniżej 0.2ms",
-  "📏 Czysty minimalistyczny pasek: prosty, sleeker wskaźnik i natychmiastowe wykrywanie dotyku",
-  "🎮 Optymalizacja cyklu życia Androida: automatyczne odnawianie 120Hz po powrocie do okna aplikacji",
+  "⚔️ Cięcie Cienia: Progresywne zwężanie celu przy idealnych cięciach (streak) i dynamiczny mnożnik punktów precyzji",
+  "📱 Cięcie Cienia: Ergonomiczny panel uderzenia dedykowany dla urządzeń mobilnych",
+  "🔊 System Audio: Odnowione, gradientowe i dynamiczne paski głośności SFX & OST",
+  "🏋️ Zakładka Trening: Pełny podgląd wszystkich dzisiejszych zadań nawet po ich ukończeniu bez wymuszonego przekierowania",
 ];
 
 export const DEFAULT_GITHUB_REPO = "Dismonder/solo-leveler";
