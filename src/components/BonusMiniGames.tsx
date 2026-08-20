@@ -2272,33 +2272,36 @@ function ShadowExtractionGame({
 
   return (
     <MiniGameFrame definition={definition} score={score} combo={combo} remaining={remaining} scorePopup={scorePopup} finished={finished} showHud={running} stageBackground={stageBackground} stageEffect={stageEffect} showGrid={showGrid} graphicsQuality={graphicsQuality} compact>
-      <div
-        ref={playfieldRef}
-        className={`relative h-full touch-none select-none overflow-hidden ${orientationMode === "portrait" ? "min-h-[460px]" : "min-h-[320px]"}`}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endSlice}
-        onPointerCancel={endSlice}
-      >
-        {objects.map((object) => (
-          <ShadowSliceToken key={object.id} object={object} graphicsQuality={graphicsQuality} playfieldSize={playfieldSize} />
-        ))}
-        <SliceTrail points={trail} effect={selectedEffect} />
+      <div className="relative h-full">
+        <div
+          ref={playfieldRef}
+          className={`absolute inset-0 touch-none select-none overflow-hidden ${orientationMode === "portrait" ? "min-h-[460px]" : "min-h-[320px]"}`}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endSlice}
+          onPointerCancel={endSlice}
+        >
+          {objects.map((object) => (
+            <ShadowSliceToken key={object.id} object={object} graphicsQuality={graphicsQuality} playfieldSize={playfieldSize} />
+          ))}
+          <SliceTrail points={trail} effect={selectedEffect} />
+          {running && <ShadowExtractionChanceMeter remaining={remaining} signalPercent={signalPercent} />}
+          {!running && (
+            <StartOverlay
+              finished={finished}
+              score={score}
+              title={finished ? "Wynik zapisany" : "Ekstrakcja cienia"}
+              text={definition.shortGoal}
+              tips={definition.readyTips}
+              relicBonuses={relicBonuses}
+              onStart={start}
+              onExit={onExit}
+            />
+          )}
+        </div>
+        {/* Impact effects and feedback OUTSIDE overflow-hidden so labels are never clipped */}
         <SliceImpactLayer effects={impactEffects} graphicsQuality={graphicsQuality} />
-        {running && <ShadowExtractionChanceMeter remaining={remaining} signalPercent={signalPercent} />}
         <Feedback text={feedback} />
-        {!running && (
-          <StartOverlay
-            finished={finished}
-            score={score}
-            title={finished ? "Wynik zapisany" : "Ekstrakcja cienia"}
-            text={definition.shortGoal}
-            tips={definition.readyTips}
-            relicBonuses={relicBonuses}
-            onStart={start}
-            onExit={onExit}
-          />
-        )}
       </div>
     </MiniGameFrame>
   );
@@ -2782,7 +2785,7 @@ const SliceImpactLayer = memo(function SliceImpactLayer({
   graphicsQuality: PlayerState["settings"]["graphicsQuality"];
 }) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-30">
+    <div className="pointer-events-none absolute inset-0 z-40 overflow-visible">
       <AnimatePresence>
         {effects.map((effect) => (
           <SliceImpactBurst key={effect.id} effect={effect} graphicsQuality={graphicsQuality} />
@@ -2868,10 +2871,11 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 
       {/* Label popup */}
       <motion.span
-        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border border-current/50 bg-black/80 px-2.5 py-0.5 font-mono text-[10px] font-black uppercase tracking-widest text-current shadow-[0_0_12px_currentColor]"
-        initial={{ opacity: 0, y: 4, scale: 0.8 }}
-        animate={{ opacity: [0, 1, 1, 0], y: [4, -16, -34, -50], scale: [0.8, 1.15, 1, 0.9] }}
-        transition={{ duration: 0.75, times: [0, 0.15, 0.7, 1], ease: "easeOut" }}
+        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-current/60 bg-black/90 px-3 py-1 font-mono text-[13px] font-black uppercase tracking-wider text-current"
+        style={{ zIndex: 50, textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
+        initial={{ opacity: 0, y: 6, scale: 0.7 }}
+        animate={{ opacity: [0, 1, 1, 0.9, 0], y: [6, -18, -38, -56, -72], scale: [0.7, 1.2, 1.1, 1, 0.85] }}
+        transition={{ duration: 0.9, times: [0, 0.12, 0.4, 0.75, 1], ease: "easeOut" }}
       >
         {effect.label}
       </motion.span>
@@ -3147,9 +3151,11 @@ function ScorePopup({ popup }: { popup: ScorePopupState }) {
 
 function Feedback({ text }: { text: string | null }) {
   if (!text) return null;
+  const isPositive = text.startsWith("+") || text.includes("udana") || text.includes("Trafienie") || text.includes("Perfekcyjne") || text.includes("otwarta") || text.includes("zamknięta")
+    || text.includes("Ekstrakcja") || text.includes("Serce") || text.includes("Bańka") || text.includes("Złot") || text.includes("COMBO") || text.includes("cięcie") || text.includes("⚔️") || text.includes("✨") || text.includes("❤️") || text.includes("⏱️") || text.includes("🪙");
   return (
-    <div className={`pointer-events-none absolute bottom-[max(18px,env(safe-area-inset-bottom))] left-1/2 z-30 -translate-x-1/2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-widest ${
-      text.startsWith("+") || text.includes("udana") || text.includes("Trafienie") || text.includes("Perfekcyjne") || text.includes("otwarta") || text.includes("zamknięta")
+    <div className={`pointer-events-none absolute bottom-[max(18px,env(safe-area-inset-bottom))] left-1/2 z-40 -translate-x-1/2 rounded-full border px-3 py-1 text-xs font-black uppercase tracking-widest ${
+      isPositive
         ? "border-[color-mix(in_srgb,var(--theme-accent)_45%,transparent)] bg-[var(--theme-accent-soft)] text-[var(--theme-accent-text)]"
         : "border-[color-mix(in_srgb,var(--theme-danger)_45%,transparent)] bg-[var(--theme-danger-soft)] text-[var(--theme-danger-text)]"
     }`}>
