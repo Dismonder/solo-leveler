@@ -1,13 +1,13 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
-export const CURRENT_APP_VERSION = "1.0.9";
-export const CURRENT_APP_BUILD = 10;
+export const CURRENT_APP_VERSION = "1.1.0";
+export const CURRENT_APP_BUILD = 11;
 
 export const CURRENT_VERSION_CHANGELOG: string[] = [
-  "⚔️ Cięcie Cienia: Progresywne zwężanie celu przy idealnych cięciach (streak) i dynamiczny mnożnik punktów precyzji",
-  "📱 Cięcie Cienia: Ergonomiczny panel uderzenia dedykowany dla urządzeń mobilnych",
-  "🔊 System Audio: Odnowione, gradientowe i dynamiczne paski głośności SFX & OST",
-  "🏋️ Zakładka Trening: Pełny podgląd wszystkich dzisiejszych zadań nawet po ich ukończeniu bez wymuszonego przekierowania",
+  "⚔️ Cięcie Cienia: Usunięcie podwójnych linii/ghostingu – pojedynczy, idealnie jednolity i ostry promień ostrza",
+  "🏋️ Rozbudowa Planów Treningu: Gotowe szablony Łowcy (E-Rank Reawakening, Monarch Chest & Arms, Shadow Assassin Core, Dungeon Overlord)",
+  "🔍 Filtry Partii Mięśniowych: Wygodne przeglądanie i dodawanie ćwiczeń według partii mięśniowych",
+  "📱 Odnowiony Ekran Sesji Treningowej: Nowoczesny panel horyzontalny (Landscape HUD) z dużym wideo, live regulacją powtórzeń/ciężaru i dedykowanym licznikiem przerw",
 ];
 
 export const DEFAULT_GITHUB_REPO = "Dismonder/solo-leveler";

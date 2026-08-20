@@ -159,15 +159,16 @@ export function createShadowStrikeRenderer(
     const cursorX = layout.trackLeft + ((layout.trackRight - layout.trackLeft) * runtime.cursorPosition) / 100;
     const cursorTop = layout.trackTop - 7;
     const cursorBottom = layout.trackBottom + 7;
-    dynamicContext.strokeStyle = "#0b1020";
-    dynamicContext.lineWidth = 6;
+    // Unified solid glowing beam centered on cursorX without side stripes
+    dynamicContext.strokeStyle = "#020617";
+    dynamicContext.lineWidth = 5;
     drawVerticalStroke(dynamicContext, cursorX, cursorTop, cursorBottom);
-    dynamicContext.strokeStyle = "#47f8ff";
+    dynamicContext.strokeStyle = "#00f0ff";
     dynamicContext.lineWidth = 3;
-    drawVerticalStroke(dynamicContext, cursorX - 2, cursorTop, cursorBottom);
+    drawVerticalStroke(dynamicContext, cursorX, cursorTop, cursorBottom);
     dynamicContext.strokeStyle = "#ffffff";
     dynamicContext.lineWidth = 1;
-    drawVerticalStroke(dynamicContext, cursorX + 2, cursorTop, cursorBottom);
+    drawVerticalStroke(dynamicContext, cursorX, cursorTop, cursorBottom);
 
     if (runtime.score !== cachedScore) {
       cachedScore = runtime.score;

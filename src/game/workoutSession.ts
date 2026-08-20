@@ -60,10 +60,18 @@ export function startWorkoutPlanSession(plan: WorkoutPlanExercise[], now = new D
 export function completeCurrentSessionSet(
   session: WorkoutPlanSession,
   previousSummaries: WorkoutPlanSessionSummary[],
+  customResultOrNow?: { reps?: number; weightKg?: number } | Date,
   now = new Date()
 ) {
   if (session.status !== "active") return session;
-  return recordCurrentSet(session, previousSummaries, false, now);
+  let customResult: { reps?: number; weightKg?: number } | undefined;
+  let actualNow = now;
+  if (customResultOrNow instanceof Date) {
+    actualNow = customResultOrNow;
+  } else if (customResultOrNow) {
+    customResult = customResultOrNow;
+  }
+  return recordCurrentSet(session, previousSummaries, false, customResult, actualNow);
 }
 
 export function skipCurrentSessionSet(
@@ -72,7 +80,7 @@ export function skipCurrentSessionSet(
   now = new Date()
 ) {
   if (session.status !== "active") return session;
-  return recordCurrentSet(session, previousSummaries, true, now);
+  return recordCurrentSet(session, previousSummaries, true, undefined, now);
 }
 
 export function advanceSessionAfterRest(session: WorkoutPlanSession, now = new Date()) {
@@ -208,19 +216,23 @@ function recordCurrentSet(
   session: WorkoutPlanSession,
   previousSummaries: WorkoutPlanSessionSummary[],
   skipped: boolean,
-  now: Date
+  customResult?: { reps?: number; weightKg?: number },
+  now = new Date()
 ): WorkoutPlanSession {
   const exercise = getCurrentSessionExercise(session);
   if (!exercise) return session;
 
   const timestamp = now.toISOString();
+  const reps = skipped ? 0 : Math.max(1, customResult?.reps ?? exercise.targetReps);
+  const weightKg = skipped ? 0 : Math.max(0, customResult?.weightKg ?? exercise.weightKg);
+
   const result: WorkoutPlanSessionSetResult = {
     id: `session_set_${now.getTime()}_${Math.random().toString(36).slice(2, 8)}`,
     exerciseSnapshotId: exercise.id,
     exerciseIndex: session.exerciseIndex,
     setIndex: session.setIndex,
-    reps: skipped ? 0 : exercise.targetReps,
-    weightKg: skipped ? 0 : exercise.weightKg,
+    reps,
+    weightKg,
     skipped,
     startedAt: session.currentStepStartedAt,
     completedAt: timestamp,

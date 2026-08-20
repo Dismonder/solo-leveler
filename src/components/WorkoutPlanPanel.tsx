@@ -3,27 +3,37 @@ import {
   ArrowDown,
   ArrowUp,
   BarChart3,
+  BookOpen,
   CheckCircle2,
   Dumbbell,
+  Filter,
+  Flame,
+  Layers,
   Play,
   Plus,
+  RotateCcw,
   Search,
+  Sparkles,
   Timer,
   Trash2,
   Trophy,
   Weight,
+  X,
 } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { EXERCISE_CATALOG, type ExerciseCatalogEntry } from "../data/exerciseCatalog";
 import {
+  HUNTER_WORKOUT_PRESETS,
   addCatalogExerciseToPlan,
   addSetToPlanExercise,
+  createPlanFromPreset,
   getPlanCompletionForDate,
   getPlanSetsForDate,
   movePlanExercise,
   removePlanExercise,
   removePlanSet,
   updatePlanExercise,
+  type WorkoutPlanPreset,
 } from "../game/workoutPlan";
 import { getLocalDateKey } from "../game/playerMath";
 import { searchExercises } from "../game/exerciseSearch";
@@ -31,6 +41,18 @@ import type { WorkoutEntry, WorkoutPlanExercise, WorkoutPlanSession, WorkoutPlan
 
 type HistoryRange = "7d" | "30d" | "all";
 type PlanPanelMode = "plan" | "history";
+
+const CATEGORY_FILTERS = [
+  "Wszystkie",
+  "Klatka piersiowa",
+  "Plecy",
+  "Nogi",
+  "Barki",
+  "Ramiona",
+  "Brzuch i core",
+  "Kondycja",
+  "Funkcjonalne",
+] as const;
 
 type WorkoutPlanPanelProps = {
   plan: WorkoutPlanExercise[];
@@ -51,6 +73,8 @@ export function WorkoutPlanPanel({
 }: WorkoutPlanPanelProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Wszystkie");
+  const [showPresets, setShowPresets] = useState(false);
   const [historyRange, setHistoryRange] = useState<HistoryRange>("7d");
   const [mode, setMode] = useState<PlanPanelMode>("plan");
   const [startError, setStartError] = useState<string | null>(null);
@@ -59,19 +83,46 @@ export function WorkoutPlanPanel({
 
   const completion = getPlanCompletionForDate(plan, todayKey);
   const plannedIds = new Set(plan.map((exercise) => exercise.catalogExerciseId));
+
+  const filteredCatalog = useMemo(() => {
+    if (selectedCategory === "Wszystkie") return EXERCISE_CATALOG;
+    return EXERCISE_CATALOG.filter((item) => item.category === selectedCategory);
+  }, [selectedCategory]);
+
   const searchResults = useMemo(
-    () => searchExercises(EXERCISE_CATALOG, deferredQuery, { limit: deferredQuery.trim() ? 8 : 5 }),
-    [deferredQuery],
+    () => searchExercises(filteredCatalog, deferredQuery, { limit: deferredQuery.trim() ? 10 : 6 }),
+    [filteredCatalog, deferredQuery]
   );
+
+  const estimatedMinutes = useMemo(() => {
+    if (plan.length === 0) return 0;
+    const totalSeconds = plan.reduce(
+      (sum, ex) => sum + ex.targetSets * (ex.targetReps * 3 + ex.restSeconds),
+      0
+    );
+    return Math.max(1, Math.round(totalSeconds / 60));
+  }, [plan]);
+
+  const targetedMuscles = useMemo(() => {
+    const muscles = new Set<string>();
+    plan.forEach((ex) => (ex.primaryMuscles || []).forEach((m) => muscles.add(m)));
+    return Array.from(muscles).slice(0, 6);
+  }, [plan]);
 
   const addExercise = (exercise: ExerciseCatalogEntry) => {
     onChange(addCatalogExerciseToPlan(plan, exercise));
     setStartError(null);
   };
 
+  const handleApplyPreset = (preset: WorkoutPlanPreset) => {
+    onChange(createPlanFromPreset(preset));
+    setShowPresets(false);
+    setStartError(null);
+  };
+
   const handleStartSession = () => {
     if (plan.length === 0 && !activeSession) {
-      setStartError("Dodaj pierwsze ćwiczenie z wyników wyszukiwania, wtedy plan będzie można uruchomić.");
+      setStartError("Dodaj pierwsze ćwiczenie lub wybierz gotowy plan Łowcy, aby uruchomić trening.");
       searchInputRef.current?.focus();
       searchInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -112,110 +163,278 @@ export function WorkoutPlanPanel({
         />
       ) : (
         <>
-      <div className="sl-card rounded-[22px] p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">Plan łowcy</p>
-            <h3 className="mt-1 text-lg font-black uppercase tracking-[0.06em] text-[var(--theme-text)]">Twoje ćwiczenia</h3>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">
-              Ułóż kolejność, serie i przerwy. Po starcie plan działa jako snapshot, więc edycja nie popsuje aktywnej sesji.
-            </p>
+          <div className="sl-card rounded-[24px] p-4 shadow-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">
+                  System Treningowy
+                </p>
+                <h3 className="mt-1 text-lg font-black uppercase tracking-[0.06em] text-[var(--theme-text)]">
+                  Plan Łowcy
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--theme-muted)]">
+                  Ułóż kolejność, serie i przerwy lub wczytaj gotowy szablon treningowy.
+                </p>
+              </div>
+              <Dumbbell className="h-6 w-6 text-[var(--theme-icon)]" />
+            </div>
+
+            {/* Main Action Bar */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+              <button
+                type="button"
+                onClick={handleStartSession}
+                className="sl-button-primary flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black uppercase tracking-widest active:scale-[0.98]"
+              >
+                <Play className="h-4 w-4" />
+                {activeSession ? "Wznów aktywny plan" : "Uruchom plan treningu"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPresets(true)}
+                className="sl-button-secondary flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 text-xs font-black uppercase tracking-wider active:scale-[0.98]"
+              >
+                <Sparkles className="h-4 w-4 text-amber-400" />
+                <span>Gotowe Plany ({HUNTER_WORKOUT_PRESETS.length})</span>
+              </button>
+            </div>
+
+            {/* Muscle Category Filters */}
+            <div className="mt-4">
+              <p className="sl-kicker text-[9px] font-black uppercase tracking-widest text-[var(--theme-muted)] mb-2">
+                Filtruj wg Partii Mięśniowej:
+              </p>
+              <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                {CATEGORY_FILTERS.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat)}
+                    className={[
+                      "shrink-0 rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all",
+                      selectedCategory === cat
+                        ? "sl-chip-active shadow-[0_0_12px_color-mix(in_srgb,var(--theme-accent)_25%,transparent)]"
+                        : "sl-chip text-[var(--theme-muted)] hover:text-[var(--theme-text)]",
+                    ].join(" ")}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Search Input */}
+            <div className="mt-3 grid gap-2">
+              <label className="sl-input flex min-h-12 items-center gap-2 rounded-2xl px-3">
+                <Search className="h-4 w-4 text-[var(--theme-muted)]" />
+                <input
+                  ref={searchInputRef}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Szukaj: wyciskanie, pompki, brzuch, hantle..."
+                  className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
+                />
+                {query && (
+                  <button
+                    type="button"
+                    onClick={() => setQuery("")}
+                    className="p-1 text-[var(--theme-muted)] hover:text-[var(--theme-text)]"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </label>
+
+              {startError && (
+                <div className="sl-alert-warning rounded-2xl px-3 py-2 text-xs font-bold text-[var(--theme-warning-text)]">
+                  {startError}
+                </div>
+              )}
+
+              {/* Quick Results Grid */}
+              <div className="grid max-w-full gap-1.5 overflow-hidden">
+                {searchResults.map(({ exercise }) => {
+                  const planned = plannedIds.has(exercise.id);
+                  return (
+                    <button
+                      key={exercise.id}
+                      type="button"
+                      onClick={() => !planned && addExercise(exercise)}
+                      disabled={planned}
+                      className="sl-input grid min-h-12 w-full max-w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-xl px-3 py-2 text-left active:scale-[0.99] disabled:opacity-75"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-black text-[var(--theme-text-strong)]">
+                          {exercise.name}
+                        </span>
+                        <span className="sl-muted mt-0.5 block truncate text-[9px] font-black uppercase tracking-widest">
+                          {exercise.category} · {exercise.equipment}
+                        </span>
+                      </span>
+                      <span
+                        className={
+                          planned
+                            ? "sl-chip rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest"
+                            : "sl-button-primary shrink-0 rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest"
+                        }
+                      >
+                        {planned ? "W planie" : "+ Dodaj"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Plan Metrics Overview */}
+            <div className="mt-4 grid grid-cols-4 gap-2">
+              <PlanStat label="Ćwiczenia" value={plan.length} />
+              <PlanStat label="Czas sesji" value={`~${estimatedMinutes}m`} />
+              <PlanStat
+                label="Serie dziś"
+                value={`${completion.completedSets}/${completion.targetSets}`}
+              />
+              <PlanStat label="Postęp" value={`${Math.floor(completion.percent)}%`} />
+            </div>
+
+            {targetedMuscles.length > 0 && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 pt-2 border-t border-[var(--theme-border)]/40">
+                <span className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-muted)] mr-1">
+                  Partie:
+                </span>
+                {targetedMuscles.map((m) => (
+                  <span
+                    key={m}
+                    className="rounded-lg bg-[var(--theme-accent-soft)] px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-[var(--theme-accent)]"
+                  >
+                    {m}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          <Dumbbell className="h-6 w-6 text-[var(--theme-icon)]" />
-        </div>
 
-        <button
-          type="button"
-          onClick={handleStartSession}
-          className="sl-button-primary mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black uppercase tracking-widest active:scale-[0.98]"
-        >
-          <Play className="h-4 w-4" />
-          {activeSession ? "Wznów plan" : "Uruchom plan"}
-        </button>
+          {/* Presets Modal */}
+          {showPresets && (
+            <div className="sl-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="sl-modal w-full max-w-md max-h-[85vh] overflow-y-auto rounded-[26px] border p-4 sm:p-5 shadow-2xl custom-scrollbar">
+                <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-3">
+                  <div>
+                    <span className="sl-kicker text-[9px] font-black uppercase tracking-widest text-amber-400">
+                      Gotowe Szablony
+                    </span>
+                    <h3 className="text-lg font-black uppercase tracking-wide text-[var(--theme-text-strong)]">
+                      Wybierz Plan Łowcy
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPresets(false)}
+                    className="sl-icon-button flex h-9 w-9 items-center justify-center rounded-xl"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
-        <div className="mt-4 grid gap-2">
-          <label className="sl-input flex min-h-12 items-center gap-2 rounded-2xl px-3">
-            <Search className="h-4 w-4 text-[var(--theme-muted)]" />
-            <input
-              ref={searchInputRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Szukaj: klata, brzuch, bez sprzętu..."
-              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-muted)]"
-            />
-          </label>
+                <div className="mt-3 space-y-3">
+                  {HUNTER_WORKOUT_PRESETS.map((preset) => (
+                    <div
+                      key={preset.id}
+                      className="sl-input flex flex-col justify-between rounded-2xl p-3.5 transition-all hover:border-[var(--theme-accent)]"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{preset.icon}</span>
+                            <span className="font-black text-sm text-[var(--theme-text-strong)] uppercase">
+                              {preset.name}
+                            </span>
+                            <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[8px] font-black text-amber-400">
+                              {preset.rank}
+                            </span>
+                          </div>
+                          <p className="sl-kicker mt-1 text-[9px] font-bold text-[var(--theme-accent)]">
+                            {preset.tagline}
+                          </p>
+                          <p className="sl-muted mt-1 text-xs leading-relaxed">
+                            {preset.description}
+                          </p>
+                          <p className="sl-muted mt-1 text-[10px] font-bold">
+                            ⏱️ ~{preset.estimatedMinutes} min · {preset.exercises.length} ćwiczenia
+                          </p>
+                        </div>
+                      </div>
 
-          {startError && (
-            <div className="sl-alert-warning rounded-2xl px-3 py-2 text-xs font-bold text-[var(--theme-warning-text)]">
-              {startError}
+                      <button
+                        type="button"
+                        onClick={() => handleApplyPreset(preset)}
+                        className="sl-button-primary mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider active:scale-[0.98]"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Załaduj ten plan</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          <div className="grid max-w-full gap-2 overflow-hidden">
-            {searchResults.map(({ exercise }) => {
-              const planned = plannedIds.has(exercise.id);
-              return (
+          {/* Exercise List */}
+          {plan.length === 0 ? (
+            <div className="sl-input rounded-[22px] p-6 text-center shadow-lg">
+              <Dumbbell className="mx-auto h-8 w-8 text-[var(--theme-icon)] mb-2" />
+              <p className="text-sm font-bold text-[var(--theme-text)]">Twój plan jest pusty.</p>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--theme-muted)]">
+                Wybierz gotowy szablon Łowcy powyżej lub dodaj ćwiczenia z wyszukiwarki.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-muted)]">
+                  Ćwiczenia w planie ({plan.length})
+                </span>
                 <button
-                  key={exercise.id}
                   type="button"
-                  onClick={() => !planned && addExercise(exercise)}
-                  disabled={planned}
-                  className="sl-input grid min-h-14 w-full max-w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-2xl px-3 py-2 text-left active:scale-[0.99] disabled:opacity-80"
+                  onClick={() => onChange([])}
+                  className="text-[10px] font-black uppercase tracking-widest text-[var(--theme-danger-text)] hover:underline"
                 >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-black text-[var(--theme-text-strong)]">{exercise.name}</span>
-                    <span className="sl-muted mt-0.5 block truncate text-[10px] font-black uppercase tracking-widest">
-                      {exercise.category} · {exercise.equipment}
-                    </span>
-                  </span>
-                  <span className={planned ? "sl-chip rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest" : "sl-button-primary shrink-0 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest"}>
-                    {planned ? "W planie" : "Dodaj"}
-                  </span>
+                  Wyczyść plan
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <PlanStat label="Ćwiczenia" value={plan.length} />
-          <PlanStat label="Serie dziś" value={`${completion.completedSets}/${completion.targetSets}`} />
-          <PlanStat label="Postęp" value={`${Math.floor(completion.percent)}%`} />
-        </div>
-      </div>
-
-      {plan.length === 0 ? (
-        <div className="sl-input rounded-[22px] p-5 text-center">
-          <p className="text-sm font-bold text-[var(--theme-text)]">Plan jest pusty.</p>
-          <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">
-            Dodaj pierwsze ćwiczenie z listy albo z karty w katalogu.
-          </p>
-        </div>
-      ) : (
-        plan.map((exercise, index) => (
-          <PlanExerciseCard
-            key={exercise.id}
-            exercise={exercise}
-            index={index}
-            canMoveUp={index > 0}
-            canMoveDown={index < plan.length - 1}
-            todayKey={todayKey}
-            onMoveUp={() => onChange(movePlanExercise(plan, exercise.id, -1))}
-            onMoveDown={() => onChange(movePlanExercise(plan, exercise.id, 1))}
-            onUpdate={(update) => onChange(updatePlanExercise(plan, exercise.id, update))}
-            onAddSet={() =>
-              onChange(addSetToPlanExercise(plan, exercise.id, {
-                reps: exercise.targetReps,
-                weightKg: exercise.defaultWeightKg,
-                dateKey: todayKey,
-              }))
-            }
-            onRemoveSet={(setId) => onChange(removePlanSet(plan, exercise.id, setId))}
-            onRemove={() => onChange(removePlanExercise(plan, exercise.id))}
-          />
-        ))
-      )}
-
+              {plan.map((exercise, index) => (
+                <PlanExerciseCard
+                  key={exercise.id}
+                  exercise={exercise}
+                  index={index}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < plan.length - 1}
+                  todayKey={todayKey}
+                  onMoveUp={() => onChange(movePlanExercise(plan, exercise.id, -1))}
+                  onMoveDown={() => onChange(movePlanExercise(plan, exercise.id, 1))}
+                  onUpdate={(update) =>
+                    onChange(updatePlanExercise(plan, exercise.id, update))
+                  }
+                  onAddSet={() =>
+                    onChange(
+                      addSetToPlanExercise(plan, exercise.id, {
+                        reps: exercise.targetReps,
+                        weightKg: exercise.defaultWeightKg,
+                        dateKey: todayKey,
+                      })
+                    )
+                  }
+                  onRemoveSet={(setId) =>
+                    onChange(removePlanSet(plan, exercise.id, setId))
+                  }
+                  onRemove={() => onChange(removePlanExercise(plan, exercise.id))}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>
