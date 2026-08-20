@@ -90,6 +90,16 @@ test("pause freezes both cursor and remaining time", () => {
   assert.ok(runtime.remainingMs < frozen.remainingMs);
 });
 
+test("pausing at or after the deadline transitions the runtime to terminal", () => {
+  for (const pauseAtMs of [30_000, 30_001]) {
+    const runtime = createShadowStrikeRuntime(0, createShadowStrikeConfig(1, 0, 0, 0));
+    pauseShadowStrike(runtime, pauseAtMs);
+    assert.equal(runtime.finished, true);
+    assert.equal(runtime.paused, false);
+    assert.equal(runtime.remainingMs, 0);
+  }
+});
+
 test("finished round remains terminal", () => {
   const runtime = createShadowStrikeRuntime(0, createShadowStrikeConfig(1, 0, 0, 0));
   runtime.remainingMs = 10;

@@ -1330,11 +1330,19 @@ function ShadowStrikeGame({
   useEffect(() => {
     if (phase !== "running") return;
     const runtime = runtimeRef.current;
-    if (!runtime || runtime.finished) return;
+    if (!runtime) return;
+    if (runtime.finished) {
+      finish(runtime);
+      return;
+    }
     const now = performance.now();
-    if (paused) pauseShadowStrike(runtime, now);
-    else resumeShadowStrike(runtime, now);
-  }, [paused, phase]);
+    if (paused) {
+      pauseShadowStrike(runtime, now);
+      if (runtime.finished) finish(runtime);
+    } else {
+      resumeShadowStrike(runtime, now);
+    }
+  }, [finish, paused, phase]);
 
   useEffect(() => {
     if (phase !== "running" || paused) return;
