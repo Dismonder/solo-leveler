@@ -1,15 +1,15 @@
 import { Capacitor, CapacitorHttp } from "@capacitor/core";
 
-export const CURRENT_APP_VERSION = "1.0.3";
-export const CURRENT_APP_BUILD = 4;
+export const CURRENT_APP_VERSION = "1.0.4";
+export const CURRENT_APP_BUILD = 5;
 
 
 
 export const CURRENT_VERSION_CHANGELOG: string[] = [
-  "🎵 Pełny Album Muzyczny: dedykowany panel wyboru i odtwarzania z biblioteką 10 utworów Solo Leveling OST",
-  "🩺 Zwijana sekcja Health Connect: uporządkowany panel w zakładce System w spójnym stylu akordeonu",
-  "⚔️ Ekstrakcja Cienia (Fruit Ninja): usunięto przycinanie rozbłysków do kwadratów, ulepszono fizykę i czytelność cięcia",
-  "🔗 Odnośnik do GitHuba: szybka ikona i link do repozytorium oraz wydań na GitHubie",
+  "⚔️ Cięcie Cienia: spektakularne anime efekty cięcia laserowego, złota/błękitna nova shockwave, iskry i oceny precyzji (👑 Perfekcyjne, ⚡ Czyste, ⚔️ Trafienie)",
+  "🛡️ Działanie w tle i alerty: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień",
+  "🎛️ Mini Player & suwaki głośności: zintegrowany odtwarzacz w zakładce System z precyzyjną dotykową regulacją SFX i OST",
+  "🔔 Automatyczne powiadomienia o aktualizacjach przy każdym nowym wydaniu aplikacji",
 ];
 
 export const DEFAULT_GITHUB_REPO = "Dismonder/solo-leveler";

@@ -7,15 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 
-const tag = process.argv[2] || "v1.0.3";
+const tag = process.argv[2] || "v1.0.4";
 const cleanTag = tag.replace(/^v/, "");
 const releaseName = `Solo Leveler ${tag}`;
 const releaseBody = `## Co nowego w wersji ${tag}
-- 🎵 **Pełny Album Muzyczny**: dedykowany odtwarzacz i selektor z biblioteką 10 utworów Solo Leveling OST
-- 🩺 **Health Connect**: zwijana, uporządkowana sekcja w panelu System
-- ⚔️ **Ekstrakcja Cienia (Fruit Ninja)**: usunięto przycinanie rozbłysków do kwadratów, ulepszono fizykę i efekty cięcia
-- 🔗 **GitHub**: szybka ikona i link do wydań oraz historii zmian prosto z aplikacji
-- 🚀 **Aktualizacje OTA**: stabilny proces sprawdzania i instalowania aktualizacji prosto z GitHuba
+- ⚔️ **Cięcie Cienia**: spektakularne anime efekty cięcia laserowego, złota/błękitna nova shockwave, iskry i oceny precyzji (👑 Perfekcyjne, ⚡ Czyste, ⚔️ Trafienie)
+- 🛡️ **Działanie w tle i alerty**: system wykrywania usypiania aplikacji i asystent konfiguracji autoryzacji w tle i powiadomień
+- 🎛️ **Mini Player & suwaki głośności**: zintegrowany odtwarzacz w zakładce System z precyzyjną dotykową regulacją SFX i OST
+- 🔔 **Automatyczne powiadomienia o aktualizacjach**: powiadomienie push w telefonie przy każdym nowym wydaniu
+- 🎵 **Pełny Album Muzyczny**: dedykowany arkusz z biblioteką 10 utworów Solo Leveling OST
 `;
 
 

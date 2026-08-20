@@ -1,14 +1,14 @@
 {
-  "version": "1.0.3",
-  "versionCode": 4,
+  "version": "1.0.4",
+  "versionCode": 5,
   "releaseDate": "2026-08-20",
   "changelog": [
-    "🎵 Pełny Album Muzyczny: dedykowany odtwarzacz i biblioteka 10 utworów Solo Leveling OST",
-    "🩺 Zwijana sekcja Health Connect w zakładce System",
-    "⚔️ Ekstrakcja Cienia (Fruit Ninja): usunięto przycinanie rozbłysków do kwadratów, ulepszono fizykę i efekty cięcia",
-    "🔗 Bezpośredni odnośnik i ikona do wydań na GitHubie"
+    "⚔️ Cięcie Cienia: spektakularne anime efekty cięcia laserowego, złota/błękitna nova shockwave, iskry i oceny precyzji (👑 Perfekcyjne, ⚡ Czyste, ⚔️ Trafienie)",
+    "🛡️ Działanie w tle i alerty: asystent konfiguracji działania w tle (wyłączenie usypiania) i uprawnień powiadomień",
+    "🎛️ Mini Player & suwaki głośności w zakładce System z precyzyjną dotykową regulacją SFX i OST",
+    "🔔 Automatyczne powiadomienia o aktualizacjach przy każdym nowym wydaniu aplikacji"
   ],
-  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.3/solo-leveler.apk",
+  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.0.4/solo-leveler.apk",
   "mandatory": false
 }
 

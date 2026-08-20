@@ -1210,6 +1210,14 @@ function GateReflexGame({ definition, progress, paused = false, stageBackground,
   );
 }
 
+type ShadowStrikeVisualEffect = {
+  id: number;
+  tier: "perfect" | "great" | "good" | "miss";
+  x: number;
+  gain?: number;
+  label: string;
+};
+
 function ShadowStrikeGame({ definition, progress, paused = false, stageBackground, relicBonuses, stageEffect, showGrid, graphicsQuality, onComplete, onRuntimeStateChange, onExit }: ActiveGameProps) {
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -1218,6 +1226,7 @@ function ShadowStrikeGame({ definition, progress, paused = false, stageBackgroun
   const [remaining, setRemaining] = useState(GAME_SECONDS);
   const [cursor, setCursor] = useState(0);
   const [zone, setZone] = useState(50);
+  const [activeStrikeEffect, setActiveStrikeEffect] = useState<ShadowStrikeVisualEffect | null>(null);
   const scoreRef = useRef(0);
   const comboRef = useRef(0);
   const cursorRef = useRef(0);
@@ -1227,6 +1236,7 @@ function ShadowStrikeGame({ definition, progress, paused = false, stageBackgroun
   const committedRef = useRef(false);
   const animationRef = useRef<number | null>(null);
   const pauseStartedAtRef = useRef<number | null>(null);
+  const strikeTimerRef = useRef<number | null>(null);
   const { feedback, showFeedback } = useFeedback();
   const { scorePopup, showScorePopup } = useScorePopup();
 
@@ -1304,41 +1314,75 @@ function ShadowStrikeGame({ definition, progress, paused = false, stageBackgroun
     setCombo(0);
     setRemaining(GAME_SECONDS);
     setFinished(false);
+    setActiveStrikeEffect(null);
     onRuntimeStateChange?.("running");
     setRunning(true);
+  };
+
+  const triggerStrikeVisual = (effect: ShadowStrikeVisualEffect) => {
+    setActiveStrikeEffect(effect);
+    if (strikeTimerRef.current) window.clearTimeout(strikeTimerRef.current);
+    strikeTimerRef.current = window.setTimeout(() => {
+      setActiveStrikeEffect((current) => (current?.id === effect.id ? null : current));
+    }, 850);
   };
 
   const strike = () => {
     if (!running || paused) return;
     const now = Date.now();
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 12);
-    const window = getStrikeWindow(zoneRef.current, getStrikeZoneWidth(scoreRef.current, progress.level) * (1 + relicBonuses.hitWindow));
+    const windowBounds = getStrikeWindow(zoneRef.current, getStrikeZoneWidth(scoreRef.current, progress.level) * (1 + relicBonuses.hitWindow));
     const cursorPosition = cursorRef.current;
     const nextCombo = comboRef.current + 1;
+    const zoneCenter = (windowBounds.left + windowBounds.right) / 2;
+    const halfWidth = (windowBounds.right - windowBounds.left) / 2;
+    const distRatio = halfWidth > 0 ? Math.abs(cursorPosition - zoneCenter) / halfWidth : 1;
 
-    if (cursorPosition >= window.perfectLeft && cursorPosition <= window.perfectRight) {
-      const gain = Math.round((70 + Math.min(90, nextCombo * 8)) * (1 + relicBonuses.scoreBonus));
+    if (cursorPosition >= windowBounds.perfectLeft && cursorPosition <= windowBounds.perfectRight) {
+      const gain = Math.round((75 + Math.min(90, nextCombo * 8)) * (1 + relicBonuses.scoreBonus));
       comboRef.current = nextCombo;
       scoreRef.current += gain;
-      deadlineRef.current = addGameTime(deadlineRef.current, now, 1350 + nextCombo * 70);
+      deadlineRef.current = addGameTime(deadlineRef.current, now, 1400 + nextCombo * 70);
       setCombo(nextCombo);
       setScore(scoreRef.current);
       showScorePopup(gain);
       playMiniGameComboSound();
-      showFeedback("Perfekcyjne cięcie");
+      showFeedback("Perfekcyjne cięcie!");
+      triggerStrikeVisual({
+        id: Date.now(),
+        tier: "perfect",
+        x: cursorPosition,
+        gain,
+        label: `👑 PERFEKCYJNE CIĘCIE! +${gain}`,
+      });
       return;
     }
 
-    if (cursorPosition >= window.left && cursorPosition <= window.right) {
-      const gain = Math.round((34 + Math.min(50, nextCombo * 5)) * (1 + relicBonuses.scoreBonus));
+    if (cursorPosition >= windowBounds.left && cursorPosition <= windowBounds.right) {
+      const isGreat = distRatio <= 0.65;
+      const gain = isGreat
+        ? Math.round((52 + Math.min(65, nextCombo * 6)) * (1 + relicBonuses.scoreBonus))
+        : Math.round((34 + Math.min(50, nextCombo * 5)) * (1 + relicBonuses.scoreBonus));
       comboRef.current = nextCombo;
       scoreRef.current += gain;
-      deadlineRef.current = addGameTime(deadlineRef.current, now, 550);
+      deadlineRef.current = addGameTime(deadlineRef.current, now, isGreat ? 850 : 550);
       setCombo(nextCombo);
       setScore(scoreRef.current);
       showScorePopup(gain);
-      playMiniGameHitSound();
-      showFeedback("Trafienie");
+      if (isGreat) {
+        playMiniGameComboSound();
+        showFeedback("Czyste cięcie!");
+      } else {
+        playMiniGameHitSound();
+        showFeedback("Trafienie");
+      }
+      triggerStrikeVisual({
+        id: Date.now(),
+        tier: isGreat ? "great" : "good",
+        x: cursorPosition,
+        gain,
+        label: isGreat ? `⚡ CZYSTE CIĘCIE! +${gain}` : `⚔️ TRAFIENIE +${gain}`,
+      });
       return;
     }
 
@@ -1347,6 +1391,12 @@ function ShadowStrikeGame({ definition, progress, paused = false, stageBackgroun
     setCombo(0);
     playMiniGamePenaltySound();
     showFeedback("-2s spóźniony zamach");
+    triggerStrikeVisual({
+      id: Date.now(),
+      tier: "miss",
+      x: cursorPosition,
+      label: "💥 SPÓŹNIONY ZAMACH -2s",
+    });
   };
 
   const strikeZone = getStrikeWindow(zone, getStrikeZoneWidth(score, progress.level) * (1 + relicBonuses.hitWindow));
@@ -1354,18 +1404,41 @@ function ShadowStrikeGame({ definition, progress, paused = false, stageBackgroun
   return (
     <MiniGameFrame definition={definition} score={score} combo={combo} remaining={remaining} scorePopup={scorePopup} finished={finished} showHud={running} stageBackground={stageBackground} stageEffect={stageEffect} showGrid={showGrid} graphicsQuality={graphicsQuality}>
       <div className="relative h-full min-h-[360px] overflow-hidden p-5">
+        {/* Full-screen strike visual effect overlay */}
+        {activeStrikeEffect && (
+          <ShadowStrikeVisualOverlay effect={activeStrikeEffect} graphicsQuality={graphicsQuality} />
+        )}
+
         <div className="relative z-10 flex h-full flex-col justify-center gap-8">
-          <div className="sl-input rounded-[24px] p-5 shadow-inner">
+          <div className="sl-input relative rounded-[24px] p-5 shadow-inner overflow-hidden">
+            {/* Impact flash on the track itself */}
+            {activeStrikeEffect && (
+              <div
+                className={`absolute inset-y-0 w-24 -translate-x-1/2 pointer-events-none rounded-full blur-sm transition-opacity duration-300 ${
+                  activeStrikeEffect.tier === "perfect"
+                    ? "bg-yellow-300/60 shadow-[0_0_30px_rgba(250,204,21,1)]"
+                    : activeStrikeEffect.tier === "great"
+                      ? "bg-cyan-300/50 shadow-[0_0_24px_rgba(6,182,212,1)]"
+                      : activeStrikeEffect.tier === "good"
+                        ? "bg-purple-300/40 shadow-[0_0_18px_rgba(168,85,247,1)]"
+                        : "bg-red-500/40 shadow-[0_0_20px_rgba(239,68,68,1)]"
+                }`}
+                style={{ left: `${activeStrikeEffect.x}%` }}
+              />
+            )}
             <div className="sl-progress-track relative h-16 rounded-full border border-[var(--theme-border)]">
               <div
-                className="absolute top-1/2 h-12 -translate-y-1/2 rounded-full border border-[color-mix(in_srgb,var(--theme-accent)_70%,white)] bg-[var(--theme-accent-soft)] shadow-[0_0_30px_color-mix(in_srgb,var(--theme-accent)_35%,transparent)]"
+                className="absolute top-1/2 h-12 -translate-y-1/2 rounded-full border border-[color-mix(in_srgb,var(--theme-accent)_70%,white)] bg-[var(--theme-accent-soft)] shadow-[0_0_30px_color-mix(in_srgb,var(--theme-accent)_35%,transparent)] transition-[left,width] duration-75"
                 style={{ left: `${strikeZone.left}%`, width: `${strikeZone.width}%` }}
               />
               <div
-                className="absolute top-1/2 h-8 -translate-y-1/2 rounded-full border border-[color-mix(in_srgb,var(--theme-text)_40%,transparent)] bg-[color-mix(in_srgb,var(--theme-text)_10%,transparent)]"
+                className="absolute top-1/2 h-8 -translate-y-1/2 rounded-full border border-yellow-300/70 bg-yellow-400/25 shadow-[0_0_14px_rgba(250,204,21,0.5)] transition-[left,width] duration-75"
                 style={{ left: `${strikeZone.perfectLeft}%`, width: `${strikeZone.perfectRight - strikeZone.perfectLeft}%` }}
               />
-              <div className="absolute top-1/2 h-14 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--theme-text-strong)] shadow-[0_0_22px_color-mix(in_srgb,var(--theme-text)_55%,transparent)]" style={{ left: `${cursor}%` }} />
+              <div
+                className="absolute top-1/2 h-14 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_22px_rgba(255,255,255,0.9),0_0_12px_var(--theme-accent)]"
+                style={{ left: `${cursor}%` }}
+              />
             </div>
             <p className="sl-muted mt-3 text-center font-mono text-[10px] uppercase tracking-[0.24em]">Uderz, gdy wskaźnik przejdzie przez słaby punkt</p>
           </div>
@@ -1379,6 +1452,144 @@ function ShadowStrikeGame({ definition, progress, paused = false, stageBackgroun
     </MiniGameFrame>
   );
 }
+
+const ShadowStrikeVisualOverlay = memo(function ShadowStrikeVisualOverlay({
+  effect,
+  graphicsQuality,
+}: {
+  effect: ShadowStrikeVisualEffect;
+  graphicsQuality: PlayerState["settings"]["graphicsQuality"];
+}) {
+  const isPerfect = effect.tier === "perfect";
+  const isGreat = effect.tier === "great";
+  const isGood = effect.tier === "good";
+  const isMiss = effect.tier === "miss";
+
+  const particleCount = graphicsQuality === "cinematic"
+    ? isPerfect ? 24 : isGreat ? 16 : isGood ? 10 : 8
+    : isPerfect ? 16 : isGreat ? 12 : isGood ? 8 : 6;
+
+  const particles = useMemo(() => {
+    return Array.from({ length: particleCount }, (_, index) => {
+      const angle = (Math.PI * 2 * index) / particleCount + (Math.random() * 0.4 - 0.2);
+      const dist = (isPerfect ? 110 : isGreat ? 85 : 60) * (0.5 + (index % 4) * 0.25);
+      return {
+        id: `strike_p_${index}`,
+        x: Math.cos(angle) * dist,
+        y: Math.sin(angle) * dist,
+        size: (isPerfect ? 5 : isGreat ? 4 : 3) + (index % 3) * 1.5,
+      };
+    });
+  }, [isGreat, isPerfect, isGood, particleCount]);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden">
+      {/* Full screen ambient flash */}
+      <motion.div
+        className={`absolute inset-0 pointer-events-none ${
+          isPerfect
+            ? "bg-amber-400/25"
+            : isGreat
+              ? "bg-cyan-400/20"
+              : isGood
+                ? "bg-purple-500/15"
+                : "bg-red-600/25"
+        }`}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+      />
+
+      {/* Epic Diagonal Anime Blade Laser Slash */}
+      <motion.div
+        className={`absolute left-1/2 top-1/2 rounded-full pointer-events-none ${
+          isPerfect
+            ? "h-3.5 bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-100 shadow-[0_0_40px_rgba(250,204,21,1),0_0_80px_rgba(250,204,21,0.85)]"
+            : isGreat
+              ? "h-2.5 bg-gradient-to-r from-cyan-100 via-cyan-400 to-cyan-100 shadow-[0_0_30px_rgba(6,182,212,1),0_0_60px_rgba(6,182,212,0.85)]"
+              : isGood
+                ? "h-2 bg-gradient-to-r from-purple-200 via-violet-400 to-purple-200 shadow-[0_0_24px_rgba(168,85,247,1)]"
+                : "h-2 bg-gradient-to-r from-red-200 via-rose-500 to-red-200 shadow-[0_0_24px_rgba(239,68,68,1)]"
+        }`}
+        style={{
+          width: "160%",
+          transformOrigin: "center center",
+        }}
+        initial={{ x: "-50%", y: "-50%", rotate: -25, scaleX: 0.1, opacity: 1 }}
+        animate={{ x: "-50%", y: "-50%", rotate: -25, scaleX: 1.3, opacity: 0 }}
+        transition={{ duration: 0.38, ease: "easeOut" }}
+      />
+
+      {/* Radial Nova Shockwave from the strike point */}
+      <motion.div
+        className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 pointer-events-none ${
+          isPerfect
+            ? "border-yellow-300 shadow-[0_0_45px_rgba(250,204,21,1),inset_0_0_25px_rgba(250,204,21,0.8)]"
+            : isGreat
+              ? "border-cyan-300 shadow-[0_0_35px_rgba(6,182,212,1)]"
+              : isGood
+                ? "border-violet-300 shadow-[0_0_25px_rgba(168,85,247,1)]"
+                : "border-red-400 shadow-[0_0_25px_rgba(239,68,68,1)]"
+        }`}
+        style={{ left: `${effect.x}%` }}
+        initial={{ width: 10, height: 10, opacity: 1 }}
+        animate={{ width: isPerfect ? 280 : isGreat ? 220 : 160, height: isPerfect ? 280 : isGreat ? 220 : 160, opacity: 0 }}
+        transition={{ duration: 0.52, ease: "easeOut" }}
+      />
+
+      {/* Spark particles from the strike point */}
+      <div className="absolute top-1/2 pointer-events-none" style={{ left: `${effect.x}%` }}>
+        {particles.map((p) => (
+          <motion.span
+            key={p.id}
+            className={`absolute left-0 top-0 rounded-full pointer-events-none ${
+              isPerfect
+                ? "bg-yellow-300 shadow-[0_0_16px_rgba(250,204,21,1)]"
+                : isGreat
+                  ? "bg-cyan-300 shadow-[0_0_14px_rgba(6,182,212,1)]"
+                  : isGood
+                    ? "bg-violet-300 shadow-[0_0_12px_rgba(168,85,247,1)]"
+                    : "bg-red-400 shadow-[0_0_12px_rgba(239,68,68,1)]"
+            }`}
+            style={{ width: `${p.size}px`, height: `${p.size}px` }}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 1.2 }}
+            animate={{ x: p.x, y: p.y, opacity: 0, scale: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
+        ))}
+      </div>
+
+      {/* Floating Mega Badge */}
+      <motion.div
+        className="absolute left-1/2 top-[20%] pointer-events-none select-none"
+        style={{ zIndex: 60 }}
+        initial={{ x: "-50%", y: 15, scale: 0.7, opacity: 0 }}
+        animate={{
+          x: "-50%",
+          y: [-8, -28, -50, -68, -84],
+          scale: isPerfect ? [0.7, 1.35, 1.2, 1.05, 0.9] : [0.7, 1.2, 1.1, 1, 0.85],
+          opacity: [0, 1, 1, 0.9, 0],
+        }}
+        transition={{ duration: 0.9, times: [0, 0.15, 0.45, 0.75, 1], ease: "easeOut" }}
+      >
+        <span
+          className={`inline-block whitespace-nowrap rounded-full border-2 px-4 py-1.5 font-mono font-black uppercase tracking-wider ${
+            isPerfect
+              ? "border-yellow-300 bg-black/95 text-yellow-300 text-sm shadow-[0_0_35px_rgba(250,204,21,1)] ring-2 ring-yellow-400/50"
+              : isGreat
+                ? "border-cyan-400 bg-black/90 text-cyan-300 text-xs shadow-[0_0_24px_rgba(6,182,212,1)]"
+                : isGood
+                  ? "border-purple-400 bg-black/90 text-purple-300 text-xs shadow-[0_0_18px_rgba(168,85,247,1)]"
+                  : "border-red-500 bg-black/90 text-red-400 text-xs shadow-[0_0_20px_rgba(239,68,68,1)]"
+          }`}
+          style={{ textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
+        >
+          {effect.label}
+        </span>
+      </motion.div>
+    </div>
+  );
+});
 
 function ManaMemoryGame({ definition, progress, paused = false, stageBackground, relicBonuses, stageEffect, showGrid, graphicsQuality, onComplete, onRuntimeStateChange, onExit }: ActiveGameProps) {
   const [running, setRunning] = useState(false);

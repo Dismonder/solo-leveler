@@ -198,6 +198,7 @@ import {
   type NativeScheduledNotification,
 } from "../services/notificationService";
 
+import { BackgroundPermissionModal, useBackgroundPermissionCheck } from "../components/BackgroundPermissionModal";
 import { getPerformanceStatus, type HunterPerformanceStatus } from "../services/performanceService";
 import { getGlobalVolume, getSystemAudioEnabled, setGlobalVolume, setSystemAudioEnabled } from "../utils/audio";
 import { subscribeRewardAnimations } from "../services/rewardAnimationBus";
@@ -341,6 +342,11 @@ export function Dashboard() {
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
   const [catalogHighlightId, setCatalogHighlightId] = useState<string | null>(null);
+  const {
+    showBackgroundPermissionModal,
+    openBackgroundPermissionModal,
+    closeBackgroundPermissionModal,
+  } = useBackgroundPermissionCheck();
   const healthAutoSyncRef = useRef({ lastDateKey: "", lastRunAt: 0 });
   const contentScrollRef = useRef<HTMLElement | null>(null);
   const musicTracks = useMemo(() => getLocalMusicTracks(), []);
@@ -1226,6 +1232,7 @@ export function Dashboard() {
                     }
                   }}
                   onCheckUpdate={handleManualCheckUpdate}
+                  onOpenBackgroundPermissions={openBackgroundPermissionModal}
                 />
               </div>
             )}
@@ -1336,6 +1343,10 @@ export function Dashboard() {
         )}
       </AnimatePresence>
 
+      <BackgroundPermissionModal
+        isOpen={showBackgroundPermissionModal}
+        onClose={closeBackgroundPermissionModal}
+      />
 
       <AnimatePresence>
         {workoutCountdownOpen && (
@@ -2653,6 +2664,7 @@ function SystemPanel({
   onOpenWearableSensor: () => void;
   onCheckUpdate?: () => void;
   onOpenWhatsNew?: () => void;
+  onOpenBackgroundPermissions?: () => void;
 }) {
 
 
@@ -2683,6 +2695,7 @@ function SystemPanel({
   const [updateSourceEditOpen, setUpdateSourceEditOpen] = useState(false);
 
   const [trackingOpen, setTrackingOpen] = useState({
+    background: false,
     health: false,
     phone: false,
     band: false,
@@ -3151,6 +3164,35 @@ function SystemPanel({
       <div className="sl-card rounded-[22px] p-4">
         <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Tracking i wydajność</h3>
         <div className="mt-4 grid gap-2">
+          <SystemAccordion
+            icon={<Shield className="h-4 w-4 text-amber-400" />}
+            title="Działanie w tle & Alerty"
+            status={notificationStatus?.batteryOptimizationIgnored && notificationStatus?.permissionGranted ? "Aktywne" : "Wymaga uwagi"}
+            open={trackingOpen.background}
+            onToggle={() => setTrackingOpen((current) => ({ ...current, background: !current.background }))}
+          >
+            <div className="grid grid-cols-2 gap-2">
+              <MiniStat
+                icon={<Battery className="h-4 w-4" />}
+                label="Bateria"
+                value={notificationStatus?.batteryOptimizationIgnored ? "Bez ograniczeń" : "Usypianie"}
+              />
+              <MiniStat
+                icon={<Bell className="h-4 w-4" />}
+                label="Powiadomienia"
+                value={notificationStatus?.permissionGranted ? "Aktywne" : "Brak zgody"}
+              />
+            </div>
+            <p className="sl-muted mt-3 text-xs leading-relaxed">
+              Wyłączenie optymalizacji baterii i zgoda na powiadomienia są niezbędne, aby treningi, odtwarzacz muzyki OST i kary działały bez zakłóceń w tle.
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <SmallButton onClick={() => onOpenBackgroundPermissions?.()} icon={<Settings className="h-3.5 w-3.5" />} label="Instrukcja" />
+              <SmallButton onClick={runNotificationTest} icon={<Bell className="h-3.5 w-3.5" />} label="Test alert" muted />
+              <SmallButton onClick={enableExactAlarms} icon={<Clock3 className="h-3.5 w-3.5" />} label="Alarmy" muted />
+            </div>
+          </SystemAccordion>
+
           <SystemAccordion
             icon={<Activity className="h-4 w-4" />}
             title="Health Connect"

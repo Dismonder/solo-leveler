@@ -7,6 +7,7 @@ import type { DailyPenalty, NotificationSettings } from "../types";
 export type HunterNotificationStatus = {
   android: boolean;
   permissionGranted: boolean;
+  batteryOptimizationIgnored?: boolean;
   exactAlarmAvailable: boolean;
   exactAlarmGranted: boolean;
   channelsReady: boolean;
@@ -30,6 +31,7 @@ type HunterNotificationsPlugin = {
   requestPermission(): Promise<HunterNotificationStatus>;
   configureChannels(): Promise<HunterNotificationStatus>;
   openExactAlarmSettings(): Promise<{ opened: boolean; message: string }>;
+  requestIgnoreBatteryOptimizations(): Promise<{ opened: boolean; message: string }>;
   testNotification(options?: { channelId?: string; title?: string; body?: string }): Promise<{ shown: boolean; message: string }>;
   scheduleNotifications(options: { notifications: NativeScheduledNotification[] }): Promise<{ scheduledCount: number; message: string }>;
   cancelNotifications(options?: { ids?: string[]; channelId?: string }): Promise<{ cancelled: number; message: string }>;
@@ -97,6 +99,13 @@ export async function openExactAlarmSettings() {
     return { opened: false, message: "Dokładne alarmy są dostępne tylko w aplikacji Android." };
   }
   return HunterNotifications.openExactAlarmSettings();
+}
+
+export async function requestIgnoreBatteryOptimizations() {
+  if (!Capacitor.isNativePlatform()) {
+    return { opened: false, message: "Działanie w tle jest konfigurowane na urządzeniach Android." };
+  }
+  return HunterNotifications.requestIgnoreBatteryOptimizations();
 }
 
 export async function testLocalNotification(channelId = "daily_training") {

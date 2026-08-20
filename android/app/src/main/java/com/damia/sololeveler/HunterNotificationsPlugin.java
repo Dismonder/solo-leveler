@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 import android.provider.Settings;
 
 import android.content.res.AssetManager;
@@ -180,6 +181,48 @@ public class HunterNotificationsPlugin extends Plugin {
             result.put("opened", false);
             result.put("message", "Nie udało się otworzyć ustawień dokładnych alarmów.");
             call.resolve(result);
+        }
+    }
+
+    @PluginMethod
+    public void requestIgnoreBatteryOptimizations(PluginCall call) {
+        Context context = getContext();
+        try {
+            Intent intent = new Intent();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                if (pm != null && !pm.isIgnoringBatteryOptimizations(context.getPackageName())) {
+                    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + context.getPackageName()));
+                } else {
+                    intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                }
+            } else {
+                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.parse("package:" + context.getPackageName()));
+            }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+            JSObject result = new JSObject();
+            result.put("opened", true);
+            result.put("message", "Otworzono ustawienia optymalizacji baterii.");
+            call.resolve(result);
+        } catch (Exception e) {
+            try {
+                Intent fallback = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                fallback.setData(Uri.parse("package:" + context.getPackageName()));
+                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(fallback);
+                JSObject result = new JSObject();
+                result.put("opened", true);
+                result.put("message", "Otworzono informacje o aplikacji.");
+                call.resolve(result);
+            } catch (Exception e2) {
+                JSObject result = new JSObject();
+                result.put("opened", false);
+                result.put("message", e2.getMessage());
+                call.resolve(result);
+            }
         }
     }
 
@@ -635,8 +678,14 @@ public class HunterNotificationsPlugin extends Plugin {
 
     private static JSObject status(Context context) {
         JSObject result = new JSObject();
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        boolean batteryIgnored = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && pm != null) {
+            batteryIgnored = pm.isIgnoringBatteryOptimizations(context.getPackageName());
+        }
         result.put("android", true);
         result.put("permissionGranted", hasNotificationPermission(context));
+        result.put("batteryOptimizationIgnored", batteryIgnored);
         result.put("exactAlarmAvailable", Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
         result.put("exactAlarmGranted", canScheduleExact(context));
         result.put("channelsReady", true);
