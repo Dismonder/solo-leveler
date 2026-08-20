@@ -2855,61 +2855,71 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
   const particles = useMemo(
     () => Array.from({ length: particleCount }, (_, index) => {
       const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 180;
-      const distanceMult = isPerfect ? 1.55 : isGreat ? 1.25 : 1.0;
+      const distanceMult = isPerfect ? 1.6 : isGreat ? 1.3 : 1.0;
       const distance = effect.sizePx * (0.45 + (index % 4) * 0.22) * distanceMult;
       return {
         id: `${effect.id}_spark_${index}`,
         x: Math.cos(angle) * distance,
         y: Math.sin(angle) * distance,
-        size: (isPerfect ? 4.5 : isGreat ? 3.8 : 3.2) + (index % 3) * 1.8,
+        size: (isPerfect ? 5 : isGreat ? 4 : 3.2) + (index % 3) * 1.8,
       };
     }),
     [effect.id, effect.rotation, effect.sizePx, particleCount, isPerfect, isGreat]
   );
 
   return (
-    <motion.div
+    <div
       className="sl-slice-impact-burst absolute pointer-events-none overflow-visible"
       style={{
         left: `${effect.x}%`,
         top: `${effect.y}%`,
-        width: effect.sizePx,
-        height: effect.sizePx,
+        width: `${effect.sizePx}px`,
+        height: `${effect.sizePx}px`,
+        marginLeft: `-${effect.sizePx / 2}px`,
+        marginTop: `-${effect.sizePx / 2}px`,
         color: effect.color,
-        transform: "translate3d(-50%, -50%, 0)",
+        zIndex: 50,
       }}
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
     >
       {/* Perfect Prismatic Aura / Radial Burst */}
       {isPerfect && (
         <motion.div
-          className="absolute inset-[-40%] rounded-full border-4 border-yellow-300 shadow-[0_0_35px_rgba(250,204,21,0.95)] overflow-visible pointer-events-none"
+          className="absolute inset-[-50%] rounded-full border-4 border-yellow-300 shadow-[0_0_40px_rgba(250,204,21,1),inset_0_0_30px_rgba(250,204,21,0.8)] overflow-visible pointer-events-none"
           initial={{ scale: 0.15, opacity: 1, rotate: 0 }}
-          animate={{ scale: 2.8, opacity: 0, rotate: 90 }}
+          animate={{ scale: 3.0, opacity: 0, rotate: 120 }}
           transition={{ duration: 0.52, ease: "easeOut" }}
         />
       )}
 
       {/* Central Slash Line */}
       <motion.div
-        className={`absolute left-1/2 top-1/2 origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_24px_currentColor] overflow-visible pointer-events-none ${
-          isPerfect ? "h-[8px] w-[280%]" : isGreat ? "h-[6px] w-[250%]" : "h-[5px] w-[220%]"
+        className={`absolute left-1/2 top-1/2 rounded-full overflow-visible pointer-events-none ${
+          isPerfect
+            ? "h-2 bg-gradient-to-r from-yellow-100 via-amber-300 to-yellow-100 shadow-[0_0_30px_rgba(250,204,21,1),0_0_50px_rgba(250,204,21,0.8)]"
+            : isGreat
+              ? "h-1.5 bg-gradient-to-r from-cyan-100 via-cyan-400 to-cyan-100 shadow-[0_0_24px_rgba(6,182,212,1),0_0_40px_rgba(6,182,212,0.8)]"
+              : "h-1 bg-white shadow-[0_0_20px_currentColor,0_0_35px_currentColor]"
         }`}
-        style={{ transform: `translate(-50%, -50%) rotate(${effect.rotation}deg)` }}
-        initial={{ scaleX: 0.1, opacity: 1 }}
-        animate={{ scaleX: isPerfect ? 1.4 : 1.2, opacity: 0 }}
-        transition={{ duration: 0.32, ease: "easeOut" }}
+        style={{
+          width: isPerfect ? "320%" : isGreat ? "270%" : "230%",
+        }}
+        initial={{ x: "-50%", y: "-50%", rotate: effect.rotation, scaleX: 0.15, opacity: 1 }}
+        animate={{ x: "-50%", y: "-50%", rotate: effect.rotation, scaleX: 1.35, opacity: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
       />
 
       {/* Expanding shockwave */}
       <motion.div
-        className={`absolute inset-[-25%] rounded-full border-2 border-current overflow-visible pointer-events-none ${
-          isPerfect ? "border-amber-300 shadow-[0_0_20px_rgba(250,204,21,0.8)]" : ""
+        className={`absolute inset-[-25%] rounded-full border-2 overflow-visible pointer-events-none ${
+          isPerfect
+            ? "border-yellow-300 shadow-[0_0_25px_rgba(250,204,21,0.9)]"
+            : isGreat
+              ? "border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.9)]"
+              : "border-current shadow-[0_0_15px_currentColor]"
         }`}
-        initial={{ scale: 0.3, opacity: 0.95 }}
+        initial={{ scale: 0.25, opacity: 1 }}
         animate={{ scale: isPerfect ? 2.8 : 2.2, opacity: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
+        transition={{ duration: 0.48, ease: "easeOut" }}
       />
 
       {/* Sliced two halves flying outward */}
@@ -2921,32 +2931,46 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
         <motion.span
           key={particle.id}
           className={`absolute left-1/2 top-1/2 rounded-full pointer-events-none ${
-            isPerfect ? "bg-amber-300 shadow-[0_0_16px_rgba(250,204,21,1)]" : "bg-current shadow-[0_0_12px_currentColor]"
+            isPerfect
+              ? "bg-yellow-300 shadow-[0_0_18px_rgba(250,204,21,1)]"
+              : isGreat
+                ? "bg-cyan-300 shadow-[0_0_14px_rgba(6,182,212,1)]"
+                : "bg-current shadow-[0_0_12px_currentColor]"
           }`}
-          style={{ width: particle.size, height: particle.size }}
-          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+          style={{ width: `${particle.size}px`, height: `${particle.size}px` }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1.2 }}
           animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.2 }}
-          transition={{ duration: 0.55, ease: "easeOut" }}
+          transition={{ duration: 0.58, ease: "easeOut" }}
         />
       ))}
 
       {/* Label popup */}
-      <motion.span
-        className={`absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 bg-black/90 px-3 py-1 font-mono font-black uppercase tracking-wider pointer-events-none select-none ${
-          isPerfect
-            ? "border-yellow-300 text-yellow-300 text-[14px] shadow-[0_0_24px_rgba(250,204,21,0.9)]"
-            : isGreat
-              ? "border-cyan-400 text-cyan-300 text-[13px] shadow-[0_0_18px_rgba(6,182,212,0.8)]"
-              : "border-current/60 text-current text-[12px] shadow-[0_0_14px_currentColor]"
-        }`}
-        style={{ zIndex: 60, textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
-        initial={{ opacity: 0, y: 6, scale: 0.7 }}
-        animate={{ opacity: [0, 1, 1, 0.9, 0], y: [6, -20, -42, -62, -80], scale: isPerfect ? [0.7, 1.35, 1.2, 1.05, 0.9] : [0.7, 1.2, 1.1, 1, 0.85] }}
-        transition={{ duration: 0.95, times: [0, 0.12, 0.4, 0.75, 1], ease: "easeOut" }}
+      <motion.div
+        className="absolute left-1/2 top-0 pointer-events-none select-none overflow-visible"
+        style={{ zIndex: 70 }}
+        initial={{ x: "-50%", y: 8, scale: 0.7, opacity: 0 }}
+        animate={{
+          x: "-50%",
+          y: [-4, -24, -48, -70, -90],
+          scale: isPerfect ? [0.7, 1.35, 1.2, 1.05, 0.9] : [0.7, 1.2, 1.1, 1, 0.85],
+          opacity: [0, 1, 1, 0.9, 0],
+        }}
+        transition={{ duration: 0.95, times: [0, 0.15, 0.45, 0.75, 1], ease: "easeOut" }}
       >
-        {effect.label}
-      </motion.span>
-    </motion.div>
+        <span
+          className={`inline-block whitespace-nowrap rounded-full border-2 px-3.5 py-1 font-mono font-black uppercase tracking-wider ${
+            isPerfect
+              ? "border-yellow-300 bg-black/95 text-yellow-300 text-sm shadow-[0_0_30px_rgba(250,204,21,1)] ring-2 ring-yellow-400/50"
+              : isGreat
+                ? "border-cyan-400 bg-black/90 text-cyan-300 text-xs shadow-[0_0_22px_rgba(6,182,212,1)]"
+                : "border-current/70 bg-black/90 text-current text-xs shadow-[0_0_16px_currentColor]"
+          }`}
+          style={{ textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
+        >
+          {effect.label}
+        </span>
+      </motion.div>
+    </div>
   );
 });
 
@@ -2961,9 +2985,9 @@ const SlicedHalf = memo(function SlicedHalf({
 }) {
   const direction = side === "left" ? -1 : 1;
   const perpAngle = ((effect.rotation + (side === "left" ? -90 : 90)) * Math.PI) / 180;
-  const throwDist = effect.sizePx * 0.75;
+  const throwDist = effect.sizePx * 0.85;
   const targetX = Math.cos(perpAngle) * throwDist;
-  const targetY = Math.sin(perpAngle) * throwDist + effect.sizePx * 0.35;
+  const targetY = Math.sin(perpAngle) * throwDist + effect.sizePx * 0.4;
 
   const clipPath = side === "left"
     ? "polygon(0 0, 52% 0, 48% 100%, 0 100%)"
@@ -2980,15 +3004,31 @@ const SlicedHalf = memo(function SlicedHalf({
         opacity: 0,
         scale: 0.8,
       }}
-      transition={{ duration: 0.62, ease: [0.12, 0.8, 0.32, 1] }}
-      style={{ clipPath }}
+      transition={{ duration: 0.65, ease: [0.12, 0.8, 0.32, 1] }}
+      style={{ clipPath, WebkitClipPath: clipPath }}
     >
       {asset ? (
         <img
           src={asset}
           alt=""
-          className="h-[148%] w-[148%] object-contain drop-shadow-[0_0_16px_currentColor] pointer-events-none select-none"
+          className="h-[140%] w-[140%] object-contain drop-shadow-[0_0_16px_currentColor] pointer-events-none select-none"
         />
+      ) : effect.kind === "gold" ? (
+        <div className="relative grid h-[70%] w-[70%] place-items-center rounded-full bg-amber-300/40">
+          <Coins className="relative h-6 w-6 text-yellow-100 drop-shadow-[0_0_10px_rgba(250,204,21,0.95)]" />
+        </div>
+      ) : effect.kind === "trap" ? (
+        <div className="relative grid h-[74%] w-[74%] place-items-center rounded-full border-2 border-red-200/90 bg-red-600/50 shadow-[0_0_24px_rgba(248,113,113,0.9)]">
+          <Bomb className="h-6 w-6 text-red-100 drop-shadow-[0_0_12px_rgba(248,113,113,1)]" />
+        </div>
+      ) : effect.kind === "heart" ? (
+        <div className="relative grid h-[72%] w-[72%] place-items-center rounded-full border border-rose-100/90 bg-rose-500/50 shadow-[0_0_24px_rgba(251,113,133,0.9)]">
+          <HeartPulse className="h-6 w-6 text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,1)]" />
+        </div>
+      ) : effect.kind === "time" ? (
+        <div className="relative grid h-[74%] w-[74%] place-items-center rounded-full border border-cyan-100/95 bg-cyan-400/50 shadow-[0_0_28px_rgba(103,232,249,0.9)]">
+          <Clock3 className="h-6 w-6 text-cyan-50 drop-shadow-[0_0_12px_rgba(103,232,249,1)]" />
+        </div>
       ) : (
         <div className="h-[68%] w-[68%] rounded-full bg-current shadow-[0_0_22px_currentColor]" />
       )}

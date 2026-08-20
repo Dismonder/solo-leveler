@@ -7,15 +7,15 @@ const OBJECT_BUDGET: Record<MiniGameGraphicsQuality, number> = {
 };
 
 const IMPACT_BUDGET: Record<MiniGameGraphicsQuality, number> = {
-  performance: 2,
-  balanced: 3,
-  cinematic: 4,
+  performance: 8,
+  balanced: 12,
+  cinematic: 16,
 };
 
 const IMPACT_LIFETIME_MS: Record<MiniGameGraphicsQuality, number> = {
-  performance: 460,
-  balanced: 560,
-  cinematic: 760,
+  performance: 850,
+  balanced: 1000,
+  cinematic: 1200,
 };
 
 export function getShadowExtractionObjectBudget(
