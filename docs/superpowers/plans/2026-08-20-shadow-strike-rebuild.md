@@ -377,6 +377,7 @@ git commit -m "feat: add low-jitter shadow strike canvas renderer"
 - Modify: `src/components/BonusMiniGames.tsx:1-85,1214-1581`
 - Modify: `src/utils/audio.ts:20-55,121-145`
 - Modify: `src/game/miniGameCatalog.ts:60-91`
+- Create: `src/utils/audioPreparation.test.ts`
 
 **Interfaces:**
 - Consumes: engine and renderer from Tasks 1–2; existing `MiniGameFrame`, `StartOverlay`, reward callback and relic bonuses.
@@ -430,17 +431,21 @@ In `src/components/BonusMiniGames.tsx`:
 - import the Task 1 engine, Task 2 renderer, and `prepareMiniGameAudio`;
 - remove `ShadowStrikeVisualEffect` and the full current `ShadowStrikeGame` implementation;
 - create two canvas refs, one runtime ref, one renderer ref, one RAF ref, one `ResizeObserver` ref, and one deferred-feedback timer set;
-- start with `prepareMiniGameAudio()`, then construct config/runtime/renderer;
-- use exactly one `onPointerDown={handleStrike}` on the running playfield;
+- mount the renderer once after both canvases exist; `ResizeObserver` calls `resize()` and then `drawStatic(config)` outside RAF whenever a runtime config exists;
+- start with `prepareMiniGameAudio()`, then construct config/runtime and draw the static layer;
+- use exactly one `button type="button"` input surface with `onPointerDown={handleStrike}`, `aria-label="Wykonaj Cięcie Cienia"`, `data-shadow-strike-input-surface="true"`, and no `onClick`/`onTouchStart`;
+- ignore non-primary contacts and non-primary mouse buttons before evaluating a strike;
 - call `event.preventDefault()` and `tryShadowStrike(runtime, performance.now())` once;
 - call `renderer.flash(outcome, now)` synchronously, then schedule sound and a maximum 10 ms vibration with `window.setTimeout(..., 0)` tracked for cleanup;
 - do not call a React setter in `handleStrike`;
 - in RAF, only advance and render; do not call a React setter during the active round;
 - finish through the existing `onComplete` callback once when `runtime.finished` becomes true;
 - pause/resume the runtime from the existing `paused` prop;
-- set `MiniGameFrame.showHud={false}` for this game and use a static stage effect while the round is active;
+- set `MiniGameFrame.showHud={false}` for this game; add an optional `staticStageEffect` prop (default `false`) that replaces `MiniGameStageEffectLayer` with a nonanimated gradient while this round is active;
 - show two stacked canvases inside one accessible button-like input surface and the noninteractive text `DOTKNIJ GDZIEKOLWIEK · CEL JEST NIERUCHOMY`;
 - remove the clickable „Cięcie” button entirely.
+
+During the active round, React state is limited to phase/final-result/error transitions: no score, combo, remaining-time, feedback or popup setter may run from RAF or `handleStrike`. Add `data-shadow-strike-state` to the stage for CDP. Keep the diagnostic runtime available after finish so the test can read `acceptedInputs`; identity-guarded cleanup occurs on replacement or unmount.
 
 The runtime field must be exposed only for diagnostics as:
 
