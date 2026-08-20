@@ -328,7 +328,18 @@ function removeUnlockListeners() {
 function installLifecycleListeners() {
   if (lifecycleListenersInstalled || typeof document === "undefined") return;
   lifecycleListenersInstalled = true;
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && currentAudio && !currentAudio.paused) {
+      if (currentAudio.volume < volume) {
+        currentAudio.volume = volume;
+      }
+      updateMediaSessionPosition(currentAudio);
+      syncNativeNotification(getCurrentMusicTrack(), true);
+    }
+  });
 }
+
 
 function installMediaSessionHandlers() {
   if (mediaSessionHandlersInstalled) return;
@@ -477,7 +488,12 @@ async function crossfadeTo(url: string, explicitTrack?: LocalMusicTrack | null) 
   incoming.dataset.url = url;
   incoming.loop = false;
   incoming.preload = "metadata";
-  incoming.volume = 0;
+  const isBackground = typeof document !== "undefined" && document.hidden;
+  if (isBackground) {
+    incoming.volume = volume;
+  } else {
+    incoming.volume = 0;
+  }
   nextAudio = incoming;
 
   incoming.addEventListener("play", () => {
@@ -538,8 +554,21 @@ async function crossfadeTo(url: string, explicitTrack?: LocalMusicTrack | null) 
   updateMediaSessionPosition(incoming);
   syncNativeNotification(track, true);
 
-  animateFade(incoming, 0, volume, FADE_MS);
-  if (outgoing) fadeOutAndStop(outgoing, FADE_MS);
+  if (isBackground) {
+    incoming.volume = volume;
+    if (outgoing) {
+      try {
+        outgoing.pause();
+        outgoing.removeAttribute("src");
+        outgoing.load();
+      } catch {
+        // Ignore
+      }
+    }
+  } else {
+    animateFade(incoming, 0, volume, FADE_MS);
+    if (outgoing) fadeOutAndStop(outgoing, FADE_MS);
+  }
   return true;
 }
 
@@ -562,21 +591,32 @@ function fadeOutAndStop(audio: HTMLAudioElement, fadeMs: number) {
   });
 }
 
-
 function animateFade(audio: HTMLAudioElement, from: number, to: number, durationMs: number, onDone?: () => void) {
+  if (typeof document !== "undefined" && document.hidden) {
+    audio.volume = Math.max(0, Math.min(1, to));
+    onDone?.();
+    return;
+  }
+
   const start = performance.now();
-  const step = (now: number) => {
+  let intervalId: ReturnType<typeof setInterval> | null = null;
+
+  const step = () => {
+    const now = performance.now();
     const progress = Math.min(1, (now - start) / Math.max(1, durationMs));
-    audio.volume = from + (to - from) * progress;
-    if (progress < 1) {
-      window.requestAnimationFrame(step);
-    } else {
-      audio.volume = to;
+    audio.volume = Math.max(0, Math.min(1, from + (to - from) * progress));
+
+    if (progress >= 1 || (typeof document !== "undefined" && document.hidden)) {
+      audio.volume = Math.max(0, Math.min(1, to));
+      if (intervalId !== null) clearInterval(intervalId);
       onDone?.();
     }
   };
-  window.requestAnimationFrame(step);
+
+  intervalId = setInterval(step, 40);
+  step();
 }
+
 
 function readBoolean(key: string, fallback: boolean) {
   try {

@@ -3,9 +3,19 @@ import { Capacitor, CapacitorHttp } from "@capacitor/core";
 export const CURRENT_APP_VERSION = "1.0.1";
 export const CURRENT_APP_BUILD = 2;
 
+export const CURRENT_VERSION_CHANGELOG: string[] = [
+  "⚖️ System Kar: wyłączono domyślne karne ćwiczenia z wymuszonego systemu kar (pełna kontrola w opcjach Systemu)",
+  "💧 Eliksir Many: przypomnienia o nawodnieniu w ciągu dnia wspomagające regenerację i koncentrację",
+  "🎮 Brama Treningowa: losowe wyzwania mini-gier z nagrodami XP i Złota",
+  "⚔️ Atlas Kalisteniki: polecane ćwiczenia bez sprzętu z instrukcjami wideo i techniką",
+  "🎯 Precyzyjny Deep Linking: kliknięcie powiadomienia natychmiast przenosi do wybranego ćwiczenia, gry lub panelu nawodnienia",
+  "🎵 Poprawka odtwarzania muzyki: płynne przełączanie utworów w tle z paska powiadomień bez wyciszania dźwięku",
+  "🚀 Aktualizacje OTA: automatyczne sprawdzanie i instalowanie nowych wersji prosto z GitHuba",
+];
 
 export const DEFAULT_GITHUB_REPO = "Dismonder/solo-leveler";
 export const STORAGE_KEY_UPDATE_SOURCE = "SOLO_LEVELER_UPDATE_SOURCE";
+
 
 export const DEFAULT_UPDATE_MANIFEST_URL =
   "https://raw.githubusercontent.com/Dismonder/solo-leveler/main/server/update-manifest.json";

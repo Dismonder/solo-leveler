@@ -44,6 +44,8 @@ import {
 import { RewardAnimationLayer } from "../components/RewardAnimationLayer";
 import { WorkoutStartCountdown } from "../components/WorkoutStartCountdown";
 import { SystemUpdateModal } from "../components/SystemUpdateModal";
+import { WhatsNewModal } from "../components/WhatsNewModal";
+
 import {
   checkForUpdate,
   CURRENT_APP_VERSION,
@@ -323,11 +325,26 @@ export function Dashboard() {
   const [penaltyExerciseAttempt, setPenaltyExerciseAttempt] = useState<{ penaltyId: string; openedAt: number; message: string | null } | null>(null);
   const [rewardEvents, setRewardEvents] = useState<RewardAnimationEvent[]>([]);
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
   const [catalogHighlightId, setCatalogHighlightId] = useState<string | null>(null);
   const healthAutoSyncRef = useRef({ lastDateKey: "", lastRunAt: 0 });
   const contentScrollRef = useRef<HTMLElement | null>(null);
   const musicTracks = useMemo(() => getLocalMusicTracks(), []);
   const resetCountdown = useDailyResetCountdown();
+
+  useEffect(() => {
+    try {
+      const LAST_SEEN_KEY = "solo-leveler:last-seen-version";
+      const lastSeen = localStorage.getItem(LAST_SEEN_KEY);
+      if (lastSeen && lastSeen !== CURRENT_APP_VERSION) {
+        setWhatsNewOpen(true);
+      }
+      localStorage.setItem(LAST_SEEN_KEY, CURRENT_APP_VERSION);
+    } catch {
+      // LocalStorage access safe fallback
+    }
+  }, []);
+
 
   useEffect(() => {
     const handleAction = (action: string) => {
@@ -1155,7 +1172,9 @@ export function Dashboard() {
                   onUpdateMusicTrackSettings={updateMusicTrackSettings}
                   onRandomizeMusicTrack={randomizeBackgroundTrack}
                   onReset={resetAllData}
+                  onOpenWhatsNew={() => setWhatsNewOpen(true)}
                   onImportHealthDistance={(km) => {
+
                     const runningItem = findDailyQuestItemByTrackable(player.dailyQuest, "runningKm");
                     if (runningItem) updateDailyQuest(runningItem.id, km, "healthConnect");
                     else toast.error("Daily nie ma aktywnego zadania biegania.");
@@ -1290,6 +1309,13 @@ export function Dashboard() {
           />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {whatsNewOpen && (
+          <WhatsNewModal onClose={() => setWhatsNewOpen(false)} />
+        )}
+      </AnimatePresence>
+
 
       <AnimatePresence>
         {workoutCountdownOpen && (
@@ -2569,6 +2595,7 @@ function SystemPanel({
   onDevResetMiniGames,
   onOpenWearableSensor,
   onCheckUpdate,
+  onOpenWhatsNew,
 }: {
   player: PlayerState;
   volume: number;
@@ -2605,7 +2632,9 @@ function SystemPanel({
   onDevResetMiniGames: () => void;
   onOpenWearableSensor: () => void;
   onCheckUpdate?: () => void;
+  onOpenWhatsNew?: () => void;
 }) {
+
 
   const bluetoothAvailable = isWearableBluetoothAvailable();
   const nativeBluetooth = isNativeBluetoothAvailable();
@@ -2939,13 +2968,23 @@ function SystemPanel({
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onCheckUpdate}
-            className="shrink-0 rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-4 py-2 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
-          >
-            Sprawdź
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onOpenWhatsNew}
+              className="shrink-0 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-3 py-2 text-xs font-mono font-bold text-slate-200 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
+            >
+              Nowości
+            </button>
+            <button
+              type="button"
+              onClick={onCheckUpdate}
+              className="shrink-0 rounded-xl border border-cyan-500/40 bg-cyan-950/60 px-4 py-2 text-xs font-mono font-bold text-cyan-300 transition-colors hover:bg-cyan-900/60 active:scale-[0.98]"
+            >
+              Sprawdź
+            </button>
+          </div>
+
         </div>
       </div>
 
