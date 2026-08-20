@@ -451,11 +451,6 @@ export function Dashboard() {
   );
   const [dailyReminderMode, hideDailyReminder] = useSmartDailyQuestReminder(dailyReminderEnabled);
 
-  useEffect(() => {
-    if (activeTab === "training" && dailyCompleted && trainingView === "quest") {
-      setTrainingView("plan");
-    }
-  }, [activeTab, dailyCompleted, trainingView]);
 
   useEffect(() => {
     if (activeGameId) return;
@@ -1010,9 +1005,6 @@ export function Dashboard() {
     if (tab === "bonus") {
       warmMiniGameHubAssets();
     }
-    if (tab === "training" && dailyCompleted) {
-      setTrainingView("plan");
-    }
     setActiveTab(tab);
   };
 
@@ -1124,26 +1116,20 @@ export function Dashboard() {
                 />
                 <TrainingViewSwitch value={trainingView} onChange={setTrainingView} />
                 {trainingView === "quest" ? (
-                  incompleteDailyQuestItems.length > 0 ? (
-                    <>
-                      <DailyQuestToolbar onEdit={() => setDailyEditorOpen(true)} completedCount={progress.completedCount} totalCount={progress.totalCount} />
-                      {incompleteDailyQuestItems.map((exercise) => (
-                        <React.Fragment key={exercise.id}>
-                          <WorkoutCard
-                            exercise={exercise}
-                            player={player}
-                            onAdd={addExercise}
-                            onTrack={() => exercise.trackableExerciseId && setTrackingQuest({ itemId: exercise.id, trackableId: exercise.trackableExerciseId, name: exercise.label })}
-                          />
-                        </React.Fragment>
-                      ))}
-                    </>
-                  ) : (
-                    <>
-                      <DailyQuestToolbar onEdit={() => setDailyEditorOpen(true)} completedCount={progress.completedCount} totalCount={progress.totalCount} />
-                      <DailyCompleteCard resetCountdown={resetCountdown} />
-                    </>
-                  )
+                  <>
+                    <DailyQuestToolbar onEdit={() => setDailyEditorOpen(true)} completedCount={progress.completedCount} totalCount={progress.totalCount} />
+                    {dailyCompleted && <DailyCompleteCard resetCountdown={resetCountdown} />}
+                    {dailyQuestItems.map((exercise) => (
+                      <React.Fragment key={exercise.id}>
+                        <WorkoutCard
+                          exercise={exercise}
+                          player={player}
+                          onAdd={addExercise}
+                          onTrack={() => exercise.trackableExerciseId && setTrackingQuest({ itemId: exercise.id, trackableId: exercise.trackableExerciseId, name: exercise.label })}
+                        />
+                      </React.Fragment>
+                    ))}
+                  </>
                 ) : trainingView === "plan" ? (
                   <Suspense fallback={<CatalogLoading />}>
                     <WorkoutPlanPanel
@@ -3126,13 +3112,17 @@ function SystemPanel({
             </button>
             <div className="relative flex-1 flex items-center">
               <input
-                className="h-1.5 w-full accent-cyan-400 bg-slate-800 rounded-full appearance-none cursor-pointer"
+                className="sl-volume-range"
                 type="range"
                 min="0"
                 max="1"
                 step="0.05"
                 value={volume}
                 onChange={onVolumeChange}
+                style={{
+                  background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${Math.round(volume * 100)}%, #1e293b ${Math.round(volume * 100)}%, #1e293b 100%)`,
+                }}
+                aria-label="Głośność efektów dźwiękowych"
               />
             </div>
           </div>
@@ -3151,13 +3141,17 @@ function SystemPanel({
             </button>
             <div className="relative flex-1 flex items-center">
               <input
-                className="h-1.5 w-full accent-violet-400 bg-slate-800 rounded-full appearance-none cursor-pointer"
+                className="sl-volume-range sl-volume-range-violet"
                 type="range"
                 min="0"
                 max="1"
                 step="0.05"
                 value={musicVolume}
                 onChange={onMusicVolumeChange}
+                style={{
+                  background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${Math.round(musicVolume * 100)}%, #1e293b ${Math.round(musicVolume * 100)}%, #1e293b 100%)`,
+                }}
+                aria-label="Głośność muzyki w tle"
               />
             </div>
           </div>
@@ -4465,7 +4459,19 @@ function AudioAlbumSheet({
               {systemAudioEnabled ? `${Math.round(volume * 100)}% ON` : "OFF"}
             </button>
           </div>
-          <input className="mt-2 w-full accent-cyan-400" type="range" min="0" max="1" step="0.05" value={volume} onChange={onVolumeChange} />
+          <input
+            className="mt-2 sl-volume-range"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={volume}
+            onChange={onVolumeChange}
+            style={{
+              background: `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${Math.round(volume * 100)}%, #1e293b ${Math.round(volume * 100)}%, #1e293b 100%)`,
+            }}
+            aria-label="Głośność efektów dźwiękowych"
+          />
         </div>
 
         {/* Music Volume */}
@@ -4482,7 +4488,19 @@ function AudioAlbumSheet({
               {backgroundMusicEnabled ? `${Math.round(musicVolume * 100)}% ON` : "OFF"}
             </button>
           </div>
-          <input className="mt-2 w-full accent-violet-400" type="range" min="0" max="1" step="0.05" value={musicVolume} onChange={onMusicVolumeChange} />
+          <input
+            className="mt-2 sl-volume-range sl-volume-range-violet"
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={musicVolume}
+            onChange={onMusicVolumeChange}
+            style={{
+              background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${Math.round(musicVolume * 100)}%, #1e293b ${Math.round(musicVolume * 100)}%, #1e293b 100%)`,
+            }}
+            aria-label="Głośność muzyki w tle"
+          />
         </div>
       </div>
 

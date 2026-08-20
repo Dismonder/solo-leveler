@@ -45,6 +45,28 @@ test("renderer resizes only on resize and becomes inert after destroy", () => {
   assert.equal(dynamicLayer.context.operations, dynamicOperationsAfterDestroy);
 });
 
+test("renderer dynamically redraws static target zone when difficulty scales", () => {
+  const staticLayer = createFakeCanvas();
+  const dynamicLayer = createFakeCanvas();
+  const renderer = createShadowStrikeRenderer(staticLayer.canvas, dynamicLayer.canvas);
+  const config = createShadowStrikeConfig(1, 0, 0, 0);
+  const runtime = createShadowStrikeRuntime(0, config);
+
+  renderer.resize(600, 84, 1);
+  renderer.drawStatic(config);
+
+  const initialStaticOps = staticLayer.context.operations;
+  renderer.render(runtime, 16);
+
+  // When score rises significantly, target zone dynamically tightens
+  runtime.score = 800;
+  runtime.combo = 10;
+  renderer.render(runtime, 32);
+
+  assert.ok(staticLayer.context.operations > initialStaticOps);
+});
+
+
 function createFakeCanvas(): {
   canvas: HTMLCanvasElement;
   context: FakeCanvasContext;

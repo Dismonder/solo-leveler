@@ -1482,20 +1482,36 @@ function ShadowStrikeGame({
       staticStageEffect={phase === "running"}
       shadowStrikeState={phase === "running" && paused ? "paused" : phase}
     >
-      <div className="relative flex h-full min-h-[360px] select-none items-center justify-center overflow-hidden p-5">
-        <button
-          type="button"
-          onPointerDown={handleStrike}
-          aria-label="Wykonaj Cięcie Cienia"
-          data-shadow-strike-input-surface="true"
-          className="sl-input relative h-44 w-full max-w-2xl touch-none overflow-hidden rounded-[28px] border border-cyan-200/25 p-0 shadow-[0_0_34px_rgba(6,182,212,0.16)] active:brightness-110"
-        >
-          <canvas ref={staticCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
-          <canvas ref={dynamicCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
-          <span className="sl-muted pointer-events-none absolute inset-x-3 bottom-3 font-mono text-[10px] font-black uppercase tracking-[0.2em]">
-            DOTKNIJ GDZIEKOLWIEK · CEL JEST NIERUCHOMY
-          </span>
-        </button>
+      <div className="relative flex h-full w-full select-none flex-col items-center overflow-hidden px-4">
+        {/* Visual Timing Track Display - In The Center */}
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg px-4">
+          <div
+            data-shadow-strike-display="true"
+            className="relative h-36 w-full overflow-hidden rounded-2xl border-2 border-cyan-400/50 bg-slate-950/90 shadow-[0_0_30px_rgba(6,182,212,0.25)]"
+          >
+            <canvas ref={staticCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
+            <canvas ref={dynamicCanvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
+          </div>
+        </div>
+
+        {/* Dedicated Strike Area - Slightly higher for thumb reach */}
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-full max-w-lg px-4">
+          <button
+            type="button"
+            onPointerDown={handleStrike}
+            aria-label="Wykonaj Cięcie Cienia"
+            data-shadow-strike-input-surface="true"
+            className="relative flex h-24 w-full touch-none cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-cyan-400/80 bg-gradient-to-b from-cyan-950/85 via-slate-900/90 to-cyan-950/90 px-4 shadow-[0_0_24px_rgba(6,182,212,0.3)] transition-all active:scale-[0.97] active:border-cyan-300 active:brightness-125"
+          >
+            <div className="flex items-center gap-2 text-cyan-300 font-mono text-sm font-black uppercase tracking-[0.2em] drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
+              <span>⚔️ CIĘCIE CIENIA</span>
+              <span className="rounded bg-cyan-400/20 px-1.5 py-0.5 text-[10px] text-cyan-200 border border-cyan-400/40">[DOTKNIJ]</span>
+            </div>
+            <span className="mt-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-cyan-200/60 text-center">
+              IDEALNE TRAFIENIE ZWĘŻA CEL I MNOŻY PUNKTY · SPACJA / KLIK
+            </span>
+          </button>
+        </div>
 
         {phase !== "running" && (
           <StartOverlay

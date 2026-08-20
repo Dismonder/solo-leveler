@@ -1,8 +1,10 @@
-import type {
-  ShadowStrikeConfig,
-  ShadowStrikeOutcome,
-  ShadowStrikeRuntime,
-  ShadowStrikeTier,
+import {
+  getShadowStrikeHitWindows,
+  getShadowStrikeSnapshot,
+  type ShadowStrikeConfig,
+  type ShadowStrikeOutcome,
+  type ShadowStrikeRuntime,
+  type ShadowStrikeTier,
 } from "../game/shadowStrikeEngine";
 
 export type ShadowStrikeLayout = {
@@ -84,9 +86,14 @@ export function createShadowStrikeRenderer(
   let cachedScore = Number.NaN;
   let cachedCombo = Number.NaN;
   let cachedRemainingSeconds = Number.NaN;
+  let cachedSpeedMultiplier = Number.NaN;
+  let cachedDifficultyTier = Number.NaN;
+  let lastDrawnHitWidth = Number.NaN;
+  let lastDrawnPerfectWidth = Number.NaN;
   let scoreText = "";
   let comboText = "";
   let remainingText = "";
+  let tempoText = "";
   let flashTier: ShadowStrikeTier = "miss";
   let flashGain = 0;
   let flashUntilMs = Number.NEGATIVE_INFINITY;
@@ -112,6 +119,8 @@ export function createShadowStrikeRenderer(
   function drawStatic(config: ShadowStrikeConfig): void {
     if (!active) return;
 
+    lastDrawnHitWidth = config.hitWindowWidth;
+    lastDrawnPerfectWidth = config.perfectWindowWidth;
     layout = createShadowStrikeLayout(cssWidth, cssHeight, config);
     staticContext.clearRect(0, 0, cssWidth, cssHeight);
     staticContext.fillStyle = "#101827";
@@ -129,6 +138,22 @@ export function createShadowStrikeRenderer(
 
   function render(runtime: ShadowStrikeRuntime, nowMs: number): void {
     if (!active) return;
+
+    const { hitWindowWidth, perfectWindowWidth } = getShadowStrikeHitWindows(
+      runtime.score,
+      runtime.combo,
+      runtime.config.level ?? 1,
+      runtime.config.hitWindowBonus ?? 0,
+      runtime.perfectStreak ?? 0
+    );
+
+    if (hitWindowWidth !== lastDrawnHitWidth || perfectWindowWidth !== lastDrawnPerfectWidth) {
+      drawStatic({
+        ...runtime.config,
+        hitWindowWidth,
+        perfectWindowWidth,
+      });
+    }
 
     dynamicContext.clearRect(0, 0, cssWidth, cssHeight);
     const cursorX = layout.trackLeft + ((layout.trackRight - layout.trackLeft) * runtime.cursorPosition) / 100;
@@ -157,14 +182,27 @@ export function createShadowStrikeRenderer(
       cachedRemainingSeconds = remainingSeconds;
       remainingText = "Time: " + remainingSeconds + "s";
     }
+
+    const snapshot = getShadowStrikeSnapshot(runtime);
+    if (snapshot.speedMultiplier !== cachedSpeedMultiplier || snapshot.difficultyTier !== cachedDifficultyTier) {
+      cachedSpeedMultiplier = snapshot.speedMultiplier;
+      cachedDifficultyTier = snapshot.difficultyTier;
+      tempoText = `Tempo: ${snapshot.speedMultiplier.toFixed(1)}x · Lv.${snapshot.difficultyTier}`;
+    }
+
     dynamicContext.fillStyle = "#f8fafc";
     dynamicContext.font = "600 14px system-ui";
     dynamicContext.textBaseline = "top";
     dynamicContext.textAlign = "left";
     dynamicContext.fillText(scoreText, layout.trackLeft, 4);
     dynamicContext.fillText(comboText, layout.trackLeft, 22);
+
     dynamicContext.textAlign = "right";
     dynamicContext.fillText(remainingText, layout.trackRight, 4);
+
+    dynamicContext.fillStyle = snapshot.speedMultiplier >= 1.4 ? "#facc15" : "#38bdf8";
+    dynamicContext.font = "600 11px system-ui";
+    dynamicContext.fillText(tempoText, layout.trackRight, 22);
 
     if (nowMs < flashUntilMs) {
       dynamicContext.fillStyle = flashColor(flashTier);
@@ -182,7 +220,9 @@ export function createShadowStrikeRenderer(
     flashUntilMs = nowMs + FLASH_DURATION_MS;
     switch (flashTier) {
       case "perfect":
-        flashText = "PERFECT +" + flashGain;
+        flashText = (outcome.perfectStreak && outcome.perfectStreak >= 2)
+          ? `PERFECT x${outcome.perfectStreak} (+${outcome.gain})`
+          : "PERFECT +" + flashGain;
         break;
       case "great":
         flashText = "GREAT +" + flashGain;
@@ -243,3 +283,4 @@ function flashColor(tier: ShadowStrikeTier): string {
       return "#fb7185";
   }
 }
+

@@ -46,8 +46,11 @@ export function ShadowStrikeGame({ onComplete, onExit }: { onComplete: (r: GameR
   const skillMods = getMiniGameSkillModifiers(player.skills);
   const baseDamage = 10 + player.stats.STR * 0.55;
   const comboMultiplier = 1 + player.stats.INTELLIGENCE * 0.045;
-  const perfectWidth = Math.max(6, 18 + player.stats.SENSE * 0.14 - level * 0.42);
-  const goodWidth = Math.max(30, 52 - level * 0.5);
+  const basePerfectWidth = Math.max(6, 18 + player.stats.SENSE * 0.14 - level * 0.42);
+  const baseGoodWidth = Math.max(30, 52 - level * 0.5);
+  const comboTighten = Math.max(0.75, 1 - Math.min(0.25, view.combo * 0.012));
+  const perfectWidth = Math.max(4.5, basePerfectWidth * comboTighten);
+  const goodWidth = Math.max(20, baseGoodWidth * comboTighten);
   const perfectStart = 50 - perfectWidth / 2;
   const goodStart = 50 - goodWidth / 2;
   const hunterPose: SpriteActorAnimation = animationEventToSpriteAnimation(animation.getActiveEvent('hunter'));
@@ -117,8 +120,9 @@ export function ShadowStrikeGame({ onComplete, onExit }: { onComplete: (r: GameR
     lastTimeRef.current = time;
 
     const current = stateRef.current;
-    const phaseSpeed = current.phase === 'execute' ? 12 : current.phase === 'break' ? 6 : 0;
-    const speed = 42 + level * 2.4 + player.level * 0.8 + phaseSpeed;
+    const phaseSpeed = current.phase === 'execute' ? 14 : current.phase === 'break' ? 7 : 0;
+    const progressiveSpeed = Math.min(55, current.combo * 2.2 + Math.min(30, current.score * 0.03));
+    const speed = 42 + level * 2.4 + player.level * 0.8 + phaseSpeed + progressiveSpeed;
     let slider = current.slider + current.direction * speed * deltaSeconds;
     let direction = current.direction;
     if (slider >= 100) {
@@ -129,7 +133,7 @@ export function ShadowStrikeGame({ onComplete, onExit }: { onComplete: (r: GameR
       direction = 1;
     }
 
-    const enemyCharge = current.enemyCharge + (8.5 + level * 0.48 + phaseSpeed * 0.45) * deltaSeconds;
+    const enemyCharge = current.enemyCharge + (8.5 + level * 0.48 + phaseSpeed * 0.45 + Math.min(10, current.combo * 0.35)) * deltaSeconds;
       if (enemyCharge >= 100) {
       const playerHp = Math.max(0, current.playerHp - 1);
       const next = {
@@ -334,7 +338,7 @@ export function ShadowStrikeGame({ onComplete, onExit }: { onComplete: (r: GameR
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-violet-950/45 to-transparent" />
 
         <div className="absolute left-4 top-4 z-20 font-mono text-xs font-black uppercase tracking-widest text-cyan-300">
-          {phaseLabel} · Combo {view.combo} · Score {view.score}
+          {phaseLabel} · Combo {view.combo} · Score {view.score} · Tempo {((42 + level * 2.4 + player.level * 0.8 + (view.phase === 'execute' ? 14 : view.phase === 'break' ? 7 : 0) + Math.min(55, view.combo * 2.2 + Math.min(30, view.score * 0.03))) / (42 + level * 2.4 + player.level * 0.8)).toFixed(1)}x
         </div>
         <div className="absolute right-4 top-4 z-20 flex gap-1">
           {Array.from({ length: view.playerHp }).map((_, index) => (

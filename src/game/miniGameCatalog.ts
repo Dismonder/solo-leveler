@@ -74,13 +74,13 @@ export const MINI_GAME_CATALOG: MiniGameDefinition[] = [
     shortGoal: "Jeden wskaźnik, jeden cel, jedno dotknięcie.",
     readyTips: [
       "Cel pozostaje na środku. Obserwuj tylko biały wskaźnik.",
-      "Dotknij dowolnego miejsca dokładnie w chwili przecięcia złotej strefy.",
-      "Nie spamuj — pewne trafienia budują combo i dodają czas.",
+      "Wraz z combo i punktami tempo rośnie, a strefa trafienia staje się węższa.",
+      "Nie spamuj — pewne trafienia budują tempo, mnożnik i dodają czas.",
     ],
     pauseTips: [
       "Po wznowieniu wskaźnik ruszy z tego samego miejsca.",
       "Turkusowa strefa daje punkty, złoty środek daje wynik perfect.",
-      "Pudło zabiera najwyżej jedną sekundę.",
+      "Pudło zeruje serię combo i obniża narzucone tempo.",
     ],
     mechanic: "Czysty timing jednego dotknięcia",
     winScore: 260,

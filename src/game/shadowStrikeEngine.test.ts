@@ -5,6 +5,7 @@ import {
   createShadowStrikeConfig,
   createShadowStrikeInteractionController,
   createShadowStrikeRuntime,
+  getShadowStrikeHitWindows,
   getShadowStrikeSnapshot,
   pauseShadowStrike,
   resumeShadowStrike,
@@ -165,3 +166,113 @@ test("finished round remains terminal", () => {
   assert.deepEqual(getShadowStrikeSnapshot(runtime), snapshot);
   assert.equal(tryShadowStrike(runtime, 2100), null);
 });
+
+test("shadow strike progressively accelerates and increases difficulty with score and combo", () => {
+  const config = createShadowStrikeConfig(1, 0, 0, 0);
+  const runtime = createShadowStrikeRuntime(0, config);
+
+  const initialSnapshot = getShadowStrikeSnapshot(runtime);
+  assert.equal(initialSnapshot.speedMultiplier, 1);
+  assert.equal(initialSnapshot.difficultyTier, 1);
+
+  // Advance cursor and strike perfect multiple times
+  runtime.lastAdvancedAtMs = 500;
+  runtime.cursorPosition = 50;
+  tryShadowStrike(runtime, 500);
+
+  assert.equal(runtime.combo, 1);
+  assert.ok(runtime.score > 0);
+
+  const snapshotAfterOne = getShadowStrikeSnapshot(runtime);
+  assert.ok(snapshotAfterOne.currentOneWayMs <= initialSnapshot.currentOneWayMs);
+
+  // Simulate high score and high combo
+  runtime.score = 950;
+  runtime.combo = 12;
+  const highTierSnapshot = getShadowStrikeSnapshot(runtime);
+
+  assert.ok(highTierSnapshot.currentOneWayMs < initialSnapshot.currentOneWayMs);
+  assert.ok(highTierSnapshot.speedMultiplier > 1.3);
+  assert.ok(highTierSnapshot.difficultyTier > initialSnapshot.difficultyTier);
+
+  // Verify cursor moves faster per delta time under high score/combo
+  const slowRuntime = createShadowStrikeRuntime(0, config);
+  const fastRuntime = createShadowStrikeRuntime(0, config);
+  fastRuntime.score = 950;
+  fastRuntime.combo = 12;
+
+  advanceShadowStrike(slowRuntime, 300);
+  advanceShadowStrike(fastRuntime, 300);
+
+  assert.ok(fastRuntime.cursorPosition > slowRuntime.cursorPosition);
+});
+
+test("missing a strike resets combo and restores baseline speed for current score", () => {
+  const config = createShadowStrikeConfig(1, 0, 0, 0);
+  const runtime = createShadowStrikeRuntime(0, config);
+  runtime.score = 600;
+  runtime.combo = 15;
+
+  const speedBeforeMiss = getShadowStrikeSnapshot(runtime).currentOneWayMs;
+
+  runtime.cursorPosition = 0; // Miss position
+  runtime.lastAdvancedAtMs = 200;
+  const outcome = tryShadowStrike(runtime, 200);
+
+  assert.equal(outcome?.tier, "miss");
+  assert.equal(runtime.combo, 0);
+
+  const speedAfterMiss = getShadowStrikeSnapshot(runtime).currentOneWayMs;
+  // After losing combo burst, oneWayMs increases (speed relaxes slightly)
+  assert.ok(speedAfterMiss > speedBeforeMiss);
+});
+
+test("consecutive perfect hits progressively shrink target hit window and award precision bonus", () => {
+  const config = createShadowStrikeConfig(1, 0, 0, 0);
+  const runtime = createShadowStrikeRuntime(0, config);
+
+  const initialWindows = getShadowStrikeHitWindows(0, 0, 1, 0, 0);
+  const streak3Windows = getShadowStrikeHitWindows(0, 0, 1, 0, 3);
+  const streak6Windows = getShadowStrikeHitWindows(0, 0, 1, 0, 6);
+
+  // Perfect streak must progressively narrow the hit window and sweet spot
+  assert.ok(streak3Windows.hitWindowWidth < initialWindows.hitWindowWidth);
+  assert.ok(streak3Windows.perfectWindowWidth < initialWindows.perfectWindowWidth);
+  assert.ok(streak6Windows.perfectWindowWidth < streak3Windows.perfectWindowWidth);
+
+  // 1st Perfect Hit
+  runtime.cursorPosition = 50;
+  runtime.lastAdvancedAtMs = 100;
+  const outcome1 = tryShadowStrike(runtime, 100);
+  assert.equal(outcome1?.tier, "perfect");
+  assert.equal(outcome1?.perfectStreak, 1);
+  const gain1 = outcome1?.gain ?? 0;
+
+  // 2nd Consecutive Perfect Hit (narrower target window, higher reward)
+  runtime.cursorPosition = 50;
+  runtime.lastAdvancedAtMs = 300;
+  const outcome2 = tryShadowStrike(runtime, 300);
+  assert.equal(outcome2?.tier, "perfect");
+  assert.equal(outcome2?.perfectStreak, 2);
+  const gain2 = outcome2?.gain ?? 0;
+
+  // 3rd Consecutive Perfect Hit
+  runtime.cursorPosition = 50;
+  runtime.lastAdvancedAtMs = 500;
+  const outcome3 = tryShadowStrike(runtime, 500);
+  assert.equal(outcome3?.tier, "perfect");
+  assert.equal(outcome3?.perfectStreak, 3);
+  const gain3 = outcome3?.gain ?? 0;
+
+  assert.ok(gain2 > gain1);
+  assert.ok(gain3 > gain2);
+
+  // Miss resets perfect streak to 0
+  runtime.cursorPosition = 0;
+  runtime.lastAdvancedAtMs = 700;
+  const missOutcome = tryShadowStrike(runtime, 700);
+  assert.equal(missOutcome?.tier, "miss");
+  assert.equal(runtime.perfectStreak, 0);
+});
+
+
