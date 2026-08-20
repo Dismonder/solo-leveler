@@ -1970,12 +1970,12 @@ function ShadowExtractionGame({
       lastFrameRef.current = performance.now();
       pauseStartedAtRef.current = null;
     }
-  }, [paused, running, setObjectsSync]);
 
-  useEffect(() => {
-    if (!running || paused) return;
+    const tick = () => {
+      if (!running || paused) return;
 
-    const tick = (now: number) => {
+
+      const now = performance.now();
       const lastFrame = lastFrameRef.current || now;
       const deltaMs = Math.max(0, now - lastFrame);
       const delta = Math.min(0.05, Math.max(0.001, deltaMs / 1000));
@@ -1990,9 +1990,9 @@ function ShadowExtractionGame({
       }
 
       const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 14);
-      const spawnEveryMs = Math.max(340, 980 - difficulty * 45 - upgrades.upgrades.flow * 28);
+      const waveCooldownMs = Math.max(900, 1600 - difficulty * 45 - upgrades.upgrades.flow * 35);
 
-      if (objectsRef.current.length === 0 || now - lastSpawnRef.current >= spawnEveryMs) {
+      if (now - lastSpawnRef.current >= waveCooldownMs || (objectsRef.current.length === 0 && now - lastSpawnRef.current >= 450)) {
         lastSpawnRef.current = now;
         spawnObject(now);
       }
@@ -2009,19 +2009,10 @@ function ShadowExtractionGame({
           rotation: object.rotation + object.spin * delta,
         };
 
-        // Smoothly bounce off side bounds to keep shadows playable on screen
-        if (nextObject.x < 5) {
-          nextObject.x = 5;
-          nextObject.vx = Math.abs(nextObject.vx) * 0.85;
-        } else if (nextObject.x > 95) {
-          nextObject.x = 95;
-          nextObject.vx = -Math.abs(nextObject.vx) * 0.85;
-        }
-
         if (wallNow >= nextObject.expiresAt) {
           if (nextObject.kind === "true") missedTrue += 1;
-        } else if (nextObject.y > 106 && nextObject.vy > 0) {
-          // Fallen below the bottom of the screen
+        } else if (nextObject.y > 114 && nextObject.vy > 0) {
+          // Completed full parabolic arc and fell back down below the screen
           if (nextObject.kind === "true") missedTrue += 1;
         } else {
           updatedObjects.push(nextObject);
@@ -2057,7 +2048,6 @@ function ShadowExtractionGame({
         return;
       }
 
-
       animationRef.current = window.requestAnimationFrame(tick);
     };
 
@@ -2068,25 +2058,25 @@ function ShadowExtractionGame({
     };
   }, [applyMissPenalty, finish, graphicsQuality, paused, progress.level, running, setObjectsSync, spawnObject, upgrades.upgrades.flow]);
 
-  const handleSliceHit = useCallback((object: ShadowSliceObject) => {
+  const handleSliceHit = useCallback((object: ShadowSliceObject, slashAngle = 0) => {
     const difficulty = getMiniGameDifficulty(scoreRef.current, progress.level, 120, 4, 14);
 
     if (object.kind === "trap") {
       playMiniGamePenaltySound();
-      emitSliceImpact(object, "-czas");
+      emitSliceImpact(object, "💥 -CZAS!", slashAngle);
       const penalty = Math.round((3100 + difficulty * 120) * (1 - upgrades.upgrades.ward * 0.12 - relicBonuses.timePenaltyResist));
       comboRef.current = 0;
       scoreRef.current = Math.max(0, scoreRef.current - 30);
       deadlineRef.current -= penalty;
       scheduleHudSync();
       showScorePopup(-30);
-      showFeedback("-przeklęty rdzeń");
+      showFeedback("💥 Przeklęty Rdzeń!");
       return;
     }
 
     if (object.kind === "decoy") {
       playMiniGamePenaltySound();
-      emitSliceImpact(object, "fałsz");
+      emitSliceImpact(object, "fałsz", slashAngle);
       comboRef.current = 0;
       deadlineRef.current -= Math.round((950 + difficulty * 70) * (1 - relicBonuses.timePenaltyResist));
       scheduleHudSync();
@@ -2103,14 +2093,14 @@ function ShadowExtractionGame({
       deadlineRef.current = applyCappedTimeBonus({
         deadline: deadlineRef.current,
         now: Date.now(),
-        bonusMs: 900,
+        bonusMs: 1200,
         capMs: MAX_REMAINING_TIME_MS,
-        diminishingFactor: 0.72,
+        diminishingFactor: 0.8,
       });
       scheduleHudSync();
       showScorePopup(75);
-      emitSliceImpact(object, `+${heal} HP`);
-      showFeedback("Legendarne serce");
+      emitSliceImpact(object, `❤️ +${heal} HP`, slashAngle);
+      showFeedback("❤️ Serce Monarchy!");
       return;
     }
 
@@ -2127,18 +2117,18 @@ function ShadowExtractionGame({
       });
       scheduleHudSync();
       showScorePopup(35);
-      emitSliceImpact(object, `+${formatBonusSeconds(SHADOW_TIME_BUBBLE_BONUS_MS)}`);
-      showFeedback("Bańka czasu");
+      emitSliceImpact(object, `⏱️ +${formatBonusSeconds(SHADOW_TIME_BUBBLE_BONUS_MS)}`, slashAngle);
+      showFeedback("⏱️ Bańka Czasu!");
       return;
     }
 
     const nextCombo = comboRef.current + 1;
-    const baseGain = object.kind === "gold" ? 24 : 48;
-    const gain = Math.round((baseGain + Math.min(130, nextCombo * 11)) * (1 + relicBonuses.scoreBonus));
+    const baseGain = object.kind === "gold" ? 28 : 52;
+    const gain = Math.round((baseGain + Math.min(140, nextCombo * 12)) * (1 + relicBonuses.scoreBonus));
     const timeBonus = object.kind === "gold"
-      ? 650
-      : Math.max(420, 820 + nextCombo * 55 + upgrades.upgrades.flow * 110 - difficulty * 28);
-    const diminishingFactor = Math.max(0.38, 1 - nextCombo * 0.03 - difficulty * 0.018);
+      ? 700
+      : Math.max(450, 880 + nextCombo * 60 + upgrades.upgrades.flow * 115 - difficulty * 25);
+    const diminishingFactor = Math.max(0.40, 1 - nextCombo * 0.025 - difficulty * 0.016);
     comboRef.current = nextCombo;
     scoreRef.current += gain;
     deadlineRef.current = applyCappedTimeBonus({
@@ -2150,8 +2140,8 @@ function ShadowExtractionGame({
     });
     scheduleHudSync();
     showScorePopup(gain);
-    emitSliceImpact(object, object.kind === "gold" ? "+gold" : `+${gain}`);
-    showFeedback(object.kind === "gold" ? "Odłamek złota" : "Ekstrakcja udana");
+    emitSliceImpact(object, object.kind === "gold" ? "🪙 +Złoto" : `⚔️ +${gain}`, slashAngle);
+    showFeedback(object.kind === "gold" ? "🪙 Odłamek Złota" : "✨ Ekstrakcja Cienia");
     if (object.kind === "gold" || nextCombo % 5 === 0) {
       playMiniGameComboSound();
     } else {
@@ -2165,7 +2155,14 @@ function ShadowExtractionGame({
 
     const pathPx = path.map((point) => pointToPixels(point, rect));
     const hitIds = new Set<string>();
-    const bladeWidth = orientationMode === "portrait" ? 32 : 28;
+    const bladeWidth = orientationMode === "portrait" ? 34 : 30;
+
+    let slashAngle = 0;
+    if (path.length >= 2) {
+      const p1 = path[path.length - 2];
+      const p2 = path[path.length - 1];
+      slashAngle = (Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180) / Math.PI;
+    }
 
     for (const object of objectsRef.current) {
       const center = {
@@ -2176,7 +2173,7 @@ function ShadowExtractionGame({
       if (!pathBoundsCouldIntersectCircle(pathPx, center, bladeWidth)) {
         continue;
       }
-      if (slicePathIntersectsTarget(pathPx, center, { bladeWidth, maxSegmentLength: 6 })) {
+      if (slicePathIntersectsTarget(pathPx, center, { bladeWidth, maxSegmentLength: 5 })) {
         hitIds.add(object.id);
       }
     }
@@ -2186,27 +2183,26 @@ function ShadowExtractionGame({
     const hitObjects = objectsRef.current.filter((object) => hitIds.has(object.id));
     setObjectsSync(objectsRef.current.filter((object) => !hitIds.has(object.id)));
 
-    // Multi-cut combo recognition (Fruit Ninja style combo)
+    // Multi-cut Fruit Ninja combo recognition
     const validCuts = hitObjects.filter((o) => o.kind === "true" || o.kind === "gold" || o.kind === "heart" || o.kind === "time").length;
     if (validCuts >= 3) {
       playMiniGameComboSound();
-      showFeedback(`⚔️ COMBO x${validCuts}!`);
-      scoreRef.current += validCuts * 20;
+      showFeedback(`⚔️ COMBO x${validCuts}! +${validCuts * 25}`);
+      scoreRef.current += validCuts * 25;
       scheduleHudSync();
-      showScorePopup(validCuts * 20);
+      showScorePopup(validCuts * 25);
     } else if (validCuts === 2) {
-      showFeedback("Podwójne cięcie!");
+      showFeedback("⚔️ Podwójne cięcie!");
     }
 
-    hitObjects.forEach(handleSliceHit);
+    hitObjects.forEach((obj) => handleSliceHit(obj, slashAngle));
   }, [handleSliceHit, orientationMode, scheduleHudSync, setObjectsSync, showFeedback, showScorePopup]);
-
 
   const addTrailPoint = useCallback((point: SliceTrailPoint) => {
     const current = trailRef.current;
     const previous = current[current.length - 1];
-    if (previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 0.45) return;
-    const next = [...current.slice(-6), point];
+    if (previous && Math.hypot(point.x - previous.x, point.y - previous.y) < 0.4) return;
+    const next = [...current.slice(-10), point];
     trailRef.current = next;
     const now = performance.now();
     const trailEveryMs = framePressureUntilRef.current > now
@@ -2679,25 +2675,27 @@ const GameHud = memo(function GameHud({
 }) {
   return (
     <div
-      className={`pointer-events-none absolute z-30 grid grid-cols-3 items-start gap-2 font-mono uppercase tracking-widest text-[var(--theme-game-hud-text)] ${
+      className={`pointer-events-none absolute z-30 flex items-center gap-1.5 font-mono uppercase tracking-widest text-[var(--theme-game-hud-text)] ${
         compact ? "text-[10px]" : "text-xs"
       }`}
       style={{
         left: "max(10px, env(safe-area-inset-left))",
-        right: "calc(max(10px, env(safe-area-inset-right)) + 4.9rem)",
         top: "max(10px, env(safe-area-inset-top))",
+        maxWidth: "calc(100vw - 190px)",
       }}
     >
-      <span className="max-w-[5.5rem] truncate rounded-xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] px-2 py-1 text-left shadow-[0_0_18px_var(--theme-shadow)]">
-        {remaining}s
+      <span className="shrink-0 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] px-2.5 py-1 text-left shadow-[0_0_18px_var(--theme-shadow)]">
+        ⏳ {remaining}s
       </span>
-      <span className="relative max-w-[8.2rem] justify-self-center truncate rounded-xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] px-2.5 py-1 text-center text-[var(--theme-accent-text)] shadow-[0_0_18px_var(--theme-shadow)]">
-        Score {score}
+      <span className="relative shrink-0 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] px-2.5 py-1 text-center text-[var(--theme-accent-text)] shadow-[0_0_18px_var(--theme-shadow)]">
+        🏆 {score}
         <ScorePopup popup={scorePopup} />
       </span>
-      <span className="max-w-[6rem] truncate justify-self-end rounded-xl border border-[var(--theme-border)] bg-[var(--theme-game-hud)] px-2 py-1 text-right text-[var(--theme-accent-text)] shadow-[0_0_18px_var(--theme-shadow)]">
-        Combo {combo}
-      </span>
+      {combo > 1 && (
+        <span className="shrink-0 rounded-xl border border-amber-400/50 bg-amber-950/80 px-2 py-1 text-right font-black text-amber-300 shadow-[0_0_18px_rgba(250,204,21,0.45)] animate-pulse">
+          🔥 x{combo}
+        </span>
+      )}
     </div>
   );
 });
@@ -2705,73 +2703,76 @@ const GameHud = memo(function GameHud({
 const ShadowSliceToken = memo(function ShadowSliceToken({
   object,
   graphicsQuality,
-  playfieldSize,
 }: {
   object: ShadowSliceObject;
   graphicsQuality: PlayerState["settings"]["graphicsQuality"];
-  playfieldSize: PlayfieldSize | null;
+  playfieldSize?: PlayfieldSize | null;
   key?: string;
 }) {
   const classes = {
-    true: "border-violet-100/55 bg-violet-500/12 shadow-violet-500/60",
-    decoy: "border-sky-200/35 bg-sky-500/10 shadow-sky-500/35",
-    trap: "border-red-200/75 bg-red-500/25 shadow-red-500/55",
-    gold: "border-amber-100/85 bg-amber-400/25 shadow-amber-400/55",
-    heart: "border-rose-100/85 bg-rose-500/20 shadow-rose-400/70",
-    time: "border-cyan-100/90 bg-cyan-300/18 shadow-cyan-300/75",
+    true: "border-violet-300/80 bg-violet-600/25 shadow-[0_0_28px_rgba(168,85,247,0.7)]",
+    decoy: "border-sky-300/60 bg-sky-500/15 shadow-[0_0_20px_rgba(56,189,248,0.45)]",
+    trap: "border-red-400/90 bg-red-600/30 shadow-[0_0_30px_rgba(239,68,68,0.8)]",
+    gold: "border-amber-300/90 bg-amber-400/30 shadow-[0_0_28px_rgba(250,204,21,0.75)]",
+    heart: "border-rose-300/90 bg-rose-500/25 shadow-[0_0_28px_rgba(244,63,94,0.75)]",
+    time: "border-cyan-300/90 bg-cyan-400/25 shadow-[0_0_28px_rgba(6,182,212,0.8)]",
   } satisfies Record<ShadowSliceKind, string>;
+
   const asset = object.kind === "true"
     ? MOBILE_THEME_ASSETS.miniGames.shadowTrue
     : object.kind === "decoy"
       ? MOBILE_THEME_ASSETS.miniGames.shadowDecoy
       : null;
-  const shouldGlow = graphicsQuality === "cinematic" || object.kind === "true" || object.kind === "heart" || object.kind === "time";
-  const positionTransform = playfieldSize
-    ? `translate3d(${(object.x / 100) * playfieldSize.width}px, ${(object.y / 100) * playfieldSize.height}px, 0) translate(-50%, -50%) rotate(${object.rotation}deg)`
-    : `translate(-50%, -50%) rotate(${object.rotation}deg)`;
+
+  const shouldGlow = graphicsQuality === "cinematic" || object.kind === "true" || object.kind === "heart" || object.kind === "time" || object.kind === "trap";
 
   return (
     <div
-      className={`sl-slice-target pointer-events-none absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border shadow-[0_0_30px] will-change-transform ${classes[object.kind]}`}
+      className={`sl-slice-target pointer-events-none absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border will-change-transform ${classes[object.kind]}`}
       style={{
-        left: playfieldSize ? 0 : `${object.x}%`,
-        top: playfieldSize ? 0 : `${object.y}%`,
+        left: `${object.x}%`,
+        top: `${object.y}%`,
         width: object.sizePx,
         height: object.sizePx,
-        transform: positionTransform,
+        transform: `translate3d(-50%, -50%, 0) rotate(${object.rotation}deg)`,
       }}
     >
-      {shouldGlow && <span className="sl-slice-glow pointer-events-none absolute inset-[-18%] rounded-full" />}
+      {shouldGlow && (
+        <span className="sl-slice-glow pointer-events-none absolute inset-[-20%] rounded-full animate-pulse" />
+      )}
       {asset ? (
-        <img src={asset} alt="" className="h-[142%] w-[142%] object-contain drop-shadow-[0_0_16px_rgba(168,85,247,0.55)] select-none pointer-events-none" />
+        <img
+          src={asset}
+          alt=""
+          className="h-[148%] w-[148%] object-contain drop-shadow-[0_0_18px_rgba(168,85,247,0.75)] select-none pointer-events-none"
+        />
       ) : object.kind === "gold" ? (
-        <div className="relative grid h-[66%] w-[66%] place-items-center rounded-full bg-amber-300/15">
-          <div className="absolute h-[44%] w-[72%] -rotate-6 rounded-md border border-amber-100/80 bg-gradient-to-br from-yellow-200 via-amber-400 to-yellow-700 shadow-[0_0_18px_rgba(250,204,21,0.62)]" />
-          <Coins className="relative h-5 w-5 text-yellow-100 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]" />
+        <div className="relative grid h-[70%] w-[70%] place-items-center rounded-full bg-amber-300/20">
+          <div className="absolute h-[48%] w-[76%] -rotate-6 rounded-md border border-amber-100/90 bg-gradient-to-br from-yellow-200 via-amber-400 to-yellow-700 shadow-[0_0_18px_rgba(250,204,21,0.8)]" />
+          <Coins className="relative h-6 w-6 text-yellow-100 drop-shadow-[0_0_10px_rgba(250,204,21,0.95)]" />
         </div>
       ) : object.kind === "trap" ? (
-        <div className="relative grid h-[70%] w-[70%] place-items-center rounded-full border-2 border-red-100/85 bg-red-500/20 shadow-[0_0_20px_rgba(248,113,113,0.72)]">
-          <Bomb className="h-6 w-6 text-red-100 drop-shadow-[0_0_8px_rgba(248,113,113,0.95)]" />
+        <div className="relative grid h-[74%] w-[74%] place-items-center rounded-full border-2 border-red-200/90 bg-red-600/30 shadow-[0_0_24px_rgba(248,113,113,0.9)] animate-pulse">
+          <Bomb className="h-6 w-6 text-red-100 drop-shadow-[0_0_12px_rgba(248,113,113,1)]" />
         </div>
       ) : object.kind === "heart" ? (
-        <div className="relative grid h-[68%] w-[68%] place-items-center rounded-full border border-rose-100/85 bg-rose-400/20 shadow-[0_0_24px_rgba(251,113,133,0.72)]">
-          <HeartPulse className="h-6 w-6 text-rose-100 drop-shadow-[0_0_10px_rgba(251,113,133,0.95)]" />
+        <div className="relative grid h-[72%] w-[72%] place-items-center rounded-full border border-rose-100/90 bg-rose-500/25 shadow-[0_0_24px_rgba(251,113,133,0.9)]">
+          <HeartPulse className="h-6 w-6 text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,1)]" />
         </div>
       ) : object.kind === "time" ? (
-        <div className="relative grid h-[72%] w-[72%] place-items-center rounded-full border border-cyan-100/90 bg-cyan-300/20 shadow-[0_0_28px_rgba(103,232,249,0.78)]">
-          <span className="absolute inset-[-22%] rounded-full border border-cyan-100/35 shadow-[0_0_24px_rgba(103,232,249,0.45)]" />
-          <Clock3 className="h-6 w-6 text-cyan-50 drop-shadow-[0_0_12px_rgba(103,232,249,0.95)]" />
+        <div className="relative grid h-[74%] w-[74%] place-items-center rounded-full border border-cyan-100/95 bg-cyan-400/25 shadow-[0_0_28px_rgba(103,232,249,0.9)]">
+          <span className="absolute inset-[-20%] rounded-full border border-cyan-200/40 shadow-[0_0_24px_rgba(103,232,249,0.5)]" />
+          <Clock3 className="h-6 w-6 text-cyan-50 drop-shadow-[0_0_12px_rgba(103,232,249,1)]" />
         </div>
       ) : (
         <div className="h-1/2 w-1/2 rounded-full bg-sky-100" />
       )}
-      {object.kind === "true" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-violet-100" />}
-      {object.kind === "heart" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-rose-100" />}
-      {object.kind === "time" && <Sparkles className="absolute right-1 top-1 h-4 w-4 text-cyan-100" />}
+      {object.kind === "true" && <Sparkles className="absolute right-0.5 top-0.5 h-4 w-4 text-violet-200" />}
+      {object.kind === "heart" && <Sparkles className="absolute right-0.5 top-0.5 h-4 w-4 text-rose-200" />}
+      {object.kind === "time" && <Sparkles className="absolute right-0.5 top-0.5 h-4 w-4 text-cyan-200" />}
     </div>
   );
 });
-
 
 const SliceImpactLayer = memo(function SliceImpactLayer({
   effects,
@@ -2801,17 +2802,18 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 }) {
   const asset = getSliceImpactAsset(effect.kind);
   const particleCount = graphicsQuality === "cinematic"
-    ? effect.kind === "trap" ? 12 : effect.kind === "time" ? 10 : effect.kind === "heart" ? 9 : 7
-    : effect.kind === "trap" ? 6 : effect.kind === "time" ? 6 : effect.kind === "heart" ? 5 : 4;
+    ? effect.kind === "trap" ? 14 : effect.kind === "time" ? 12 : effect.kind === "heart" ? 10 : 8
+    : effect.kind === "trap" ? 8 : effect.kind === "time" ? 7 : effect.kind === "heart" ? 6 : 5;
+
   const particles = useMemo(
     () => Array.from({ length: particleCount }, (_, index) => {
-      const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 720;
-      const distance = effect.sizePx * (0.42 + (index % 4) * 0.17);
+      const angle = (Math.PI * 2 * index) / particleCount + (effect.rotation * Math.PI) / 180;
+      const distance = effect.sizePx * (0.45 + (index % 4) * 0.18);
       return {
         id: `${effect.id}_spark_${index}`,
         x: Math.cos(angle) * distance,
         y: Math.sin(angle) * distance,
-        size: 3 + (index % 3) * 1.6,
+        size: 3.5 + (index % 3) * 1.8,
       };
     }),
     [effect.id, effect.rotation, effect.sizePx, particleCount]
@@ -2819,87 +2821,57 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 
   return (
     <motion.div
-      className="sl-slice-impact-burst absolute"
+      className="sl-slice-impact-burst absolute pointer-events-none"
       style={{
         left: `${effect.x}%`,
         top: `${effect.y}%`,
         width: effect.sizePx,
         height: effect.sizePx,
         color: effect.color,
-        transform: "translate(-50%, -50%)",
+        transform: "translate3d(-50%, -50%, 0)",
       }}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Central Slash Line */}
       <motion.div
-        className="absolute inset-[-18%] rounded-full border-2 border-current"
-        initial={{ scale: 0.45, opacity: 0.8 }}
+        className="absolute left-1/2 top-1/2 h-[6px] w-[240%] origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_20px_currentColor]"
+        style={{ transform: `translate(-50%, -50%) rotate(${effect.rotation}deg)` }}
+        initial={{ scaleX: 0.1, opacity: 1 }}
+        animate={{ scaleX: 1.2, opacity: 0 }}
+        transition={{ duration: 0.28, ease: "easeOut" }}
+      />
+
+      {/* Expanding shockwave */}
+      <motion.div
+        className="absolute inset-[-25%] rounded-full border-2 border-current"
+        initial={{ scale: 0.3, opacity: 0.95 }}
         animate={{ scale: 2.2, opacity: 0 }}
-        transition={{ duration: 0.58, ease: "easeOut" }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
       />
-      <motion.div
-        className={`absolute inset-[14%] rounded-full bg-current ${graphicsQuality === "cinematic" ? "blur-xl" : ""}`}
-        initial={{ opacity: 0.24, scale: 0.6 }}
-        animate={{ opacity: 0, scale: 1.75 }}
-        transition={{ duration: 0.82, ease: "easeOut" }}
-      />
-      {effect.kind === "trap" && (
-        <motion.div
-          className="absolute inset-[-44%] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(248,113,113,0.58), rgba(239,68,68,0.24) 36%, rgba(127,29,29,0.12) 52%, transparent 72%)",
-          }}
-          initial={{ scale: 0.2, opacity: 0.92 }}
-          animate={{ scale: 1.35, opacity: 0 }}
-          transition={{ duration: 0.42, ease: "easeOut" }}
-        />
-      )}
-      {effect.kind === "heart" && (
-        <motion.div
-          className="absolute inset-[-34%] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(251,113,133,0.46), rgba(244,63,94,0.18) 42%, transparent 70%)",
-          }}
-          initial={{ scale: 0.35, opacity: 0.85 }}
-          animate={{ scale: 1.18, opacity: 0 }}
-          transition={{ duration: 0.52, ease: "easeOut" }}
-        />
-      )}
-      {effect.kind === "time" && (
-        <motion.div
-          className="absolute inset-[-38%] rounded-full"
-          style={{
-            background: "radial-gradient(circle, rgba(103,232,249,0.52), rgba(59,130,246,0.2) 42%, transparent 72%)",
-          }}
-          initial={{ scale: 0.28, opacity: 0.9, rotate: -10 }}
-          animate={{ scale: 1.24, opacity: 0, rotate: 28 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        />
-      )}
-      <motion.div
-        className="absolute left-1/2 top-1/2 h-[12%] w-[190%] origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-current shadow-[0_0_24px_currentColor]"
-        initial={{ scaleX: 0.2, opacity: 0.92, rotate: effect.rotation + 18 }}
-        animate={{ scaleX: 1, opacity: 0, rotate: effect.rotation + 18 }}
-        transition={{ duration: 0.34, ease: "easeOut" }}
-      />
+
+      {/* Sliced two halves flying outward */}
       <SlicedHalf asset={asset} effect={effect} side="left" />
       <SlicedHalf asset={asset} effect={effect} side="right" />
 
+      {/* Particle sparks */}
       {particles.map((particle) => (
         <motion.span
           key={particle.id}
           className="absolute left-1/2 top-1/2 rounded-full bg-current shadow-[0_0_12px_currentColor]"
           style={{ width: particle.size, height: particle.size }}
-          initial={{ x: 0, y: 0, opacity: 0.95, scale: 1 }}
-          animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.25 }}
-          transition={{ duration: 0.68, ease: "easeOut" }}
+          initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+          animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.2 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
         />
       ))}
+
+      {/* Label popup */}
       <motion.span
-        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border border-current/40 bg-[var(--theme-game-hud)] px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-widest text-current"
-        initial={{ opacity: 0, y: 8, scale: 0.82 }}
-        animate={{ opacity: [0, 1, 1, 0], y: [8, -12, -32, -48], scale: [0.82, 1.08, 1, 0.96] }}
-        transition={{ duration: 0.82, times: [0, 0.16, 0.72, 1], ease: "easeOut" }}
+        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border border-current/50 bg-black/80 px-2.5 py-0.5 font-mono text-[10px] font-black uppercase tracking-widest text-current shadow-[0_0_12px_currentColor]"
+        initial={{ opacity: 0, y: 4, scale: 0.8 }}
+        animate={{ opacity: [0, 1, 1, 0], y: [4, -16, -34, -50], scale: [0.8, 1.15, 1, 0.9] }}
+        transition={{ duration: 0.75, times: [0, 0.15, 0.7, 1], ease: "easeOut" }}
       >
         {effect.label}
       </motion.span>
@@ -2917,28 +2889,37 @@ const SlicedHalf = memo(function SlicedHalf({
   side: "left" | "right";
 }) {
   const direction = side === "left" ? -1 : 1;
+  const perpAngle = ((effect.rotation + (side === "left" ? -90 : 90)) * Math.PI) / 180;
+  const throwDist = effect.sizePx * 0.75;
+  const targetX = Math.cos(perpAngle) * throwDist;
+  const targetY = Math.sin(perpAngle) * throwDist + effect.sizePx * 0.35;
+
   const clipPath = side === "left"
-    ? "polygon(0 0, 54% 0, 46% 100%, 0 100%)"
-    : "polygon(54% 0, 100% 0, 100% 100%, 46% 100%)";
+    ? "polygon(0 0, 52% 0, 48% 100%, 0 100%)"
+    : "polygon(52% 0, 100% 0, 100% 100%, 48% 100%)";
 
   return (
     <motion.div
-      className="absolute inset-0 grid place-items-center"
-      initial={{ x: 0, y: 0, rotate: effect.rotation, opacity: 0.96, scale: 1 }}
+      className="absolute inset-0 grid place-items-center will-change-transform pointer-events-none"
+      initial={{ x: 0, y: 0, rotate: effect.rotation, opacity: 1, scale: 1 }}
       animate={{
-        x: direction * effect.sizePx * 0.36,
-        y: side === "left" ? -effect.sizePx * 0.2 : effect.sizePx * 0.22,
-        rotate: effect.rotation + direction * 24,
+        x: targetX,
+        y: targetY,
+        rotate: effect.rotation + direction * 45,
         opacity: 0,
-        scale: 0.88,
+        scale: 0.8,
       }}
-      transition={{ duration: 0.78, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.62, ease: [0.12, 0.8, 0.32, 1] }}
       style={{ clipPath }}
     >
       {asset ? (
-        <img src={asset} alt="" className="h-[132%] w-[132%] object-contain drop-shadow-[0_0_16px_currentColor]" />
+        <img
+          src={asset}
+          alt=""
+          className="h-[148%] w-[148%] object-contain drop-shadow-[0_0_16px_currentColor] pointer-events-none select-none"
+        />
       ) : (
-        <div className="h-[58%] w-[58%] rounded-full bg-current shadow-[0_0_22px_currentColor]" />
+        <div className="h-[68%] w-[68%] rounded-full bg-current shadow-[0_0_22px_currentColor]" />
       )}
     </motion.div>
   );
@@ -2986,42 +2967,46 @@ const SliceTrail = memo(function SliceTrail({ points, effect }: { points: SliceT
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
     >
+      {/* Outer ambient blade glow */}
       <path
         d={pathD}
         fill="none"
         stroke={stroke}
-        strokeWidth="6"
+        strokeWidth="9"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.32"
+        opacity="0.38"
         vectorEffect="non-scaling-stroke"
       />
+      {/* Main neon blade cut */}
       <path
         d={pathD}
         fill="none"
         stroke={stroke}
-        strokeWidth="3.2"
+        strokeWidth="4.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.88"
+        opacity="0.9"
         vectorEffect="non-scaling-stroke"
       />
+      {/* Razor sharp white edge */}
       <path
         d={pathD}
         fill="none"
         stroke="#ffffff"
-        strokeWidth="1.4"
+        strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.95"
+        opacity="1"
         vectorEffect="non-scaling-stroke"
       />
       {tip && (
-        <circle cx={tip.x} cy={tip.y} r="1.5" fill="#ffffff" opacity="0.95" />
+        <circle cx={tip.x} cy={tip.y} r="1.8" fill="#ffffff" opacity="1" />
       )}
     </svg>
   );
 });
+
 
 
 function StartOverlay({
@@ -3433,30 +3418,37 @@ function createShadowSliceObject({
   const baseSize = kind === "trap" ? 56 : kind === "heart" ? 52 : kind === "time" ? 54 : kind === "gold" ? 48 : kind === "decoy" ? 50 : 62;
   const sizePx = Math.max(36, baseSize + focusBonus - difficulty * 0.9);
   const radiusPct = Math.max(4.8, sizePx / 8.0);
-  const lifetimeMs = getExtractionSignalWindowMs(score, level) + upgrades.upgrades.focus * 280 + relicBonuses.targetLifetime + Math.round(relicBonuses.hitWindow * 1000) + 3000;
+  const lifetimeMs = getExtractionSignalWindowMs(score, level) + upgrades.upgrades.focus * 280 + relicBonuses.targetLifetime + Math.round(relicBonuses.hitWindow * 1000) + 3600;
 
   const isLandscape = orientationMode === "landscape";
-  const minX = isLandscape ? 12 : 16;
-  const maxX = isLandscape ? 88 : 84;
+  const minX = isLandscape ? 15 : 18;
+  const maxX = isLandscape ? 85 : 82;
   const x = spawnX !== undefined ? Math.max(minX, Math.min(maxX, spawnX)) : minX + Math.random() * (maxX - minX);
-  const y = 104 + Math.random() * 5;
+  // Spawn completely below the visible bottom bezel
+  const y = 112 + Math.random() * 6;
 
-  // Fruit Ninja parabolic launch:
-  // Strong upward velocity:
+  // Fruit Ninja varied launch powers (z różną siłą)
+  const powerRoll = Math.random();
+  const arcPower = powerRoll < 0.35
+    ? 0.84 + Math.random() * 0.08  // Low arc
+    : powerRoll < 0.80
+      ? 0.98 + Math.random() * 0.1   // Medium arc
+      : 1.15 + Math.random() * 0.14; // High soaring arc
+
   const baseVy = isLandscape
-    ? -(62 + Math.random() * 16 + difficulty * 0.55)
-    : -(76 + Math.random() * 18 + difficulty * 0.65);
+    ? -(68 + difficulty * 0.5) * arcPower
+    : -(84 + difficulty * 0.6) * arcPower;
 
   let vx = 0;
   if (x < 42) {
-    vx = +(isLandscape ? 10 + Math.random() * 16 : 7 + Math.random() * 13);
+    vx = +(isLandscape ? 11 + Math.random() * 15 : 7 + Math.random() * 11);
   } else if (x > 58) {
-    vx = -(isLandscape ? 10 + Math.random() * 16 : 7 + Math.random() * 13);
+    vx = -(isLandscape ? 11 + Math.random() * 15 : 7 + Math.random() * 11);
   } else {
-    vx = isLandscape ? -12 + Math.random() * 24 : -8 + Math.random() * 16;
+    vx = isLandscape ? -9 + Math.random() * 18 : -6 + Math.random() * 12;
   }
 
-  const gravity = isLandscape ? 46 + difficulty * 0.45 : 56 + difficulty * 0.5;
+  const gravity = isLandscape ? 42 + difficulty * 0.4 : 50 + difficulty * 0.45;
 
   return {
     id: `shadow_${kind}_${Math.round(now)}_${Math.random().toString(36).slice(2, 6)}`,
@@ -3471,9 +3463,10 @@ function createShadowSliceObject({
     sizePx,
     radiusPct,
     rotation: Math.random() * 360,
-    spin: -160 + Math.random() * 320,
+    spin: -150 + Math.random() * 300,
   };
 }
+
 
 
 function pointToPixels(point: SegmentPoint, rect: DOMRect): SegmentPoint {
