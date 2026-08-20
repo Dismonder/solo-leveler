@@ -730,9 +730,9 @@ body {
 
 [data-mini-game-runtime] .sl-slice-impact-burst {
   backface-visibility: hidden;
-  contain: layout paint;
   transform-style: preserve-3d;
   will-change: transform, opacity;
+  overflow: visible !important;
 }
 
 [data-mini-game-runtime][data-graphics-quality="balanced"] .sl-slice-ping {

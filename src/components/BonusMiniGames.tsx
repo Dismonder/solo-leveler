@@ -2824,7 +2824,7 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 
   return (
     <motion.div
-      className="sl-slice-impact-burst absolute pointer-events-none"
+      className="sl-slice-impact-burst absolute pointer-events-none overflow-visible"
       style={{
         left: `${effect.x}%`,
         top: `${effect.y}%`,
@@ -2838,7 +2838,7 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
     >
       {/* Central Slash Line */}
       <motion.div
-        className="absolute left-1/2 top-1/2 h-[6px] w-[240%] origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_20px_currentColor]"
+        className="absolute left-1/2 top-1/2 h-[6px] w-[240%] origin-center -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_20px_currentColor] overflow-visible pointer-events-none"
         style={{ transform: `translate(-50%, -50%) rotate(${effect.rotation}deg)` }}
         initial={{ scaleX: 0.1, opacity: 1 }}
         animate={{ scaleX: 1.2, opacity: 0 }}
@@ -2847,7 +2847,7 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 
       {/* Expanding shockwave */}
       <motion.div
-        className="absolute inset-[-25%] rounded-full border-2 border-current"
+        className="absolute inset-[-25%] rounded-full border-2 border-current overflow-visible pointer-events-none"
         initial={{ scale: 0.3, opacity: 0.95 }}
         animate={{ scale: 2.2, opacity: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
@@ -2861,7 +2861,7 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
       {particles.map((particle) => (
         <motion.span
           key={particle.id}
-          className="absolute left-1/2 top-1/2 rounded-full bg-current shadow-[0_0_12px_currentColor]"
+          className="absolute left-1/2 top-1/2 rounded-full bg-current shadow-[0_0_12px_currentColor] pointer-events-none"
           style={{ width: particle.size, height: particle.size }}
           initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
           animate={{ x: particle.x, y: particle.y, opacity: 0, scale: 0.2 }}
@@ -2871,8 +2871,8 @@ const SliceImpactBurst = memo(function SliceImpactBurst({
 
       {/* Label popup */}
       <motion.span
-        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-current/60 bg-black/90 px-3 py-1 font-mono text-[13px] font-black uppercase tracking-wider text-current"
-        style={{ zIndex: 50, textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
+        className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap rounded-full border-2 border-current/60 bg-black/90 px-3 py-1 font-mono text-[13px] font-black uppercase tracking-wider text-current pointer-events-none select-none shadow-[0_0_18px_currentColor]"
+        style={{ zIndex: 60, textShadow: "0 0 10px currentColor, 0 0 20px currentColor" }}
         initial={{ opacity: 0, y: 6, scale: 0.7 }}
         animate={{ opacity: [0, 1, 1, 0.9, 0], y: [6, -18, -38, -56, -72], scale: [0.7, 1.2, 1.1, 1, 0.85] }}
         transition={{ duration: 0.9, times: [0, 0.12, 0.4, 0.75, 1], ease: "easeOut" }}
@@ -2904,7 +2904,7 @@ const SlicedHalf = memo(function SlicedHalf({
 
   return (
     <motion.div
-      className="absolute inset-0 grid place-items-center will-change-transform pointer-events-none"
+      className="absolute inset-0 grid place-items-center will-change-transform pointer-events-none overflow-visible"
       initial={{ x: 0, y: 0, rotate: effect.rotation, opacity: 1, scale: 1 }}
       animate={{
         x: targetX,
