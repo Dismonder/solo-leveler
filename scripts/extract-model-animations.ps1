@@ -1,5 +1,5 @@
 param(
-  [string]$SourceRoot = "modele",
+  [string]$SourceRoot = "art-src/raw-assets/models",
   [string]$OutDir = "src/assets/models/actors",
   [string]$FrameOutDir = "sprite-frames",
   [string]$PreviewDir = "sprite-previews",

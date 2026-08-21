@@ -3,7 +3,7 @@ import { Crosshair, DoorOpen, Shield, Sparkles, Swords, Zap } from "lucide-react
 import { usePlayer } from "../context/PlayerContext";
 import { PhaserActionStage } from "./PhaserActionStage";
 import { HudMeter } from "./GameHud";
-import systemLobbyImage from "../../baza/lobby_test.png";
+import systemLobbyImage from "../assets/hub/system-lobby.png";
 import hunterIdleGif from "../assets/models/gifs/hunter-idle.gif";
 import hunterRunGif from "../assets/models/gifs/hunter-run.gif";
 import hunterJumpGif from "../assets/models/gifs/hunter-jump.gif";

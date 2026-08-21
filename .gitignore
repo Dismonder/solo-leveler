@@ -16,6 +16,11 @@ tools/
 *.key
 google-services.json
 
+# Local developer execution scripts and metadata
+*.bat
+*.cmd
+metadata.json
+
 # Local diagnostics and temporary QA output
 .audit-dir
 .codex-logs/

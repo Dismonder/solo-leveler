@@ -6,7 +6,7 @@ from PIL import Image, ImageSequence
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_DIR = ROOT / "modele" / "modele_bohaterow"
+SOURCE_DIR = ROOT / "art-src" / "raw-assets" / "models" / "modele_bohaterow"
 OUT_DIR = ROOT / "src" / "assets" / "models" / "gifs"
 
 FILES = {
