@@ -20,6 +20,18 @@ google-services.json
 *.bat
 *.cmd
 metadata.json
+scripts/publish-*.js
+scripts/inspect-*.mjs
+scripts/import-*.ps1
+
+# Internal reports and raw drafts
+docs/raporty/
+docs/superpowers/
+art-src/raw-assets/
+art-src/idlerpg/legacy-assets/
+art-src/idlerpg/legacy-code/
+art-src/idlerpg/legacy-tools/
+art-src/idlerpg/references/
 
 # Local diagnostics and temporary QA output
 .audit-dir
