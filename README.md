@@ -64,41 +64,6 @@ Najnowszą paczkę instalacyjną pobierzesz bezpośrednio z oficjalnych wydań:
 
 ---
 
-## 🛠️ Uruchomienie deweloperskie (Lokalnie)
-
-### Wymagania wstępne:
-* **Node.js**: v20+ lub v22+
-* **npm**: v10+
-* **Android Studio & Java JDK 21** (opcjonalnie do kompilacji Androida)
-
-### Krok po kroku:
-```bash
-# 1. Klonowanie repozytorium
-git clone https://github.com/Dismonder/solo-leveler.git
-cd solo-leveler
-
-# 2. Instalacja zależności
-npm install
-
-# 3. Uruchomienie serwera deweloperskiego (przeglądarka)
-npm run dev
-
-# 4. Zbudowanie paczki produkcyjnej
-npm run build
-
-# 5. Synchronizacja z projektem Android (Capacitor)
-npx cap sync android
-```
-
-### Publikacja nowej wersji:
-W głównym folderze projektu znajduje się skrypt **`Wyrzuc-Aktualizacje-Na-Github.bat`** (oraz `publish-update.bat`), który automatycznie:
-1. Buduje bundle webowy (`npm run build`).
-2. Synchronizuje zasoby Androida (`npx cap sync android`).
-3. Kompiluje paczkę APK (`gradlew.bat assembleDebug`).
-4. Tworzy release na GitHubie i wgrywa pliki APK z opisem zmian.
-
----
-
 ## 🔒 Polityka Prywatności
 
 Szczegółowa polityka prywatności dostępna jest w dokumencie:
