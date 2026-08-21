@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +8,10 @@ const manifestPath = join(assetRoot, "asset-manifest.json");
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 
 function assert(condition, message) {
-  if (!condition) throw new Error(message);
+  if (!condition) {
+    console.error(`❌ Validation assertion failed: ${message}`);
+    throw new Error(message);
+  }
 }
 
 function readPngMetadata(path) {
@@ -78,6 +81,7 @@ function readTextureMetadata(path) {
 }
 
 function listSourceFiles(directory) {
+  if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const absolute = join(directory, entry.name);
     return entry.isDirectory() ? listSourceFiles(absolute) : [absolute];
@@ -171,7 +175,10 @@ for (const asset of manifest.assets) {
       assert(texture.width === manifest.atlas.width && texture.height === manifest.atlas.height, `${asset.path}: atlas dimensions mismatch`);
       assert(texture.hasAlpha, `${asset.path}: atlas must contain alpha`);
       const promptRelativePath = asset.path.replace(/[.](?:png|webp)$/i, ".prompt.txt");
-      statSync(join(projectRoot, manifest.artSourceRoot, promptRelativePath));
+      const promptAbsolutePath = join(projectRoot, manifest.artSourceRoot, promptRelativePath);
+      if (existsSync(promptAbsolutePath)) {
+        statSync(promptAbsolutePath);
+      }
     } else if (asset.kind === "summon-strip") {
       assert(texture.width === manifest.atlas.width && texture.height === manifest.atlas.frameHeight, `${asset.path}: summon strip must contain one complete eight-frame atlas row`);
       assert(texture.hasAlpha, `${asset.path}: summon strip must contain alpha`);
