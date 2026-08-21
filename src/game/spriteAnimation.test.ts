@@ -14,9 +14,9 @@ import { getWeightedAnimationFrame } from "../hooks/useFrameAnimation";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const actorsDir = resolve(repoRoot, "src/assets/models/actors");
-const frameDir = resolve(repoRoot, "sprite-frames");
-const qaReportPath = resolve(repoRoot, "sprite-previews/_qa-report.json");
-const previewIndexPath = resolve(repoRoot, "sprite-previews/index.html");
+const frameDir = resolve(repoRoot, "art-src/sprite-frames");
+const qaReportPath = resolve(repoRoot, "art-src/sprite-previews/_qa-report.json");
+const previewIndexPath = resolve(repoRoot, "art-src/sprite-previews/index.html");
 
 function readPngSize(path: string) {
   const buffer = readFileSync(path);

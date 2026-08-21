@@ -1,8 +1,8 @@
 param(
   [string]$SourceRoot = "art-src/raw-assets/models",
   [string]$OutDir = "src/assets/models/actors",
-  [string]$FrameOutDir = "sprite-frames",
-  [string]$PreviewDir = "sprite-previews",
+  [string]$FrameOutDir = "art-src/sprite-frames",
+  [string]$PreviewDir = "art-src/sprite-previews",
   [int]$FrameSize = 384
 )
 
