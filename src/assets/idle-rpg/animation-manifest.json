@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "timelineModel": "authored-keyframe-holds-v1",
+  "description": "Runtime animation timelines authored from the finite keyframe atlas cells. A hold repeats an existing source cell for a deliberate number of display frames; it does not claim additional unique drawings.",
+  "atlasGeometry": {
+    "columns": 8,
+    "rows": 6,
+    "frameWidth": 192,
+    "frameHeight": 256,
+    "sourceFrames": 48,
+    "safeInsetPx": 8,
+    "extrudePx": 0
+  },
+  "palettes": {
+    "meridian": ["#130f17", "#3c2630", "#a95d3d", "#e1a06b", "#dcc7b6", "#7d5ba6"],
+    "ash": ["#170f16", "#332027", "#6e3028", "#b54d2e", "#f0ad5c", "#8b658e"],
+    "drowned": ["#071720", "#123847", "#217a78", "#7ad4b7", "#a68047", "#3f2857"],
+    "thorn": ["#11152c", "#303260", "#7b4ca1", "#e8a8ff", "#dcecff", "#291f4c"],
+    "duskless": ["#080914", "#21162c", "#5f2c63", "#d45a82", "#d2b06f", "#e7d8c6"]
+  },
+  "atlases": {
+    "core-battle": { "assetPath": "actors/core-battle-atlas.webp" },
+    "ashen-bulwark": { "assetPath": "actors/ashen-bulwark-atlas.webp" },
+    "drowned-archive": { "assetPath": "actors/drowned-archive-atlas.webp" },
+    "thorn-sky": { "assetPath": "actors/thorn-sky-atlas.webp" },
+    "duskless-crown": { "assetPath": "actors/duskless-crown-atlas.webp" }
+  },
+  "categories": {
+    "hero": {
+      "frameBudget": 138,
+      "sources": [
+        {
+          "actorId": "meridian-wanderer",
+          "atlasId": "core-battle",
+          "rowOffset": 0,
+          "rowCount": 2,
+          "facing": "right",
+          "paletteId": "meridian",
+          "pivot": { "x": 0.5, "y": 0.90625 },
+          "baselinePx": 232
+        }
+      ],
+      "states": {
+        "idle": {
+          "fps": 8,
+          "loop": true,
+          "keyframes": [
+            { "sourceFrame": 0, "hold": 3 }, { "sourceFrame": 1, "hold": 2 },
+            { "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 3, "hold": 2 },
+            { "sourceFrame": 4, "hold": 2 }, { "sourceFrame": 5, "hold": 2 },
+            { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 1 }
+          ],
+          "markers": []
+        },
+        "march": {
+          "fps": 12,
+          "loop": true,
+          "keyframes": [
+            { "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 3, "hold": 3 },
+            { "sourceFrame": 4, "hold": 2 }, { "sourceFrame": 5, "hold": 3 },
+            { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 3 },
+            { "sourceFrame": 4, "hold": 2 }, { "sourceFrame": 3, "hold": 3 }
+          ],
+          "markers": []
+        },
+        "enter": {
+          "fps": 12,
+          "loop": false,
+          "keyframes": [
+            { "sourceFrame": 3, "hold": 2 }, { "sourceFrame": 4, "hold": 2 },
+            { "sourceFrame": 5, "hold": 2 }, { "sourceFrame": 6, "hold": 2 },
+            { "sourceFrame": 7, "hold": 4 }
+          ],
+          "markers": [{ "name": "settled", "frame": 11 }]
+        },
+        "attack": {
+          "fps": 18,
+          "loop": false,
+          "keyframes": [
+            { "sourceFrame": 8, "hold": 2 }, { "sourceFrame": 9, "hold": 2 },
+            { "sourceFrame": 10, "hold": 2 }, { "sourceFrame": 11, "hold": 3 },
+            { "sourceFrame": 12, "hold": 2 }, { "sourceFrame": 13, "hold": 2 },
+            { "sourceFrame": 14, "hold": 2 }, { "sourceFrame": 15, "hold": 3 }
+          ],
+          "markers": [{ "name": "impact", "frame": 10 }]
+        },
+        "skill": {
+          "fps": 20,
+          "loop": false,
+          "keyframes": [
+            { "sourceFrame": 8, "hold": 2 }, { "sourceFrame": 9, "hold": 2 },
+            { "sourceFrame": 10, "hold": 3 }, { "sourceFrame": 11, "hold": 3 },
+            { "sourceFrame": 12, "hold": 4 }, { "sourceFrame": 13, "hold": 4 },
+            { "sourceFrame": 14, "hold": 3 }, { "sourceFrame": 15, "hold": 3 }
+          ],
+          "markers": [{ "name": "impact", "frame": 12 }]
+        },
+        "hit": {
+          "fps": 16,
+          "loop": false,
+          "keyframes": [
+            { "sourceFrame": 7, "hold": 2 }, { "sourceFrame": 6, "hold": 3 },
+            { "sourceFrame": 5, "hold": 2 }, { "sourceFrame": 0, "hold": 3 }
+          ],
+          "markers": [{ "name": "recoil", "frame": 1 }]
+        },
+        "death": {
+          "fps": 14,
+          "loop": false,
+          "keyframes": [
+            { "sourceFrame": 7, "hold": 2 }, { "sourceFrame": 6, "hold": 3 },
+            { "sourceFrame": 5, "hold": 3 }, { "sourceFrame": 4, "hold": 3 },
+            { "sourceFrame": 3, "hold": 3 }, { "sourceFrame": 0, "hold": 4 }
+          ],
+          "markers": [{ "name": "vanish", "frame": 17 }]
+        },
+        "ultimate": {
+          "fps": 20,
+          "loop": false,
+          "keyframes": [
+            { "sourceFrame": 8, "hold": 1 }, { "sourceFrame": 9, "hold": 2 },
+            { "sourceFrame": 10, "hold": 2 }, { "sourceFrame": 11, "hold": 3 },
+            { "sourceFrame": 12, "hold": 4 }, { "sourceFrame": 13, "hold": 3 },
+            { "sourceFrame": 14, "hold": 3 }, { "sourceFrame": 15, "hold": 2 }
+          ],
+          "markers": [{ "name": "impact", "frame": 10 }]
+        }
+      }
+    },
+    "normalEnemy": {
+      "frameBudget": 40,
+      "sources": [
+        { "actorId": "ashen-bulwark-normal-0", "atlasId": "ashen-bulwark", "rowOffset": 0, "rowCount": 1, "facing": "left", "paletteId": "ash", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "ashen-bulwark-normal-1", "atlasId": "ashen-bulwark", "rowOffset": 8, "rowCount": 1, "facing": "left", "paletteId": "ash", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "ashen-bulwark-normal-2", "atlasId": "ashen-bulwark", "rowOffset": 16, "rowCount": 1, "facing": "left", "paletteId": "ash", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null },
+        { "actorId": "drowned-archive-normal-0", "atlasId": "drowned-archive", "rowOffset": 0, "rowCount": 1, "facing": "right", "paletteId": "drowned", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "drowned-archive-normal-1", "atlasId": "drowned-archive", "rowOffset": 8, "rowCount": 1, "facing": "left", "paletteId": "drowned", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "drowned-archive-normal-2", "atlasId": "drowned-archive", "rowOffset": 16, "rowCount": 1, "facing": "left", "paletteId": "drowned", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null },
+        { "actorId": "thorn-sky-normal-0", "atlasId": "thorn-sky", "rowOffset": 0, "rowCount": 1, "facing": "left", "paletteId": "thorn", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "thorn-sky-normal-1", "atlasId": "thorn-sky", "rowOffset": 8, "rowCount": 1, "facing": "left", "paletteId": "thorn", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "thorn-sky-normal-2", "atlasId": "thorn-sky", "rowOffset": 16, "rowCount": 1, "facing": "left", "paletteId": "thorn", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null },
+        { "actorId": "duskless-crown-normal-0", "atlasId": "duskless-crown", "rowOffset": 0, "rowCount": 1, "facing": "left", "paletteId": "duskless", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "duskless-crown-normal-1", "atlasId": "duskless-crown", "rowOffset": 8, "rowCount": 1, "facing": "left", "paletteId": "duskless", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "duskless-crown-normal-2", "atlasId": "duskless-crown", "rowOffset": 16, "rowCount": 1, "facing": "left", "paletteId": "duskless", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 }
+      ],
+      "states": {
+        "idle": { "fps": 8, "loop": true, "keyframes": [{ "sourceFrame": 0, "hold": 2 }, { "sourceFrame": 1, "hold": 2 }, { "sourceFrame": 0, "hold": 2 }, { "sourceFrame": 1, "hold": 2 }], "markers": [] },
+        "enter": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 3, "hold": 2 }, { "sourceFrame": 0, "hold": 2 }], "markers": [{ "name": "settled", "frame": 5 }] },
+        "march": { "fps": 12, "loop": true, "keyframes": [{ "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 3, "hold": 2 }, { "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 3, "hold": 2 }], "markers": [] },
+        "attack": { "fps": 16, "loop": false, "keyframes": [{ "sourceFrame": 4, "hold": 2 }, { "sourceFrame": 5, "hold": 3 }, { "sourceFrame": 6, "hold": 1 }, { "sourceFrame": 7, "hold": 2 }], "markers": [{ "name": "impact", "frame": 3 }] },
+        "hit": { "fps": 16, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 3 }, { "sourceFrame": 7, "hold": 1 }], "markers": [{ "name": "recoil", "frame": 1 }] },
+        "death": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 2 }, { "sourceFrame": 6, "hold": 1 }, { "sourceFrame": 7, "hold": 1 }], "markers": [{ "name": "vanish", "frame": 5 }] }
+      }
+    },
+    "elite": {
+      "frameBudget": 80,
+      "sources": [
+        { "actorId": "ashen-bulwark-elite-6", "atlasId": "ashen-bulwark", "rowOffset": 24, "rowCount": 1, "facing": "left", "paletteId": "ash", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "drowned-archive-elite-6", "atlasId": "drowned-archive", "rowOffset": 24, "rowCount": 1, "facing": "left", "paletteId": "drowned", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "thorn-sky-elite-6", "atlasId": "thorn-sky", "rowOffset": 24, "rowCount": 1, "facing": "left", "paletteId": "thorn", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "duskless-crown-elite-6", "atlasId": "duskless-crown", "rowOffset": 24, "rowCount": 1, "facing": "left", "paletteId": "duskless", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 }
+      ],
+      "states": {
+        "idle": { "fps": 8, "loop": true, "keyframes": [{ "sourceFrame": 0, "hold": 3 }, { "sourceFrame": 1, "hold": 3 }, { "sourceFrame": 0, "hold": 2 }, { "sourceFrame": 1, "hold": 2 }], "markers": [] },
+        "enter": { "fps": 10, "loop": false, "keyframes": [{ "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 1, "hold": 2 }, { "sourceFrame": 0, "hold": 4 }], "markers": [{ "name": "settled", "frame": 7 }] },
+        "march": { "fps": 10, "loop": true, "keyframes": [{ "sourceFrame": 2, "hold": 3 }, { "sourceFrame": 0, "hold": 2 }, { "sourceFrame": 2, "hold": 3 }, { "sourceFrame": 1, "hold": 2 }], "markers": [] },
+        "attack": { "fps": 16, "loop": false, "keyframes": [{ "sourceFrame": 3, "hold": 3 }, { "sourceFrame": 4, "hold": 4 }, { "sourceFrame": 5, "hold": 4 }, { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 3 }], "markers": [{ "name": "impact", "frame": 8 }] },
+        "skill": { "fps": 18, "loop": false, "keyframes": [{ "sourceFrame": 1, "hold": 2 }, { "sourceFrame": 3, "hold": 2 }, { "sourceFrame": 4, "hold": 3 }, { "sourceFrame": 5, "hold": 4 }, { "sourceFrame": 6, "hold": 1 }, { "sourceFrame": 7, "hold": 2 }], "markers": [{ "name": "impact", "frame": 8 }] },
+        "hit": { "fps": 14, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 5 }, { "sourceFrame": 7, "hold": 3 }], "markers": [{ "name": "recoil", "frame": 2 }] },
+        "death": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 4 }, { "sourceFrame": 7, "hold": 4 }, { "sourceFrame": 6, "hold": 3 }, { "sourceFrame": 7, "hold": 3 }], "markers": [{ "name": "vanish", "frame": 13 }] }
+      }
+    },
+    "boss": {
+      "frameBudget": 134,
+      "sources": [
+        { "actorId": "ashen-bulwark-boss-12", "atlasId": "ashen-bulwark", "rowOffset": 32, "rowCount": 1, "facing": "left", "paletteId": "ash", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "drowned-archive-boss-12", "atlasId": "drowned-archive", "rowOffset": 32, "rowCount": 1, "facing": "left", "paletteId": "drowned", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "thorn-sky-boss-12", "atlasId": "thorn-sky", "rowOffset": 32, "rowCount": 1, "facing": "left", "paletteId": "thorn", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null },
+        { "actorId": "duskless-crown-boss-12", "atlasId": "duskless-crown", "rowOffset": 32, "rowCount": 1, "facing": "left", "paletteId": "duskless", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 }
+      ],
+      "states": {
+        "idle": { "fps": 7, "loop": true, "keyframes": [{ "sourceFrame": 0, "hold": 5 }, { "sourceFrame": 1, "hold": 5 }, { "sourceFrame": 0, "hold": 3 }, { "sourceFrame": 1, "hold": 3 }], "markers": [] },
+        "enter": { "fps": 10, "loop": false, "keyframes": [{ "sourceFrame": 2, "hold": 4 }, { "sourceFrame": 1, "hold": 3 }, { "sourceFrame": 0, "hold": 5 }, { "sourceFrame": 1, "hold": 3 }, { "sourceFrame": 0, "hold": 5 }], "markers": [{ "name": "settled", "frame": 19 }] },
+        "intro": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 0, "hold": 3 }, { "sourceFrame": 1, "hold": 3 }, { "sourceFrame": 2, "hold": 8 }, { "sourceFrame": 1, "hold": 2 }, { "sourceFrame": 0, "hold": 2 }], "markers": [{ "name": "roar", "frame": 9 }] },
+        "attack": { "fps": 16, "loop": false, "keyframes": [{ "sourceFrame": 3, "hold": 5 }, { "sourceFrame": 4, "hold": 5 }, { "sourceFrame": 5, "hold": 4 }, { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 4 }], "markers": [{ "name": "impact", "frame": 11 }] },
+        "skill": { "fps": 18, "loop": false, "keyframes": [{ "sourceFrame": 1, "hold": 3 }, { "sourceFrame": 2, "hold": 3 }, { "sourceFrame": 3, "hold": 4 }, { "sourceFrame": 4, "hold": 4 }, { "sourceFrame": 5, "hold": 6 }, { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 2 }], "markers": [{ "name": "impact", "frame": 16 }] },
+        "hit": { "fps": 14, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 8 }, { "sourceFrame": 7, "hold": 4 }], "markers": [{ "name": "recoil", "frame": 3 }] },
+        "death": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 6 }, { "sourceFrame": 7, "hold": 8 }, { "sourceFrame": 6, "hold": 4 }, { "sourceFrame": 7, "hold": 6 }], "markers": [{ "name": "vanish", "frame": 23 }] }
+      }
+    },
+    "summon": {
+      "frameBudget": 72,
+      "sources": [
+        { "actorId": "meridian-fang", "atlasId": "core-battle", "rowOffset": 16, "rowCount": 1, "facing": "right", "paletteId": "meridian", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "ember-bastion", "atlasId": "ashen-bulwark", "rowOffset": 40, "rowCount": 1, "facing": "left", "paletteId": "ash", "pivot": { "x": 0.5, "y": 0.90625 }, "baselinePx": 232 },
+        { "actorId": "ink-mora", "atlasId": "drowned-archive", "rowOffset": 40, "rowCount": 1, "facing": "right", "paletteId": "drowned", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null },
+        { "actorId": "storm-spire", "atlasId": "thorn-sky", "rowOffset": 40, "rowCount": 1, "facing": "right", "paletteId": "thorn", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null },
+        { "actorId": "dusk-aureole", "atlasId": "duskless-crown", "rowOffset": 40, "rowCount": 1, "facing": "right", "paletteId": "duskless", "pivot": { "x": 0.5, "y": 0.62 }, "baselinePx": null }
+      ],
+      "states": {
+        "idle": { "fps": 8, "loop": true, "keyframes": [{ "sourceFrame": 0, "hold": 3 }, { "sourceFrame": 1, "hold": 3 }, { "sourceFrame": 0, "hold": 3 }, { "sourceFrame": 1, "hold": 3 }], "markers": [] },
+        "march": { "fps": 12, "loop": true, "keyframes": [{ "sourceFrame": 2, "hold": 3 }, { "sourceFrame": 3, "hold": 3 }, { "sourceFrame": 2, "hold": 3 }, { "sourceFrame": 3, "hold": 3 }], "markers": [] },
+        "enter": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 2, "hold": 2 }, { "sourceFrame": 3, "hold": 2 }, { "sourceFrame": 0, "hold": 4 }], "markers": [{ "name": "settled", "frame": 7 }] },
+        "attack": { "fps": 16, "loop": false, "keyframes": [{ "sourceFrame": 4, "hold": 3 }, { "sourceFrame": 5, "hold": 5 }, { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 4 }], "markers": [{ "name": "impact", "frame": 6 }] },
+        "skill": { "fps": 18, "loop": false, "keyframes": [{ "sourceFrame": 1, "hold": 2 }, { "sourceFrame": 4, "hold": 3 }, { "sourceFrame": 5, "hold": 6 }, { "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 3 }], "markers": [{ "name": "impact", "frame": 7 }] },
+        "hit": { "fps": 16, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 3 }, { "sourceFrame": 7, "hold": 1 }], "markers": [{ "name": "recoil", "frame": 1 }] },
+        "death": { "fps": 12, "loop": false, "keyframes": [{ "sourceFrame": 6, "hold": 2 }, { "sourceFrame": 7, "hold": 2 }, { "sourceFrame": 6, "hold": 1 }, { "sourceFrame": 7, "hold": 1 }], "markers": [{ "name": "vanish", "frame": 5 }] }
+      }
+    }
+  }
+}

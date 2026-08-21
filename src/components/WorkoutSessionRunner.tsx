@@ -611,7 +611,7 @@ function SessionTechniqueGuide({
   catalogExerciseId,
   exerciseName,
 }: {
-  catalogExerciseId: string;
+  catalogExerciseId?: string;
   exerciseName: string;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -619,27 +619,47 @@ function SessionTechniqueGuide({
     undefined
   );
   const [showTips, setShowTips] = useState(false);
-  const video = catalogExercise?.media.find((media) => media.type === "video") ?? null;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setCatalogExercise(undefined);
 
     void import("../data/exerciseCatalog")
-      .then(({ EXERCISE_CATALOG }) => {
+      .then(({ EXERCISE_CATALOG, resolveExerciseVideo, resolveExerciseDetails }) => {
         if (cancelled) return;
-        const exercise = EXERCISE_CATALOG.find((item) => item.id === catalogExerciseId);
-        setCatalogExercise(
-          exercise
-            ? {
-                steps: exercise.steps,
-                techniqueCues: exercise.techniqueCues,
-                commonMistakes: exercise.commonMistakes,
-                safetyNotes: exercise.safetyNotes,
-                media: exercise.media,
-              }
-            : null
-        );
+        const matched =
+          resolveExerciseDetails(catalogExerciseId, exerciseName) ||
+          EXERCISE_CATALOG.find((item) => item.id === catalogExerciseId);
+        const resolvedVideo = resolveExerciseVideo(catalogExerciseId, exerciseName);
+
+        const media = resolvedVideo
+          ? [resolvedVideo, ...(matched?.media.filter((m) => m.url !== resolvedVideo.url) ?? [])]
+          : matched?.media ?? [];
+
+        if (matched) {
+          setCatalogExercise({
+            steps: matched.steps,
+            techniqueCues: matched.techniqueCues,
+            commonMistakes: matched.commonMistakes,
+            safetyNotes: matched.safetyNotes,
+            media,
+          });
+        } else if (resolvedVideo) {
+          setCatalogExercise({
+            steps: [
+              "Utrzymuj stabilną postawę i pełne skupienie na ruchu.",
+              "Kontroluj fazę ekscentryczną i wypchnij z pełną dynamiką.",
+              "Oddychaj rytmicznie i unikaj szarpania ciałem.",
+            ],
+            techniqueCues: ["brzuch napięty", "kontrolowane tempo", "pełny zakres ruchu"],
+            commonMistakes: ["zbyt szybkie opuszczanie", "szarpanie ciężaru"],
+            safetyNotes: ["Przerwij serię w razie kłującego bólu stawu."],
+            media,
+          });
+        } else {
+          setCatalogExercise(null);
+        }
       })
       .catch(() => {
         if (!cancelled) setCatalogExercise(null);
@@ -648,7 +668,9 @@ function SessionTechniqueGuide({
     return () => {
       cancelled = true;
     };
-  }, [catalogExerciseId]);
+  }, [catalogExerciseId, exerciseName]);
+
+  const video = catalogExercise?.media.find((media) => media.type === "video") ?? null;
 
   useEffect(() => {
     if (!videoRef.current || !video) return;
@@ -664,24 +686,18 @@ function SessionTechniqueGuide({
     );
   }
 
-  if (!catalogExercise) {
-    return (
-      <div className="sl-input mt-2 rounded-[20px] p-3 text-center">
-        <p className="sl-muted text-xs leading-relaxed">
-          Dla ćwiczenia „{exerciseName}” podgląd wideo jest obecnie niedostępny.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-2">
       {video ? (
-        <div className="sl-input overflow-hidden rounded-[20px] border border-[var(--theme-border)] shadow-[0_0_20px_color-mix(in_srgb,var(--theme-accent)_10%,transparent)]">
+        <div className="relative overflow-hidden rounded-[20px] border border-[var(--theme-border)] bg-black/60 shadow-[0_0_24px_color-mix(in_srgb,var(--theme-accent)_15%,transparent)] transition-all">
           <video
             key={video.url}
             ref={videoRef}
-            className="aspect-video w-full max-h-[min(38vh,280px)] bg-black/40 object-contain"
+            className={`w-full bg-black/40 object-contain transition-all ${
+              isExpanded
+                ? "max-h-[55vh] aspect-video"
+                : "aspect-video max-h-[min(38vh,280px)]"
+            }`}
             src={video.url}
             autoPlay
             muted
@@ -691,14 +707,22 @@ function SessionTechniqueGuide({
             preload="metadata"
             aria-label={`Automatyczny podgląd techniki: ${exerciseName}`}
           />
-          <div className="flex items-center justify-between border-t border-[var(--theme-border)]/50 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-[var(--theme-muted)]">
-            <span>{video.sourceName}</span>
-            <span>Auto loop · Wyciszone</span>
+          <div className="flex items-center justify-between border-t border-[var(--theme-border)]/50 bg-[var(--theme-card)]/80 px-3 py-1.5 backdrop-blur-sm">
+            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-accent)]">
+              {video.sourceName} · Auto loop
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="rounded-lg px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-[var(--theme-text)] hover:bg-[var(--theme-accent-soft)]"
+            >
+              {isExpanded ? "Zmniejsz wideo" : "Powiększ wideo"}
+            </button>
           </div>
         </div>
       ) : (
         <div className="sl-input rounded-[20px] p-3 text-center">
-          <p className="sl-muted text-xs">Brak bezpośredniego filmu dla tego ćwiczenia.</p>
+          <p className="sl-muted text-xs">Instruktaż techniki dla tego ćwiczenia.</p>
         </div>
       )}
 
@@ -713,7 +737,7 @@ function SessionTechniqueGuide({
         {showTips ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
 
-      {showTips && (
+      {showTips && catalogExercise && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}

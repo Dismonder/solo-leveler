@@ -7,6 +7,7 @@ export type ThemeMusicId =
   | "mana-memory"
   | "rune-lock"
   | "shadow-extraction"
+  | "idle-rpg"
   | "reward"
   | "penalty";
 
@@ -21,6 +22,7 @@ export const MUSIC_FILE_CANDIDATES: Record<ThemeMusicId, string[]> = {
   "mana-memory": ["mana-memory", "status-dark-ambient", "dark-ambient", "ambient", "rune", "system", "mystery", "bgm-system"],
   "rune-lock": ["rune-lock", "heavy-battle", "battle", "lock", "rune", "puzzle", "bgm-system"],
   "shadow-extraction": ["shadow-extraction", "heavy-battle", "battle", "shadow", "assassin", "extraction", "bgm-shadow"],
+  "idle-rpg": ["shadowborn", "idle-rpg", "heavy-battle", "battle", "abyss", "bgm-shadow"],
   reward: ["reward", "status-dark-ambient", "dark-ambient", "ambient", "result", "clear", "victory", "bgm-result"],
   penalty: ["penalty", "shadow-extraction", "heavy-battle", "battle", "danger", "warning", "redgate", "bgm-danger"],
 };

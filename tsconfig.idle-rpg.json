@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/vite-env.d.ts",
+    "src/types.ts",
+    "src/game/idle-rpg/**/*.ts",
+    "src/components/idle-rpg/**/*.ts",
+    "src/components/idle-rpg/**/*.tsx"
+  ]
+}

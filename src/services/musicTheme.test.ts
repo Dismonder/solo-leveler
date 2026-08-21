@@ -7,6 +7,14 @@ test("normalizeMusicContext maps bonus to the default mini-game loop", () => {
   assert.equal(normalizeMusicContext("shadow-extraction"), "shadow-extraction");
 });
 
+test("idle RPG resolves its own battle music candidates", () => {
+  assert.equal(normalizeMusicContext("idle-rpg"), "idle-rpg");
+  assert.equal(
+    pickMusicUrl([["../music/shadowborn.mp3", "/music/idle.mp3"]], "idle-rpg", false),
+    "/music/idle.mp3",
+  );
+});
+
 test("pickMusicUrl chooses the first matching track without shuffle", () => {
   const url = pickMusicUrl(
     [

@@ -320,34 +320,129 @@ export const EXERCISE_DIFFICULTIES: Array<{ id: ExerciseDifficulty; label: strin
   { id: "trudne", label: "Trudne" },
 ];
 
-const VIDEO_EXERCISES: ExerciseSeed[] = EXERCISE_VIDEO_SEEDS.map((exercise) => ({
-  name: exercise.name,
-  category: exercise.category as keyof typeof CATEGORY_GUIDES,
-  primaryMuscles: exercise.primaryMuscles,
-  equipment: exercise.equipment,
-  difficulty: exercise.difficulty,
-  media: [
-    {
-      type: "video",
-      url: exercise.videoUrl,
-      sourceName: "Fabryka Sily",
-      label: "Film instruktażowy",
-      sourcePageUrl: exercise.pageUrl,
-    },
-  ],
-  sourceUrls: [exercise.pageUrl],
-}));
+export const CLASSIC_VIDEO_MAP: Record<string, string> = {
+  "pompki-klasyczne": "https://static.fabrykasily.pl/atlas-kobiet/video-pompka-klasyczna.mp4",
+  "pompki-szerokie": "https://static.fabrykasily.pl/atlas/m_push_up_feet_on_box.mp4",
+  "pompki-diamentowe": "https://static.fabrykasily.pl/atlas/m_waskie_pompki.mp4",
+  "pompki-na-podwyzszeniu-rak": "https://static.fabrykasily.pl/atlas-kobiet/video-pompki-w-podparciu-przodem-na-podwyzszeniu.mp4",
+  "pompki-z-nogami-na-podwyzszeniu": "https://static.fabrykasily.pl/atlas/m_push_up_feet_on_box.mp4",
+  "pompki-eksplozywne": "https://static.fabrykasily.pl/atlas/m_pompki_eksplozywne.mp4",
+  "pompki-archer": "https://static.fabrykasily.pl/atlas/m_pompki_archer.mp4",
+  "pompki-hindu": "https://static.fabrykasily.pl/atlas-kobiet/video-pompka-klasyczna.mp4",
+  "pompki-z-pauza": "https://static.fabrykasily.pl/atlas-kobiet/video-pompka-klasyczna.mp4",
+  "dipy-na-poreczach": "https://static.fabrykasily.pl/atlas/m_dips.mp4",
+  "wyciskanie-sztangi-lezac": "https://static.fabrykasily.pl/atlas/wyciskanie_sztangi_na_lawce_plaskiej.mp4",
+  "wyciskanie-hantli-lezac": "https://static.fabrykasily.pl/atlas/wyciskanie_sztangielek_na_lawce_plaskiej.mp4",
+  "wyciskanie-na-skosie-dodatnim": "https://static.fabrykasily.pl/atlas/wyciskanie_sztangi_na_lawce_dodatniej.mp4",
+  "rozpietki-z-hantlami": "https://static.fabrykasily.pl/atlas/rozpietki_ze_sztangielkami_na_lawce_plaskiej.mp4",
+  "butterfly-na-maszynie": "https://static.fabrykasily.pl/atlas/butterfly.mp4",
+  "krzyzowanie-linek": "https://static.fabrykasily.pl/atlas/krzyzowanie_linek_wyciagu.mp4",
+  "floor-press": "https://static.fabrykasily.pl/atlas/floor_press.mp4",
+  "pompki-na-uchwytach": "https://static.fabrykasily.pl/atlas-kobiet/video-pompka-klasyczna.mp4",
+  "podciaganie-nachwytem": "https://static.fabrykasily.pl/atlas/podciaganie_na_drazku_trzymanym_nachwytem.mp4",
+  "podciaganie-podchwytem": "https://static.fabrykasily.pl/atlas/podciaganie_na_drazku_trzymanym_podchwytem.mp4",
+  "podciaganie-neutralne": "https://static.fabrykasily.pl/atlas/m_podciaganie_chwytem_neutralnym_na_pojedynczym_drazku.mp4",
+  "podciaganie-negatywne": "https://static.fabrykasily.pl/atlas/m_podciaganie_z_pomoca_nog.mp4",
+  "scapular-pull-up": "https://static.fabrykasily.pl/atlas/m_zaawansowane_podciaganie_lopatkami.mp4",
+  "wioslowanie-sztanga": "https://static.fabrykasily.pl/atlas/wioslowanie_sztanga_w_opadzie_tulowia.mp4",
+  "wioslowanie-hantla-jednoracz": "https://static.fabrykasily.pl/atlas-kobiet/video-wioslowanie-hantla-w-oparciu-reka-o-laweczke.mp4",
+  "wioslowanie-t-bar": "https://static.fabrykasily.pl/atlas/wioslowanie_pol_sztanga_t_bar.mp4",
+  "wioslowanie-na-wyciagu-siedzac": "https://static.fabrykasily.pl/atlas/wioslowanie_na_wyciagu.mp4",
+  "sciaganie-drazka-do-klatki": "https://static.fabrykasily.pl/atlas/sciaganie_drazka_wyciagu_gornego_do_klatki.mp4",
+  "face-pull": "https://static.fabrykasily.pl/atlas/face_pulls.mp4",
+  "martwy-ciag-klasyczny": "https://static.fabrykasily.pl/atlas-kobiet/video-martwy-ciag-sumo.mp4",
+  "martwy-ciag-rumunski": "https://static.fabrykasily.pl/atlas/m_martwy_ciag_na_prostych_nogach_ze_sztangielkami.mp4",
+  "hiperextensje": "https://static.fabrykasily.pl/atlas/wyprosty_tulowia_na_lawce_rzymskiej.mp4",
+  "pullover": "https://static.fabrykasily.pl/atlas/przenoszenie_sztangielki_w_lezeniu_w_poprzek_lawki.mp4",
+  "inverted-row": "https://static.fabrykasily.pl/atlas/m_podciaganie_australijskie_podchwytem.mp4",
+  "szrugsy": "https://static.fabrykasily.pl/atlas/szrugsy.mp4",
+  "good-morning": "https://static.fabrykasily.pl/atlas/dzien_dobry_ze_sztanga_na_plecach.mp4",
+  "przysiad-klasyczny": "https://static.fabrykasily.pl/atlas-kobiet/video-przysiady-do-podwyzszenia.mp4",
+  "przysiad-goblet": "https://static.fabrykasily.pl/atlas/m_goblet_squat.mp4",
+  "przysiad-ze-sztanga-z-tylu": "https://static.fabrykasily.pl/atlas/m_back_squat.mp4",
+  "przysiad-front-squat": "https://static.fabrykasily.pl/atlas/m_front_squats.mp4",
+  "przysiad-sumo": "https://static.fabrykasily.pl/atlas/m_sumo_squat.mp4",
+  "przysiad-bulgarski": "https://static.fabrykasily.pl/atlas/m_bulgarian_squat.mp4",
+  "wykroki-w-miejscu": "https://static.fabrykasily.pl/atlas/m_wykroki_chodzone.mp4",
+  "zakroki": "https://static.fabrykasily.pl/atlas-kobiet/video-zakroki-ze-sztanga.mp4",
+  "wykroki-chodzone": "https://static.fabrykasily.pl/atlas/m_wykroki_chodzone.mp4",
+  "hip-thrust": "https://static.fabrykasily.pl/atlas/hip_thrust.mp4",
+  "glute-bridge": "https://static.fabrykasily.pl/atlas-kobiet/video-glute-bridge.mp4",
+  "wypychanie-na-suwnicy": "https://static.fabrykasily.pl/atlas/wypychanie_ciezaru_na_suwnicy.mp4",
+  "prostowanie-nog-na-maszynie": "https://static.fabrykasily.pl/atlas/prostowanie_nog_na_maszynie.mp4",
+  "uginanie-nog-na-maszynie": "https://static.fabrykasily.pl/atlas/uginanie_nog_na_maszynie.mp4",
+  "wspiecia-na-palce-stojac": "https://static.fabrykasily.pl/atlas/m_wspiecia_na_palce_stojac.mp4",
+  "wspiecia-na-palce-siedzac": "https://static.fabrykasily.pl/atlas/wspiecia_na_palce_siedzac.mp4",
+  "step-up-na-skrzynie": "https://static.fabrykasily.pl/atlas/step_up.mp4",
+  "pistol-squat-progresja": "https://static.fabrykasily.pl/atlas/m_pistols_squat_na_trx.mp4",
+  "wall-sit": "https://static.fabrykasily.pl/atlas/przysiad_przy_scianie.mp4",
+  "jump-squat": "https://static.fabrykasily.pl/atlas/przysiady_z_wyskokiem.mp4",
+  "cossack-squat": "https://static.fabrykasily.pl/atlas/cossack_squat.mp4",
+  "kettlebell-swing": "https://static.fabrykasily.pl/atlas/kettlebell_swing.mp4",
+  "wyciskanie-zolnierskie": "https://static.fabrykasily.pl/atlas/wyciskanie_sztangi_nad_glowe.mp4",
+  "wyciskanie-hantli-nad-glowe": "https://static.fabrykasily.pl/atlas/m_wyciskanie_hantli_siedzac.mp4",
+  "arnold-press": "https://static.fabrykasily.pl/atlas/m_arnoldki.mp4",
+  "unoszenie-bokiem": "https://static.fabrykasily.pl/atlas/m_unoszenie_ramion_w_bok_ze_sztangielkami.mp4",
+  "unoszenie-przodem": "https://static.fabrykasily.pl/atlas/unoszenie_hantli_przodem.mp4",
+  "odwrotne-rozpietki": "https://static.fabrykasily.pl/atlas/odwrotne_rozpietki.mp4",
+  "podciaganie-sztangi-do-brody": "https://static.fabrykasily.pl/atlas/podciaganie_sztangi_pod_brode.mp4",
+  "pike-push-up": "https://static.fabrykasily.pl/atlas/m_pike_push_ups.mp4",
+  "uginanie-sztangi-na-biceps": "https://static.fabrykasily.pl/atlas/m_uginanie_przedramion_ze_sztanga_stojac.mp4",
+  "uginanie-hantli-stojac": "https://static.fabrykasily.pl/atlas/m_uginanie_przedramion_ze_sztangielkami_z_supinacja.mp4",
+  "uginanie-mlotkowe": "https://static.fabrykasily.pl/atlas/m_uginanie_ramion_ze_sztangielkami_chwytem_mlotkowym.mp4",
+  "uginanie-koncentracyjne": "https://static.fabrykasily.pl/atlas/m_uginanie_koncentracyjne.mp4",
+  "modlitewnik": "https://static.fabrykasily.pl/atlas/uginanie_na_modlitewniku.mp4",
+  "uginanie-na-wyciagu": "https://static.fabrykasily.pl/atlas/uginanie_przedramion_na_wyciagu.mp4",
+  "francuskie-wyciskanie-lezac": "https://static.fabrykasily.pl/atlas/m_wyciskanie_francuskie_ze_sztanga_lezac.mp4",
+  "prostowanie-na-wyciagu": "https://static.fabrykasily.pl/atlas/m_prostowanie_ramion_na_wyciagu_stojac.mp4",
+  "prostowanie-hantla-nad-glowa": "https://static.fabrykasily.pl/atlas/m_prostowanie_ramienia_z_hantla_zza_glowy.mp4",
+  "dipy-na-lawce": "https://static.fabrykasily.pl/atlas/pompki_w_podporze_tylem.mp4",
+  "pompki-waskie": "https://static.fabrykasily.pl/atlas/m_waskie_pompki.mp4",
+  "wyciskanie-wasko": "https://static.fabrykasily.pl/atlas/wyciskanie_sztangi_waskim_chwytem.mp4",
+  "kickback-triceps": "https://static.fabrykasily.pl/atlas/m_kickback_triceps.mp4",
+  "brzuszki-klasyczne": "https://static.fabrykasily.pl/atlas/m_brzuszki_z_rekami_na_klatce_piersiowej.mp4",
+  "spiecia-brzucha": "https://static.fabrykasily.pl/atlas/unoszenie_tulowia_z_podloza_spiecia_brzucha_lezac.mp4",
+  "reverse-crunch": "https://static.fabrykasily.pl/atlas/odwrotne_brzuszki.mp4",
+  "bicycle-crunch": "https://static.fabrykasily.pl/atlas/brzuszki_skosne_rowerek.mp4",
+  "plank": "https://static.fabrykasily.pl/atlas/deska_scianka_plank.mp4",
+  "side-plank": "https://static.fabrykasily.pl/atlas/m_side_plank.mp4",
+  "dead-bug": "https://static.fabrykasily.pl/atlas/dead_bug.mp4",
+  "hollow-body-hold": "https://static.fabrykasily.pl/atlas/hollow_body.mp4",
+  "mountain-climber": "https://static.fabrykasily.pl/atlas-kobiet/video-mountain-climbers-trx.mp4",
+  "unoszenie-nog-lezac": "https://static.fabrykasily.pl/atlas/wznosy_nog_w_lezeniu.mp4",
+  "unoszenie-nog-w-zwisie": "https://static.fabrykasily.pl/atlas/wznosy_nog_w_zwisie_na_drazku.mp4",
+  "russian-twist": "https://static.fabrykasily.pl/atlas/m_russian_twist.mp4",
+  "v-up": "https://static.fabrykasily.pl/atlas/v_ups.mp4",
+  "burpees": "https://static.fabrykasily.pl/atlas/m_burpees.mp4",
+  "pajacyki": "https://static.fabrykasily.pl/atlas/pajacyki.mp4",
+  "high-knees": "https://static.fabrykasily.pl/atlas/skip_a.mp4",
+};
 
-const CATALOG_SOURCE = VIDEO_EXERCISES.length >= 150 ? VIDEO_EXERCISES : RAW_EXERCISES;
-
-export const EXERCISE_CATALOG: ExerciseCatalogEntry[] = CATALOG_SOURCE.map((exercise) => {
-  const guide = CATEGORY_GUIDES[exercise.category];
-  const id = exercise.name
+function normalizeExerciseKey(text: string): string {
+  return text
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+// 1. Build rich classic exercises with videos attached
+const ENRICHED_RAW_EXERCISES: ExerciseCatalogEntry[] = RAW_EXERCISES.map((exercise) => {
+  const guide = CATEGORY_GUIDES[exercise.category];
+  const id = normalizeExerciseKey(exercise.name);
+  const mappedVideoUrl = CLASSIC_VIDEO_MAP[id];
+
+  const media: ExerciseMedia[] = mappedVideoUrl
+    ? [
+        {
+          type: "video",
+          url: mappedVideoUrl,
+          sourceName: "Fabryka Siły (Atlas)",
+          label: `Wideo: ${exercise.name}`,
+        },
+      ]
+    : SOURCE_MEDIA.map((s) => ({ ...s }));
 
   return {
     id,
@@ -356,7 +451,186 @@ export const EXERCISE_CATALOG: ExerciseCatalogEntry[] = CATALOG_SOURCE.map((exer
     techniqueCues: [...guide.techniqueCues],
     commonMistakes: [...guide.commonMistakes],
     safetyNotes: [...guide.safetyNotes],
-    media: exercise.media?.map((source) => ({ ...source })) ?? SOURCE_MEDIA.map((source) => ({ ...source })),
-    sourceUrls: exercise.sourceUrls ?? SOURCE_MEDIA.map((source) => source.url),
+    media,
+    sourceUrls: SOURCE_MEDIA.map((s) => s.url),
   };
 });
+
+// 2. Build full library from video seeds
+const SEED_CATALOG_EXERCISES: ExerciseCatalogEntry[] = EXERCISE_VIDEO_SEEDS.map((exercise) => {
+  const cat = (CATEGORY_GUIDES[exercise.category as keyof typeof CATEGORY_GUIDES] ? exercise.category : "Funkcjonalne") as keyof typeof CATEGORY_GUIDES;
+  const guide = CATEGORY_GUIDES[cat];
+  const id = normalizeExerciseKey(exercise.name);
+
+  return {
+    id,
+    name: exercise.name,
+    category: cat,
+    primaryMuscles: exercise.primaryMuscles,
+    equipment: exercise.equipment,
+    difficulty: exercise.difficulty,
+    steps: [...guide.steps],
+    techniqueCues: [...guide.techniqueCues],
+    commonMistakes: [...guide.commonMistakes],
+    safetyNotes: [...guide.safetyNotes],
+    media: [
+      {
+        type: "video",
+        url: exercise.videoUrl,
+        sourceName: "Fabryka Siły",
+        label: "Film instruktażowy",
+        sourcePageUrl: exercise.pageUrl,
+      },
+    ],
+    sourceUrls: [exercise.pageUrl],
+  };
+});
+
+// Combine both lists, prioritizing raw curated definitions
+const combinedMap = new Map<string, ExerciseCatalogEntry>();
+for (const entry of SEED_CATALOG_EXERCISES) {
+  combinedMap.set(entry.id, entry);
+}
+for (const entry of ENRICHED_RAW_EXERCISES) {
+  combinedMap.set(entry.id, entry);
+}
+
+export const EXERCISE_CATALOG: ExerciseCatalogEntry[] = Array.from(combinedMap.values());
+
+/**
+ * Intelligent video resolver that guarantees matching a video preview for any exercise ID or name
+ */
+export function resolveExerciseVideo(
+  exerciseId?: string,
+  exerciseName?: string
+): ExerciseMedia | null {
+  const normId = exerciseId ? normalizeExerciseKey(exerciseId) : "";
+  const normName = exerciseName ? normalizeExerciseKey(exerciseName) : "";
+
+  // 1. Direct match in classic video map
+  if (normId && CLASSIC_VIDEO_MAP[normId]) {
+    return {
+      type: "video",
+      url: CLASSIC_VIDEO_MAP[normId],
+      sourceName: "Fabryka Siły",
+      label: exerciseName || "Wideo ćwiczenia",
+    };
+  }
+  if (normName && CLASSIC_VIDEO_MAP[normName]) {
+    return {
+      type: "video",
+      url: CLASSIC_VIDEO_MAP[normName],
+      sourceName: "Fabryka Siły",
+      label: exerciseName || "Wideo ćwiczenia",
+    };
+  }
+
+  // 2. Direct match in full catalog
+  const catalogEntry = EXERCISE_CATALOG.find(
+    (e) => e.id === normId || e.id === normName || normalizeExerciseKey(e.name) === normName
+  );
+  const catalogVideo = catalogEntry?.media.find((m) => m.type === "video");
+  if (catalogVideo) {
+    return catalogVideo;
+  }
+
+  // 3. Fallback keyword / semantic match across full catalog
+  const query = (exerciseName || exerciseId || "").toLowerCase();
+  if (query.includes("pompk") || query.includes("pushup")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas-kobiet/video-pompka-klasyczna.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika pompek",
+    };
+  }
+  if (query.includes("przysiad") || query.includes("squat")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas-kobiet/video-przysiady-do-podwyzszenia.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika przysiadu",
+    };
+  }
+  if (query.includes("martwy") || query.includes("deadlift")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas-kobiet/video-martwy-ciag-sumo.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika martwego ciągu",
+    };
+  }
+  if (query.includes("podciag") || query.includes("pullup") || query.includes("chinup")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/podciaganie_na_drazku_trzymanym_nachwytem.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika podciągania",
+    };
+  }
+  if (query.includes("wyciskan") || query.includes("bench") || query.includes("press")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/wyciskanie_sztangi_na_lawce_plaskiej.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika wyciskania",
+    };
+  }
+  if (query.includes("brzuch") || query.includes("crunch") || query.includes("brzuszk")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/m_brzuszki_z_rekami_na_klatce_piersiowej.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika ćwiczenia na brzuch",
+    };
+  }
+  if (query.includes("plank") || query.includes("deska")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/deska_scianka_plank.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika plank",
+    };
+  }
+  if (query.includes("wykrok") || query.includes("zakrok") || query.includes("lunge")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/m_wykroki_chodzone.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika wykroków",
+    };
+  }
+  if (query.includes("biceps") || query.includes("uginan") || query.includes("curl")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/m_uginanie_przedramion_ze_sztanga_stojac.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika uginania ramion",
+    };
+  }
+  if (query.includes("triceps") || query.includes("dip")) {
+    return {
+      type: "video",
+      url: "https://static.fabrykasily.pl/atlas/m_dips.mp4",
+      sourceName: "Fabryka Siły",
+      label: "Technika dipów / tricepsa",
+    };
+  }
+
+  return null;
+}
+
+export function resolveExerciseDetails(
+  exerciseId?: string,
+  exerciseName?: string
+): ExerciseCatalogEntry | null {
+  const normId = exerciseId ? normalizeExerciseKey(exerciseId) : "";
+  const normName = exerciseName ? normalizeExerciseKey(exerciseName) : "";
+
+  return (
+    EXERCISE_CATALOG.find(
+      (e) => e.id === normId || e.id === normName || normalizeExerciseKey(e.name) === normName
+    ) ?? null
+  );
+}
+

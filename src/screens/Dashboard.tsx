@@ -30,10 +30,13 @@ import {
   Pause,
   Play,
   Plus,
+  Radio,
   RotateCcw,
   Search,
   Settings,
   Shield,
+  ShieldAlert,
+  ShieldCheck,
   ShoppingBag,
   Shuffle,
   SkipBack,
@@ -55,6 +58,7 @@ import { RewardAnimationLayer } from "../components/RewardAnimationLayer";
 import { WorkoutStartCountdown } from "../components/WorkoutStartCountdown";
 import { SystemUpdateModal } from "../components/SystemUpdateModal";
 import { WhatsNewModal } from "../components/WhatsNewModal";
+import { WearableHubModal } from "../components/WearableHubModal";
 
 import {
   checkForUpdate,
@@ -68,8 +72,8 @@ import { usePlayer } from "../context/PlayerContext";
 
 
 import { EXERCISE_CATALOG, type ExerciseCatalogEntry } from "../data/exerciseCatalog";
-import { createDefaultMiniGameProgress, type MiniGameId } from "../game/miniGameProgress";
-import { MINI_GAME_CATALOG } from "../game/miniGameCatalog";
+import { MINI_GAME_IDS, createDefaultMiniGameProgress, type MiniGameId } from "../game/miniGameProgress";
+import { MINI_GAME_CATALOG, type MiniGameCatalogId } from "../game/miniGameCatalog";
 import { formatResetCountdown, getMsUntilNextLocalDay } from "../game/dailyQuestUi";
 import {
   completeDailyQuestProgress,
@@ -232,7 +236,8 @@ function warmMiniGameHubAssets() {
   warmMiniGameImage(MOBILE_THEME_ASSETS.hubCards.system);
 }
 
-function warmMiniGameRuntimeAssets(gameId: MiniGameId) {
+function warmMiniGameRuntimeAssets(gameId: MiniGameCatalogId) {
+  if (gameId === "idle-rpg") return;
   if (gameId === "shadow-extraction") {
     warmMiniGameImage(MOBILE_THEME_ASSETS.miniGames.shadowTrue);
     warmMiniGameImage(MOBILE_THEME_ASSETS.miniGames.shadowDecoy);
@@ -267,6 +272,9 @@ const BonusMiniGamesPanel = React.lazy(() =>
 
 const GameRuntimeScreen = React.lazy(() =>
   import("../components/BonusMiniGames").then((module) => ({ default: module.GameRuntimeScreen }))
+);
+const IdleRpgScreen = React.lazy(() =>
+  import("../components/idle-rpg/IdleRpgScreen").then((module) => ({ default: module.IdleRpgScreen }))
 );
 
 const MotionTracker = React.lazy(() =>
@@ -334,7 +342,7 @@ export function Dashboard() {
   const [musicVolume, setMusicVolume] = useState(() => getGlobalMusicVolume());
   const [backgroundMusicEnabled, setBackgroundMusicEnabledState] = useState(() => getBackgroundMusicEnabled());
   const [trainingView, setTrainingView] = useState<TrainingView>("quest");
-  const [activeGameId, setActiveGameId] = useState<MiniGameId | null>(null);
+  const [activeGameId, setActiveGameId] = useState<MiniGameCatalogId | null>(null);
   const [finishedWorkoutSession, setFinishedWorkoutSession] = useState<WorkoutPlanSession | null>(null);
   const [hunterProfileOpen, setHunterProfileOpen] = useState(false);
   const [dailyEditorOpen, setDailyEditorOpen] = useState(false);
@@ -344,6 +352,7 @@ export function Dashboard() {
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
   const [whatsNewOpen, setWhatsNewOpen] = useState(false);
   const [catalogHighlightId, setCatalogHighlightId] = useState<string | null>(null);
+  const [wearableHubOpen, setWearableHubOpen] = useState(false);
   const {
     showBackgroundPermissionModal,
     openBackgroundPermissionModal,
@@ -379,7 +388,7 @@ export function Dashboard() {
         const ex = EXERCISE_CATALOG.find((e) => e.id === exerciseId);
         toast.info(`⚔️ ${ex ? ex.name : "Ćwiczenie Łowcy"}: Zobacz technikę i wskazówki!`, { duration: 4500 });
       } else if (action.startsWith("open_minigame:")) {
-        const gameId = action.replace("open_minigame:", "").trim() as MiniGameId;
+        const gameId = action.replace("open_minigame:", "").trim() as MiniGameCatalogId;
         setActiveTab("bonus");
         setActiveGameId(gameId);
         toast.success("🎮 Brama lochu otwarta! Zmierz się z wyzwaniem!", { duration: 4000 });
@@ -979,7 +988,7 @@ export function Dashboard() {
     void setPlayer({
       ...player,
       miniGames: Object.fromEntries(
-        MINI_GAME_CATALOG.map((game) => [game.id, createDefaultMiniGameProgress(game.id)])
+        MINI_GAME_IDS.map((gameId) => [gameId, createDefaultMiniGameProgress(gameId)])
       ) as PlayerState["miniGames"],
     });
   };
@@ -1008,14 +1017,35 @@ export function Dashboard() {
     setActiveTab(tab);
   };
 
-  const launchMiniGame = (gameId: MiniGameId) => {
-    if (player.hp <= 0 && gameId !== "shadow-extraction") {
+  const launchMiniGame = (gameId: MiniGameCatalogId) => {
+    if (player.hp <= 0 && gameId !== "shadow-extraction" && gameId !== "idle-rpg") {
       toast.error("Brak HP. Ekstrakcja Cienia może uratować Cię legendarną bańką serca.");
       return;
     }
     warmMiniGameRuntimeAssets(gameId);
     setActiveGameId(gameId);
   };
+
+  if (activeGameId === "idle-rpg") {
+    return (
+      <>
+        <Suspense fallback={<GameRuntimeLoading />}>
+          <IdleRpgScreen
+            profile={player}
+            onClose={() => {
+              setActiveGameId(null);
+              setActiveTab("bonus");
+            }}
+          />
+        </Suspense>
+        {player.settings.fpsOverlayEnabled && (
+          <Suspense fallback={null}>
+            <FpsOverlay enabled mode="game" />
+          </Suspense>
+        )}
+      </>
+    );
+  }
 
   if (activeGameId) {
     return (
@@ -1221,6 +1251,7 @@ export function Dashboard() {
                   }}
                   onCheckUpdate={handleManualCheckUpdate}
                   onOpenBackgroundPermissions={openBackgroundPermissionModal}
+                  onOpenWearableHub={() => setWearableHubOpen(true)}
                 />
               </div>
             )}
@@ -1258,6 +1289,12 @@ export function Dashboard() {
           />
         )}
       </AnimatePresence>
+
+      <WearableHubModal
+        isOpen={wearableHubOpen}
+        onClose={() => setWearableHubOpen(false)}
+        onWearableSample={addWearableSample}
+      />
 
       <AnimatePresence>
         {trackingQuest && (
@@ -2616,6 +2653,7 @@ function SystemPanel({
   onCheckUpdate,
   onOpenWhatsNew,
   onOpenBackgroundPermissions,
+  onOpenWearableHub,
 }: {
   player: PlayerState;
   volume: number;
@@ -2654,6 +2692,7 @@ function SystemPanel({
   onCheckUpdate?: () => void;
   onOpenWhatsNew?: () => void;
   onOpenBackgroundPermissions?: () => void;
+  onOpenWearableHub?: () => void;
 }) {
 
 
@@ -3161,34 +3200,54 @@ function SystemPanel({
       <div className="sl-card rounded-[22px] p-4">
         <h3 className="text-sm font-black uppercase tracking-[0.2em] text-[var(--theme-text-strong)]">Tracking i wydajność</h3>
         <div className="mt-4 grid gap-2">
-          <SystemAccordion
-            icon={<Shield className="h-4 w-4 text-amber-400" />}
-            title="Działanie w tle & Alerty"
-            status={notificationStatus?.batteryOptimizationIgnored && notificationStatus?.permissionGranted ? "Aktywne" : "Wymaga uwagi"}
-            open={trackingOpen.background}
-            onToggle={() => setTrackingOpen((current) => ({ ...current, background: !current.background }))}
-          >
-            <div className="grid grid-cols-2 gap-2">
-              <MiniStat
-                icon={<Battery className="h-4 w-4" />}
-                label="Bateria"
-                value={notificationStatus?.batteryOptimizationIgnored ? "Bez ograniczeń" : "Usypianie"}
-              />
-              <MiniStat
-                icon={<Bell className="h-4 w-4" />}
-                label="Powiadomienia"
-                value={notificationStatus?.permissionGranted ? "Aktywne" : "Brak zgody"}
-              />
-            </div>
-            <p className="sl-muted mt-3 text-xs leading-relaxed">
-              Wyłączenie optymalizacji baterii i zgoda na powiadomienia są niezbędne, aby treningi, odtwarzacz muzyki OST i kary działały bez zakłóceń w tle.
-            </p>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <SmallButton onClick={() => onOpenBackgroundPermissions?.()} icon={<Settings className="h-3.5 w-3.5" />} label="Instrukcja" />
-              <SmallButton onClick={runNotificationTest} icon={<Bell className="h-3.5 w-3.5" />} label="Test alert" muted />
-              <SmallButton onClick={enableExactAlarms} icon={<Clock3 className="h-3.5 w-3.5" />} label="Alarmy" muted />
-            </div>
-          </SystemAccordion>
+          {(() => {
+            const isBgOk = Boolean(notificationStatus?.batteryOptimizationIgnored && notificationStatus?.permissionGranted);
+            return (
+              <SystemAccordion
+                icon={
+                  isBgOk ? (
+                    <ShieldCheck className="h-4 w-4 text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.9)]" />
+                  ) : (
+                    <ShieldAlert className="h-4 w-4 text-amber-400" />
+                  )
+                }
+                title="Działanie w tle & Alerty"
+                status={
+                  isBgOk ? (
+                    <span className="text-emerald-400 font-black tracking-wider flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                      W PEŁNI AKTYWNE
+                    </span>
+                  ) : (
+                    <span className="text-amber-400 font-bold">Wymaga uwagi</span>
+                  )
+                }
+                open={trackingOpen.background}
+                onToggle={() => setTrackingOpen((current) => ({ ...current, background: !current.background }))}
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  <MiniStat
+                    icon={<Battery className="h-4 w-4" />}
+                    label="Bateria"
+                    value={notificationStatus?.batteryOptimizationIgnored ? "Bez ograniczeń" : "Usypianie"}
+                  />
+                  <MiniStat
+                    icon={<Bell className="h-4 w-4" />}
+                    label="Powiadomienia"
+                    value={notificationStatus?.permissionGranted ? "Aktywne" : "Brak zgody"}
+                  />
+                </div>
+                <p className="sl-muted mt-3 text-xs leading-relaxed">
+                  Wyłączenie optymalizacji baterii i zgoda na powiadomienia są niezbędne, aby treningi, odtwarzacz muzyki OST i kary działały bez zakłóceń w tle.
+                </p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <SmallButton onClick={() => onOpenBackgroundPermissions?.()} icon={<Settings className="h-3.5 w-3.5" />} label="Instrukcja" />
+                  <SmallButton onClick={runNotificationTest} icon={<Bell className="h-3.5 w-3.5" />} label="Test alert" muted />
+                  <SmallButton onClick={enableExactAlarms} icon={<Clock3 className="h-3.5 w-3.5" />} label="Alarmy" muted />
+                </div>
+              </SystemAccordion>
+            );
+          })()}
 
           <SystemAccordion
             icon={<Activity className="h-4 w-4" />}
@@ -3243,27 +3302,21 @@ function SystemPanel({
           </SystemAccordion>
 
           <SystemAccordion
-            icon={<Bluetooth className="h-4 w-4" />}
-            title="Bluetooth / Mi Band"
-            status={nativeBluetooth ? "Android BLE" : bluetoothAvailable ? "Web dialog" : "Brak"}
+            icon={<Bluetooth className="h-4 w-4 text-cyan-400" />}
+            title="Bluetooth / Smartwatch & Opaski"
+            status={nativeBluetooth ? "Android BLE" : bluetoothAvailable ? "Web BLE" : "Brak"}
             open={trackingOpen.band}
             onToggle={() => setTrackingOpen((current) => ({ ...current, band: !current.band }))}
           >
             <div className="grid gap-2">
-              <InfoRow icon={<Bluetooth className="h-4 w-4" />} label="Bluetooth BLE" value={nativeBluetooth ? "Skan + reconnect" : bluetoothAvailable ? "Dialog web" : "Niedostępny"} />
-              <InfoRow icon={<Watch className="h-4 w-4" />} label="Xiaomi / Mi Band" value={nativeBluetooth ? "Skan w sensorze" : "Połącz w oknie sensora"} />
-              <div className="grid grid-cols-3 gap-2">
-                <SmallButton onClick={onOpenWearableSensor} icon={<Watch className="h-3.5 w-3.5" />} label="Połącz" />
-                <SmallButton
-                  onClick={() => setHealthMessage(nativeBluetooth || bluetoothAvailable ? "Otworzono sensor. Wybierz opaskę w oknie pomiaru." : "BLE nie jest dostępne w tym środowisku. Użyj Health Connect/Mi Fitness jako stabilnego źródła.")}
-                  icon={<Activity className="h-3.5 w-3.5" />}
-                  label="Diag"
-                  muted
-                />
-                <SmallButton onClick={onOpenWearableSensor} icon={<Smartphone className="h-3.5 w-3.5" />} label="Sensor" muted />
+              <InfoRow icon={<Bluetooth className="h-4 w-4 text-cyan-400" />} label="Bluetooth BLE" value={nativeBluetooth ? "Radar + Skan + Auto-reconnect" : bluetoothAvailable ? "Dialog web" : "Niedostępny"} />
+              <InfoRow icon={<Watch className="h-4 w-4 text-emerald-400" />} label="Zgodność" value="Mi Band, Garmin, Polar, Galaxy, Wear OS" />
+              <div className="grid grid-cols-2 gap-2">
+                <SmallButton onClick={() => onOpenWearableHub?.()} icon={<Watch className="h-3.5 w-3.5" />} label="Centrum Wearables" />
+                <SmallButton onClick={onOpenWearableSensor} icon={<Activity className="h-3.5 w-3.5" />} label="Sensor w serii" muted />
               </div>
               <p className="sl-muted text-xs leading-relaxed">
-                WebView może ograniczać bezpośredni BLE. Gdy Android blokuje dialog, dane opaski pobieraj przez Health Connect/Mi Fitness.
+                Obsługuje bezpośrednie połączenie z opaskami Xiaomi/Redmi, zegarkami Garmin/Polar/Galaxy oraz dowolnym pulsometrem Bluetooth BLE.
               </p>
             </div>
           </SystemAccordion>

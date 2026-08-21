@@ -17,6 +17,7 @@ import weaponPreview from "../assets/models/equipment/weapons/weapon-14.png";
 import monarchRelic from "../assets/models/relic-monarch-heart.png";
 import portalEffect from "../assets/sprites/effects/portal.svg";
 import slashEffect from "../assets/sprites/effects/slash.svg";
+import idleRpgBattle from "../assets/idle-rpg/backgrounds/ash-realm-map.webp";
 
 export const MOBILE_THEME_ASSETS = {
   hub: {
@@ -31,6 +32,7 @@ export const MOBILE_THEME_ASSETS = {
     runeLock: gameRuneLockThumb,
     shadowExtraction: gameShadowExtractionThumb,
     shadowStrike: gameShadowStrikeThumb,
+    idleRpg: idleRpgBattle,
     system: gameSystemThumb,
   },
   hunter: {
@@ -63,6 +65,8 @@ export function getMiniGameThemeAsset(gameId: string) {
       return { image: MOBILE_THEME_ASSETS.hubCards.runeLock, label: "Wieża" };
     case "shadow-extraction":
       return { image: MOBILE_THEME_ASSETS.hubCards.shadowExtraction, label: "Cień" };
+    case "idle-rpg":
+      return { image: MOBILE_THEME_ASSETS.hubCards.idleRpg, label: "Pęknięty Południk" };
     default:
       return { image: MOBILE_THEME_ASSETS.hubCards.system, label: "System" };
   }

@@ -14,8 +14,12 @@ tools/
 artifacts/
 screenshots/
 tmp/
+scratch/
+__pycache__/
+*.pyc
 phone-*.png
 phone-*.txt
 phone-*.xml
 solo_leveler_smoke*.png
+/*.png
 report.md

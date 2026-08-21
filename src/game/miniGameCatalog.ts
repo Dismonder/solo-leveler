@@ -1,8 +1,11 @@
 import type { RankLetter } from "../services/systemLogic";
 import type { MiniGameId } from "./miniGameProgress";
 
+/** Launch-only IDs may have an isolated persistence/runtime contract. */
+export type MiniGameCatalogId = MiniGameId | "idle-rpg";
+
 export type MiniGameDefinition = {
-  id: MiniGameId;
+  id: MiniGameCatalogId;
   title: string;
   shortTitle: string;
   requiredRank: RankLetter;
@@ -16,6 +19,8 @@ export type MiniGameDefinition = {
   preferredOrientation: "landscape" | "portrait";
   allowPortraitFallback: boolean;
 };
+
+export type RewardMiniGameDefinition = MiniGameDefinition & { id: MiniGameId };
 
 export const MINI_GAME_CATALOG: MiniGameDefinition[] = [
   {
@@ -133,6 +138,29 @@ export const MINI_GAME_CATALOG: MiniGameDefinition[] = [
     preferredOrientation: "landscape",
     allowPortraitFallback: true,
   },
+  {
+    id: "idle-rpg",
+    title: "Pęknięty Południk: Idle RPG",
+    shortTitle: "Idle RPG",
+    requiredRank: "S",
+    statHint: "STR",
+    summary: "Poprowadź Wędrowca Południka przez 48 etapów. Statystyki fitness zasilają walkę, łup i nagrody AFK bez zmiany głównego profilu.",
+    shortGoal: "Pokonuj fale wrogów, rozwijaj przywołania i odbieraj skarby ze skrzyni AFK.",
+    readyTips: [
+      "Statystyki z profilu fitness zasilają atak, życie, tempo, umiejętności i łup.",
+      "Odblokowane przywołania walczą u boku Wędrowca — aktywne mogą być maksymalnie trzy.",
+      "Skrzynia AFK nalicza do 12 godzin nagród z mocy zapisanej przy wyjściu.",
+    ],
+    pauseTips: [
+      "Włącz tryb AUTO, aby umiejętności odpalały się automatycznie.",
+      "Użyj x1 lub x2, aby dostosować tempo walki bez skracania przejść.",
+      "Ulepszaj ekwipunek i przywołania za waluty zdobyte wyłącznie w Idle RPG.",
+    ],
+    mechanic: "2D Idle RPG z animacjami i boostem statystyk",
+    winScore: 300,
+    preferredOrientation: "portrait",
+    allowPortraitFallback: true,
+  },
 ];
 
 const RANK_POWER: Record<RankLetter, number> = {
@@ -149,6 +177,12 @@ export function canUseMiniGameRank(currentRank: RankLetter, requiredRank: RankLe
   return RANK_POWER[currentRank] >= RANK_POWER[requiredRank];
 }
 
-export function getMiniGameDefinition(id: MiniGameId) {
+export function getMiniGameDefinition(id: MiniGameCatalogId) {
   return MINI_GAME_CATALOG.find((game) => game.id === id) ?? MINI_GAME_CATALOG[0];
+}
+
+export function getRewardMiniGameDefinition(id: MiniGameId): RewardMiniGameDefinition {
+  return MINI_GAME_CATALOG.find(
+    (game): game is RewardMiniGameDefinition => game.id === id,
+  ) ?? (MINI_GAME_CATALOG[0] as RewardMiniGameDefinition);
 }

@@ -1,14 +1,14 @@
 {
-  "version": "1.1.0",
-  "versionCode": 11,
-  "releaseDate": "2026-08-20",
+  "version": "1.2.0",
+  "versionCode": 12,
+  "releaseDate": "2026-08-21",
   "changelog": [
-    "⚔️ Cięcie Cienia: Usunięcie podwójnych linii/ghostingu – pojedynczy, idealnie jednolity i ostry promień ostrza",
-    "🏋️ Rozbudowa Planów Treningu: Gotowe szablony Łowcy (E-Rank Reawakening, Monarch Chest & Arms, Shadow Assassin Core, Dungeon Overlord)",
-    "🔍 Filtry Partii Mięśniowych: Wygodne przeglądanie i dodawanie ćwiczeń według partii mięśniowych",
-    "📱 Odnowiony Ekran Sesji Treningowej: Nowoczesny panel horyzontalny (Landscape HUD) z dużym wideo, live regulacją powtórzeń/ciężaru i dedykowanym licznikiem przerw"
+    "⚔️ Tryb Walki Idle RPG: Nowa pętla walki z podziałem na Postęp i Farmę, manualnym wyborem etapów oraz dynamicznym przesuwaniem kamery",
+    "✨ Nowe Efekty Wizualne VFX: Dedykowane animacje dla Rozszczepu Południka, Deszczu Odłamków, Zewu Ech, Skoku przez Szew i Ostatecznego Południka",
+    "🔊 Proceduralny Silnik Audio SFX: Dźwięki ataków ostrzy, uderzeń krytycznych, aktywacji umiejętności, fanfary zgonu bossów i awansu",
+    "👥 Odnowiony Szyk Bojowy: Gracz w roli Dowódcy Cieni w drugiej linii, armia cieni w awangardzie na kamiennym trakcie",
+    "📈 System Ulepszeń Umiejętności: Skalowanie obrażeń runicznych technik za złoto i materiały bezpośrednio w Panelu Łowcy"
   ],
-  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.1.0/solo-leveler.apk",
+  "downloadUrl": "https://github.com/Dismonder/solo-leveler/releases/download/v1.2.0/solo-leveler.apk",
   "mandatory": false
 }
-

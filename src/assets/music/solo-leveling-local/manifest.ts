@@ -150,16 +150,18 @@ export const DEFAULT_MUSIC_BY_CONTEXT: Record<ThemeMusicId, LocalMusicTrackId> =
   "mana-memory": "dark-aria",
   "rune-lock": "dark-aria",
   "shadow-extraction": "shadowborn",
+  "idle-rpg": "shadowborn",
   reward: "praise-of-god",
   penalty: "sung-jinwoo-arise",
 };
 
-export const DEFAULT_MINI_GAME_MUSIC: Record<MiniGameId, LocalMusicTrackId> = {
+export const DEFAULT_MINI_GAME_MUSIC: Record<MiniGameId | "idle-rpg", LocalMusicTrackId> = {
   "gate-dodge": "hunter-of-hunters",
   "shadow-strike": "symphonic-suite-lv8",
   "mana-memory": "dark-aria",
   "rune-lock": "dark-aria",
   "shadow-extraction": "shadowborn",
+  "idle-rpg": "shadowborn",
 };
 
 export function isLocalMusicTrackId(value: unknown): value is LocalMusicTrackId {

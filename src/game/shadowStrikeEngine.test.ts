@@ -5,8 +5,10 @@ import {
   createShadowStrikeConfig,
   createShadowStrikeInteractionController,
   createShadowStrikeRuntime,
+  getShadowStrikeDifficulty,
   getShadowStrikeHitWindows,
   getShadowStrikeSnapshot,
+  getShadowStrikeTargetCenter,
   pauseShadowStrike,
   resumeShadowStrike,
   tryShadowStrike,
@@ -274,5 +276,49 @@ test("consecutive perfect hits progressively shrink target hit window and award 
   assert.equal(missOutcome?.tier, "miss");
   assert.equal(runtime.perfectStreak, 0);
 });
+
+test("target remains static at 50% for difficulty tier <= 15", () => {
+  const config = createShadowStrikeConfig(1, 0, 0, 0);
+  const runtime = createShadowStrikeRuntime(0, config);
+  runtime.score = 500; // diff = 3 + 0 = 3 (tier 4)
+  runtime.activeElapsedMs = 1000;
+  assert.equal(getShadowStrikeTargetCenter(runtime), 50);
+
+  const snapshot = getShadowStrikeSnapshot(runtime);
+  assert.equal(snapshot.isTargetMoving, false);
+  assert.equal(snapshot.targetCenter, 50);
+});
+
+test("target dynamically oscillates and moves faster when difficulty tier > 15", () => {
+  const config = createShadowStrikeConfig(60, 0, 0, 0); // level 60 => base diff = 15
+  const runtime = createShadowStrikeRuntime(0, config);
+  runtime.score = 650; // score diff = 5, total diff = 20 => difficulty tier 21 (> 15)
+
+  const snapshot = getShadowStrikeSnapshot(runtime);
+  assert.equal(snapshot.isTargetMoving, true);
+  assert.ok(snapshot.difficultyTier > 15);
+
+  const positions: number[] = [];
+  for (let ms = 0; ms <= 2000; ms += 200) {
+    runtime.activeElapsedMs = ms;
+    positions.push(getShadowStrikeTargetCenter(runtime));
+  }
+
+  // Verify that the target has moved across multiple positions
+  const minPos = Math.min(...positions);
+  const maxPos = Math.max(...positions);
+  assert.ok(minPos < 45, "Target should swing left of 45%");
+  assert.ok(maxPos > 55, "Target should swing right of 55%");
+  assert.ok(maxPos - minPos > 15, "Target oscillation range should be noticeable");
+
+  // Verify that strike collision evaluates against the moving target position
+  runtime.activeElapsedMs = 500;
+  const movingCenter = getShadowStrikeTargetCenter(runtime);
+  runtime.cursorPosition = movingCenter;
+  runtime.lastAdvancedAtMs = 500;
+  const directHit = tryShadowStrike(runtime, 500);
+  assert.equal(directHit?.tier, "perfect");
+});
+
 
 

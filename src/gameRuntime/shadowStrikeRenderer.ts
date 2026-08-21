@@ -1,6 +1,8 @@
 import {
+  getShadowStrikeDifficulty,
   getShadowStrikeHitWindows,
   getShadowStrikeSnapshot,
+  getShadowStrikeTargetCenter,
   type ShadowStrikeConfig,
   type ShadowStrikeOutcome,
   type ShadowStrikeRuntime,
@@ -23,7 +25,7 @@ export type ShadowStrikeLayout = {
 
 export type ShadowStrikeRenderer = {
   resize(cssWidth: number, cssHeight: number, devicePixelRatio: number): void;
-  drawStatic(config: ShadowStrikeConfig): void;
+  drawStatic(config: ShadowStrikeConfig, targetCenterPercent?: number): void;
   render(runtime: ShadowStrikeRuntime, nowMs: number): void;
   flash(outcome: ShadowStrikeOutcome, nowMs: number): void;
   destroy(): void;
@@ -36,7 +38,8 @@ const FLASH_DURATION_MS = 360;
 export function createShadowStrikeLayout(
   width: number,
   height: number,
-  config: ShadowStrikeConfig
+  config: ShadowStrikeConfig,
+  targetCenterPercent = 50
 ): ShadowStrikeLayout {
   const safeWidth = Math.max(0, width);
   const safeHeight = Math.max(0, height);
@@ -46,7 +49,7 @@ export function createShadowStrikeLayout(
   const trackTop = (safeHeight - trackHeight) / 2;
   const trackBottom = trackTop + trackHeight;
   const trackWidth = trackRight - trackLeft;
-  const targetCenterX = safeWidth / 2;
+  const targetCenterX = trackLeft + (trackWidth * targetCenterPercent) / 100;
   const hitHalfWidth = (trackWidth * config.hitWindowWidth) / 200;
   const perfectHalfWidth = (trackWidth * config.perfectWindowWidth) / 200;
   const hitLeft = clamp(targetCenterX - hitHalfWidth, trackLeft, trackRight);
@@ -90,6 +93,7 @@ export function createShadowStrikeRenderer(
   let cachedDifficultyTier = Number.NaN;
   let lastDrawnHitWidth = Number.NaN;
   let lastDrawnPerfectWidth = Number.NaN;
+  let lastDrawnTargetCenter = Number.NaN;
   let scoreText = "";
   let comboText = "";
   let remainingText = "";
@@ -116,12 +120,13 @@ export function createShadowStrikeRenderer(
     dynamicContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   }
 
-  function drawStatic(config: ShadowStrikeConfig): void {
+  function drawStatic(config: ShadowStrikeConfig, targetCenterPercent = 50): void {
     if (!active) return;
 
     lastDrawnHitWidth = config.hitWindowWidth;
     lastDrawnPerfectWidth = config.perfectWindowWidth;
-    layout = createShadowStrikeLayout(cssWidth, cssHeight, config);
+    lastDrawnTargetCenter = targetCenterPercent;
+    layout = createShadowStrikeLayout(cssWidth, cssHeight, config, targetCenterPercent);
     staticContext.clearRect(0, 0, cssWidth, cssHeight);
     staticContext.fillStyle = "#101827";
     staticContext.fillRect(layout.trackLeft, layout.trackTop, layout.trackRight - layout.trackLeft, layout.trackBottom - layout.trackTop);
@@ -147,12 +152,23 @@ export function createShadowStrikeRenderer(
       runtime.perfectStreak ?? 0
     );
 
-    if (hitWindowWidth !== lastDrawnHitWidth || perfectWindowWidth !== lastDrawnPerfectWidth) {
-      drawStatic({
-        ...runtime.config,
-        hitWindowWidth,
-        perfectWindowWidth,
-      });
+    const targetCenter = getShadowStrikeTargetCenter(runtime);
+    const diff = getShadowStrikeDifficulty(runtime.score, runtime.config.level ?? 1);
+    const isMoving = diff + 1 > 15;
+
+    if (
+      hitWindowWidth !== lastDrawnHitWidth ||
+      perfectWindowWidth !== lastDrawnPerfectWidth ||
+      (isMoving && Math.abs(targetCenter - lastDrawnTargetCenter) > 0.05)
+    ) {
+      drawStatic(
+        {
+          ...runtime.config,
+          hitWindowWidth,
+          perfectWindowWidth,
+        },
+        targetCenter
+      );
     }
 
     dynamicContext.clearRect(0, 0, cssWidth, cssHeight);
@@ -188,7 +204,8 @@ export function createShadowStrikeRenderer(
     if (snapshot.speedMultiplier !== cachedSpeedMultiplier || snapshot.difficultyTier !== cachedDifficultyTier) {
       cachedSpeedMultiplier = snapshot.speedMultiplier;
       cachedDifficultyTier = snapshot.difficultyTier;
-      tempoText = `Tempo: ${snapshot.speedMultiplier.toFixed(1)}x · Lv.${snapshot.difficultyTier}`;
+      const moveTag = snapshot.isTargetMoving ? " [CEL W RUCHU]" : "";
+      tempoText = `Tempo: ${snapshot.speedMultiplier.toFixed(1)}x · Lv.${snapshot.difficultyTier}${moveTag}`;
     }
 
     dynamicContext.fillStyle = "#f8fafc";

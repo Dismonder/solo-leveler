@@ -3,7 +3,7 @@ import { App as CapacitorApp } from "@capacitor/app";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { AnimatePresence, motion } from "motion/react";
 import { Bomb, Brain, Clock3, Coins, Crosshair, Gamepad2, Grid2X2, HeartPulse, KeyRound, Music2, RotateCw, ShoppingBag, Shuffle, Sparkles, Swords, Target, Trophy, Volume2, VolumeX, X } from "lucide-react";
-import { MINI_GAME_CATALOG, canUseMiniGameRank, type MiniGameDefinition } from "../game/miniGameCatalog";
+import { MINI_GAME_CATALOG, canUseMiniGameRank, getRewardMiniGameDefinition, type MiniGameCatalogId, type MiniGameDefinition, type RewardMiniGameDefinition } from "../game/miniGameCatalog";
 import { XP_REQUIRED } from "../game/gameConfig";
 import {
   getExtractionSignalWindowMs,
@@ -93,13 +93,14 @@ import {
   playRewardSound,
   prepareMiniGameAudio,
 } from "../utils/audio";
+import { loadIdleRpgCardSummary } from "../game/idle-rpg";
 
 type BonusMiniGamesPanelProps = {
   player: PlayerState;
   dailyUnlocked: boolean;
   unlockAll: boolean;
   progressPercent: number;
-  onLaunchGame: (gameId: MiniGameId) => void;
+  onLaunchGame: (gameId: MiniGameCatalogId) => void;
 };
 
 type GameRuntimeScreenProps = {
@@ -129,7 +130,7 @@ type GameRuntimeScreenProps = {
 };
 
 type ActiveGameProps = {
-  definition: MiniGameDefinition;
+  definition: RewardMiniGameDefinition;
   progress: MiniGameProgress;
   onComplete: (result: MiniGameCompletionInput) => void;
   onRuntimeStateChange?: (state: MiniGameRuntimeState) => void;
@@ -232,7 +233,7 @@ export function BonusMiniGamesPanel({
       setBlockedNotice(`Wymagana ranga ${game.requiredRank}.`);
       return;
     }
-    if (player.hp <= 0 && game.id !== "shadow-extraction") {
+    if (player.hp <= 0 && game.id !== "shadow-extraction" && game.id !== "idle-rpg") {
       setBlockedNotice("Brak HP. Odzyskaj zdrowie ćwiczeniem albo poszukaj legendarnej bańki serca w Ekstrakcji Cienia.");
       return;
     }
@@ -274,7 +275,9 @@ export function BonusMiniGamesPanel({
 
       <div className="grid grid-cols-2 gap-2">
         {MINI_GAME_CATALOG.map((game) => {
-          const progress = player.miniGames?.[game.id] ?? createDefaultMiniGameProgress(game.id);
+          const progress = game.id === "idle-rpg"
+            ? { level: 1, bestScore: 0 }
+            : player.miniGames?.[game.id] ?? createDefaultMiniGameProgress(game.id);
           const canLaunch = unlockAll || (dailyUnlocked && canUseMiniGameRank(rank, game.requiredRank));
           const lockedReason = !canUseMiniGameRank(rank, game.requiredRank)
             ? `Ranga ${game.requiredRank}`
@@ -293,7 +296,6 @@ export function BonusMiniGamesPanel({
             </div>
           );
         })}
-        <ComingSoonMiniGameCard />
       </div>
     </div>
   );
@@ -324,7 +326,7 @@ export function GameRuntimeScreen({
   onImportMiniGameBackground,
   onToggleMiniGameGrid,
 }: GameRuntimeScreenProps) {
-  const definition = MINI_GAME_CATALOG.find((game) => game.id === gameId) ?? MINI_GAME_CATALOG[0];
+  const definition = getRewardMiniGameDefinition(gameId);
   const progress = player.miniGames?.[definition.id] ?? createDefaultMiniGameProgress(definition.id);
   const nativeOrientation = useMemo(() => isNativeOrientationAvailable(), []);
   const [orientationMode, setOrientationMode] = useState<MiniGameOrientationMode>(definition.preferredOrientation);
@@ -907,12 +909,13 @@ function MiniGameCard({
   onLaunch,
 }: {
   definition: MiniGameDefinition;
-  progress: MiniGameProgress;
+  progress: Pick<MiniGameProgress, "level" | "bestScore">;
   canLaunch: boolean;
   lockedReason: string | null;
   onLaunch: () => void;
 }) {
   const themeAsset = getMiniGameThemeAsset(definition.id);
+  const idleSummary = definition.id === "idle-rpg" ? loadIdleRpgCardSummary() : null;
 
   return (
     <button
@@ -935,17 +938,34 @@ function MiniGameCard({
             {getMiniGameIcon(definition.id)}
           </div>
           <span className={`shrink-0 rounded-full border px-2 py-1 font-mono text-[9px] font-black uppercase tracking-widest ${canLaunch ? "sl-chip-active" : "sl-chip"}`}>
-            {canLaunch ? `Lv.${progress.level}` : lockedReason}
+            {canLaunch
+              ? idleSummary
+                ? `Lv.${idleSummary.heroLevel} (Etap ${idleSummary.currentStage})`
+                : `Lv.${progress.level}`
+              : lockedReason}
           </span>
         </div>
         <div className="min-w-0">
           <h3 className="line-clamp-2 text-[13px] font-black uppercase leading-tight tracking-[0.04em] text-[var(--theme-text-strong)]">{definition.title}</h3>
           <p className="sl-muted mt-1 line-clamp-1 text-[10px] leading-relaxed">{definition.mechanic}</p>
-          <p className="sl-muted mt-0.5 truncate font-mono text-[9px] uppercase tracking-widest">Rekord {progress.bestScore}</p>
+          <p className="sl-muted mt-0.5 truncate font-mono text-[9px] uppercase tracking-widest">
+            {idleSummary
+              ? `${idleSummary.abyssUnlocked ? "Otchłań odblokowana" : `Rekord: Etap ${idleSummary.highestStage}`}`
+              : `Rekord ${progress.bestScore}`}
+          </p>
         </div>
         <div className="grid gap-1.5">
           <div className="sl-progress-track h-1.5 overflow-hidden rounded-full">
-            <div className="sl-progress-fill h-full rounded-full" style={{ width: `${Math.min(100, progress.level * 8)}%` }} />
+            <div
+              className="sl-progress-fill h-full rounded-full"
+              style={{
+                width: `${
+                  idleSummary
+                    ? Math.min(100, (idleSummary.highestStage / 48) * 100)
+                    : Math.min(100, progress.level * 8)
+                }%`,
+              }}
+            />
           </div>
           <span className={`w-fit rounded-full px-2.5 py-1 font-mono text-[9px] font-black uppercase tracking-[0.16em] ${canLaunch ? "sl-chip-active" : "sl-chip"}`}>
             {canLaunch ? "Start" : "Blokada"}
@@ -1504,11 +1524,10 @@ function ShadowStrikeGame({
             className="relative flex h-24 w-full touch-none cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-cyan-400/80 bg-gradient-to-b from-cyan-950/85 via-slate-900/90 to-cyan-950/90 px-4 shadow-[0_0_24px_rgba(6,182,212,0.3)] transition-all active:scale-[0.97] active:border-cyan-300 active:brightness-125"
           >
             <div className="flex items-center gap-2 text-cyan-300 font-mono text-sm font-black uppercase tracking-[0.2em] drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">
-              <span>⚔️ CIĘCIE CIENIA</span>
-              <span className="rounded bg-cyan-400/20 px-1.5 py-0.5 text-[10px] text-cyan-200 border border-cyan-400/40">[DOTKNIJ]</span>
+              <span>⚔️ WYKONAJ CIĘCIE</span>
             </div>
-            <span className="mt-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-cyan-200/60 text-center">
-              IDEALNE TRAFIENIE ZWĘŻA CEL I MNOŻY PUNKTY · SPACJA / KLIK
+            <span className="mt-1 font-mono text-[10px] font-bold uppercase tracking-wider text-cyan-200/60 text-center">
+              PRECYZYJNE TRAFIENIE AKTYWUJE MNOŻNIK SERII
             </span>
           </button>
         </div>
@@ -3338,7 +3357,7 @@ function useScorePopup() {
   return { scorePopup, showScorePopup };
 }
 
-function getMiniGameIcon(id: MiniGameId) {
+function getMiniGameIcon(id: MiniGameCatalogId) {
   const className = "h-5 w-5";
   switch (id) {
     case "mana-memory":
@@ -3349,6 +3368,8 @@ function getMiniGameIcon(id: MiniGameId) {
       return <KeyRound className={className} />;
     case "shadow-extraction":
       return <Crosshair className={className} />;
+    case "idle-rpg":
+      return <Gamepad2 className={className} />;
     case "gate-dodge":
     default:
       return <Target className={className} />;

@@ -1,10 +1,15 @@
 import React, { useDeferredValue, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDown,
   ArrowUp,
+  Award,
   BarChart3,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Crown,
   Dumbbell,
   Filter,
   Flame,
@@ -14,11 +19,14 @@ import {
   RotateCcw,
   Search,
   Sparkles,
+  Target,
   Timer,
   Trash2,
+  TrendingUp,
   Trophy,
   Weight,
   X,
+  Zap,
 } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { EXERCISE_CATALOG, type ExerciseCatalogEntry } from "../data/exerciseCatalog";
@@ -35,6 +43,13 @@ import {
   updatePlanExercise,
   type WorkoutPlanPreset,
 } from "../game/workoutPlan";
+import {
+  computeVolumeHistory,
+  computeMuscleGroupDistribution,
+  computeHunterPersonalRecords,
+  formatDetailedSessions,
+  type VolumeMetricType,
+} from "../game/workoutHistoryAnalytics";
 import { getLocalDateKey } from "../game/playerMath";
 import { searchExercises } from "../game/exerciseSearch";
 import type { WorkoutEntry, WorkoutPlanExercise, WorkoutPlanSession, WorkoutPlanSessionSummary } from "../types";
@@ -316,70 +331,84 @@ export function WorkoutPlanPanel({
           </div>
 
           {/* Presets Modal */}
-          {showPresets && (
-            <div className="sl-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
-              <div className="sl-modal w-full max-w-md max-h-[85vh] overflow-y-auto rounded-[26px] border p-4 sm:p-5 shadow-2xl custom-scrollbar">
-                <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-3">
-                  <div>
-                    <span className="sl-kicker text-[9px] font-black uppercase tracking-widest text-amber-400">
-                      Gotowe Szablony
-                    </span>
-                    <h3 className="text-lg font-black uppercase tracking-wide text-[var(--theme-text-strong)]">
-                      Wybierz Plan Łowcy
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowPresets(false)}
-                    className="sl-icon-button flex h-9 w-9 items-center justify-center rounded-xl"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-
-                <div className="mt-3 space-y-3">
-                  {HUNTER_WORKOUT_PRESETS.map((preset) => (
-                    <div
-                      key={preset.id}
-                      className="sl-input flex flex-col justify-between rounded-2xl p-3.5 transition-all hover:border-[var(--theme-accent)]"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">{preset.icon}</span>
-                            <span className="font-black text-sm text-[var(--theme-text-strong)] uppercase">
-                              {preset.name}
-                            </span>
-                            <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[8px] font-black text-amber-400">
-                              {preset.rank}
-                            </span>
-                          </div>
-                          <p className="sl-kicker mt-1 text-[9px] font-bold text-[var(--theme-accent)]">
-                            {preset.tagline}
-                          </p>
-                          <p className="sl-muted mt-1 text-xs leading-relaxed">
-                            {preset.description}
-                          </p>
-                          <p className="sl-muted mt-1 text-[10px] font-bold">
-                            ⏱️ ~{preset.estimatedMinutes} min · {preset.exercises.length} ćwiczenia
-                          </p>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleApplyPreset(preset)}
-                        className="sl-button-primary mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider active:scale-[0.98]"
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        <span>Załaduj ten plan</span>
-                      </button>
+          <AnimatePresence>
+            {showPresets && (
+              <motion.div
+                className="sl-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  className="sl-modal w-full max-w-md max-h-[85vh] overflow-y-auto rounded-[26px] border p-4 sm:p-5 shadow-2xl custom-scrollbar"
+                  initial={{ scale: 0.94, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.94, y: 15 }}
+                >
+                  <div className="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-3">
+                    <div>
+                      <span className="sl-kicker text-[9px] font-black uppercase tracking-widest text-amber-400">
+                        Gotowe Szablony
+                      </span>
+                      <h3 className="text-lg font-black uppercase tracking-wide text-[var(--theme-text-strong)]">
+                        Wybierz Plan Łowcy
+                      </h3>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+                    <button
+                      type="button"
+                      onClick={() => setShowPresets(false)}
+                      className="sl-icon-button flex h-9 w-9 items-center justify-center rounded-xl"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-3 space-y-3">
+                    {HUNTER_WORKOUT_PRESETS.map((preset) => (
+                      <motion.div
+                        key={preset.id}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="sl-input flex flex-col justify-between rounded-2xl p-3.5 transition-all hover:border-[var(--theme-accent)]"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">{preset.icon}</span>
+                              <span className="font-black text-sm text-[var(--theme-text-strong)] uppercase">
+                                {preset.name}
+                              </span>
+                              <span className="rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[8px] font-black text-amber-400">
+                                {preset.rank}
+                              </span>
+                            </div>
+                            <p className="sl-kicker mt-1 text-[9px] font-bold text-[var(--theme-accent)]">
+                              {preset.tagline}
+                            </p>
+                            <p className="sl-muted mt-1 text-xs leading-relaxed">
+                              {preset.description}
+                            </p>
+                            <p className="sl-muted mt-1 text-[10px] font-bold">
+                              ⏱️ ~{preset.estimatedMinutes} min · {preset.exercises.length} ćwiczenia
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleApplyPreset(preset)}
+                          className="sl-button-primary mt-3 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider active:scale-[0.98]"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                          <span>Załaduj ten plan</span>
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Exercise List */}
           {plan.length === 0 ? (
@@ -405,34 +434,44 @@ export function WorkoutPlanPanel({
                 </button>
               </div>
 
-              {plan.map((exercise, index) => (
-                <PlanExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  index={index}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < plan.length - 1}
-                  todayKey={todayKey}
-                  onMoveUp={() => onChange(movePlanExercise(plan, exercise.id, -1))}
-                  onMoveDown={() => onChange(movePlanExercise(plan, exercise.id, 1))}
-                  onUpdate={(update) =>
-                    onChange(updatePlanExercise(plan, exercise.id, update))
-                  }
-                  onAddSet={() =>
-                    onChange(
-                      addSetToPlanExercise(plan, exercise.id, {
-                        reps: exercise.targetReps,
-                        weightKg: exercise.defaultWeightKg,
-                        dateKey: todayKey,
-                      })
-                    )
-                  }
-                  onRemoveSet={(setId) =>
-                    onChange(removePlanSet(plan, exercise.id, setId))
-                  }
-                  onRemove={() => onChange(removePlanExercise(plan, exercise.id))}
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {plan.map((exercise, index) => (
+                  <motion.div
+                    key={exercise.id}
+                    layout
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <PlanExerciseCard
+                      exercise={exercise}
+                      index={index}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < plan.length - 1}
+                      todayKey={todayKey}
+                      onMoveUp={() => onChange(movePlanExercise(plan, exercise.id, -1))}
+                      onMoveDown={() => onChange(movePlanExercise(plan, exercise.id, 1))}
+                      onUpdate={(update) =>
+                        onChange(updatePlanExercise(plan, exercise.id, update))
+                      }
+                      onAddSet={() =>
+                        onChange(
+                          addSetToPlanExercise(plan, exercise.id, {
+                            reps: exercise.targetReps,
+                            weightKg: exercise.defaultWeightKg,
+                            dateKey: todayKey,
+                          })
+                        )
+                      }
+                      onRemoveSet={(setId) =>
+                        onChange(removePlanSet(plan, exercise.id, setId))
+                      }
+                      onRemove={() => onChange(removePlanExercise(plan, exercise.id))}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </>
@@ -587,79 +626,419 @@ function WorkoutHistoryPanel({
   range: HistoryRange;
   onRangeChange: (range: HistoryRange) => void;
 }) {
+  const [activeMetric, setActiveMetric] = useState<"volume" | "time" | "sets" | "xp">("volume");
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+
   const historyModel = useMemo(
     () => buildUnifiedTrainingHistory(sessions, workoutHistory, readTrainingHistoryArchive()),
-    [sessions, workoutHistory],
+    [sessions, workoutHistory]
   );
-  const filteredDays = useMemo(() => filterHistoryDaysByRange(historyModel.days, range), [historyModel.days, range]);
-  const filteredEvents = useMemo(() => filterHistoryEventsByRange(historyModel.events, range), [historyModel.events, range]);
+  const filteredDays = useMemo(
+    () => filterHistoryDaysByRange(historyModel.days, range),
+    [historyModel.days, range]
+  );
+  const filteredEvents = useMemo(
+    () => filterHistoryEventsByRange(historyModel.events, range),
+    [historyModel.events, range]
+  );
   const chartData = useMemo(() => buildUnifiedHistoryChart(filteredDays), [filteredDays]);
   const totals = useMemo(() => getUnifiedHistoryTotals(filteredDays), [filteredDays]);
   const currentPlanSignature = useMemo(() => createPlanSignatureFromPlan(plan), [plan]);
-  const bestTimeForPlan = useMemo(() => getBestTimeForPlan(sessions, currentPlanSignature), [sessions, currentPlanSignature]);
+  const bestTimeForPlan = useMemo(
+    () => getBestTimeForPlan(sessions, currentPlanSignature),
+    [sessions, currentPlanSignature]
+  );
 
-  const hasHistory = filteredDays.length > 0 || filteredEvents.length > 0;
+  const hunterRecords = useMemo(
+    () => computeHunterPersonalRecords(sessions, historyModel.days, historyModel.events),
+    [sessions, historyModel.days, historyModel.events]
+  );
+
+  const muscleDistribution = useMemo(
+    () => computeMuscleGroupDistribution(sessions, EXERCISE_CATALOG),
+    [sessions]
+  );
+
+  const detailedSessions = useMemo(
+    () => formatDetailedSessions(sessions),
+    [sessions]
+  );
+
+  const hasHistory = filteredDays.length > 0 || filteredEvents.length > 0 || detailedSessions.length > 0;
 
   return (
-    <section className="sl-card rounded-[22px] p-4">
+    <section className="sl-card space-y-5 rounded-[24px] p-4 sm:p-5 shadow-2xl">
+      {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">Historia</p>
-          <h3 className="mt-1 text-lg font-black uppercase tracking-[0.06em] text-[var(--theme-text)]">Pełny dziennik treningów</h3>
-          <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">
-            Daily, plan, sensor telefonu, Health Connect i archiwum dnia w jednym widoku.
+          <div className="flex items-center gap-2">
+            <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)]">
+              Analityka Monarchy
+            </span>
+            <span className="rounded-md bg-[var(--theme-accent-soft)] px-2 py-0.5 text-[8px] font-black uppercase tracking-widest text-[var(--theme-accent)]">
+              PRO
+            </span>
+          </div>
+          <h3 className="mt-1 text-xl font-black uppercase tracking-[0.06em] text-[var(--theme-text-strong)]">
+            Statystyki & Historia Treningu
+          </h3>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--theme-muted)]">
+            Tonaż, tempo, rozkład partii mięśniowych, rekordy PR i pełny dziennik sesji.
           </p>
         </div>
-        <BarChart3 className="h-6 w-6 shrink-0 text-[var(--theme-icon)]" />
+        <BarChart3 className="h-7 w-7 shrink-0 text-[var(--theme-accent)]" />
       </div>
 
-      <div className="sl-input mt-4 grid grid-cols-3 gap-2 rounded-2xl p-1.5">
+      {/* Range Selector */}
+      <div className="sl-input grid grid-cols-3 gap-2 rounded-2xl p-1.5">
         <RangeButton active={range === "7d"} onClick={() => onRangeChange("7d")} label="7 dni" />
         <RangeButton active={range === "30d"} onClick={() => onRangeChange("30d")} label="30 dni" />
         <RangeButton active={range === "all"} onClick={() => onRangeChange("all")} label="Całość" />
       </div>
 
       {!hasHistory ? (
-        <div className="sl-input mt-4 rounded-2xl p-4 text-center">
-          <p className="text-sm font-bold text-[var(--theme-text)]">Brak historii w tym zakresie.</p>
+        <div className="sl-input rounded-2xl p-6 text-center">
+          <Trophy className="mx-auto h-8 w-8 text-[var(--theme-icon)] mb-2" />
+          <p className="text-sm font-bold text-[var(--theme-text)]">Brak zarejestrowanych sesji.</p>
           <p className="mt-2 text-xs leading-relaxed text-[var(--theme-muted)]">
-            Wykonaj daily, zapisz serię w planie albo zsynchronizuj Health Connect, żeby pojawiły się dane.
+            Uruchom plan treningu lub wykonaj zadanie dzienne, aby odblokować zaawansowane statystyki i rekordy Łowcy.
           </p>
         </div>
       ) : (
         <>
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          {/* Quick Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <PlanStat label="Dni aktywne" value={filteredDays.length} />
-            <PlanStat label="Daily" value={`${totals.dailyCompleted}/${filteredDays.length}`} />
-            <PlanStat label="Plan" value={`${totals.planSessions} sesji`} />
-            <PlanStat label="Czas" value={formatDuration(totals.seconds)} />
-            <PlanStat label="Serie" value={totals.sets} />
-            <PlanStat label="Objętość" value={`${totals.volumeKg} kg`} />
-            <PlanStat label="XP / Gold" value={`${totals.xp} / ${totals.gold}`} />
-            <PlanStat label="Rekord" value={bestTimeForPlan ? formatDuration(bestTimeForPlan) : "--"} />
+            <PlanStat label="Sesje planu" value={`${totals.planSessions} sesji`} />
+            <PlanStat label="Czas aktywny" value={formatDuration(totals.seconds)} />
+            <PlanStat label="Tonaż łączny" value={`${totals.volumeKg.toLocaleString("pl-PL")} kg`} />
+            <PlanStat label="Serie ukończone" value={totals.sets} />
+            <PlanStat label="Daily misje" value={`${totals.dailyCompleted}/${filteredDays.length}`} />
+            <PlanStat label="Zdobyte XP" value={`+${totals.xp}`} />
+            <PlanStat label="Rekord planu" value={bestTimeForPlan ? formatDuration(bestTimeForPlan) : "--"} />
           </div>
 
-          <div className="sl-input mt-4 h-56 rounded-2xl p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 12, right: 8, left: -28, bottom: 0 }}>
-                <XAxis dataKey="label" tick={{ fill: "var(--theme-muted)", fontSize: 10, fontWeight: 800 }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  cursor={{ fill: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}
-                  contentStyle={{ background: "var(--theme-modal)", border: "1px solid var(--theme-border)", borderRadius: 14, color: "var(--theme-text)" }}
-                  labelStyle={{ color: "var(--theme-text-strong)", fontWeight: 900 }}
-                />
-                <Bar dataKey="dailyPercent" name="Daily %" fill="var(--theme-accent)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="minutes" name="Minuty planu" fill="var(--theme-progress-fill)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="sets" name="Serie" fill="var(--theme-success)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="xp" name="XP" fill="var(--theme-warning)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          {/* Hunter Personal Records (PRs) */}
+          {hunterRecords.length > 0 && (
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em] text-amber-400 flex items-center gap-1.5">
+                  <Crown className="h-3.5 w-3.5" />
+                  Osobiste Rekordy Łowcy (PR)
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {hunterRecords.map((pr) => (
+                  <motion.div
+                    key={pr.id}
+                    whileHover={{ scale: 1.01 }}
+                    className="sl-input relative overflow-hidden rounded-2xl border border-[var(--theme-border)]/70 p-3 shadow-md"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-[var(--theme-accent)]">
+                          {pr.title}
+                        </span>
+                        <p className="mt-0.5 text-lg font-black text-[var(--theme-text-strong)] font-mono">
+                          {pr.value}
+                        </p>
+                        <p className="mt-0.5 text-[10px] font-medium text-[var(--theme-muted)]">
+                          {pr.subtitle}
+                        </p>
+                      </div>
+                      <span className="rounded-lg bg-amber-500/15 border border-amber-500/30 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-amber-400">
+                        {pr.badge}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Muscle Group Distribution */}
+          {muscleDistribution.length > 0 && (
+            <div className="sl-input space-y-3 rounded-2xl p-3.5 border border-[var(--theme-border)]/60">
+              <div className="flex items-center justify-between">
+                <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)] flex items-center gap-1.5">
+                  <Target className="h-3.5 w-3.5" />
+                  Balans Partii Mięśniowych
+                </span>
+                <span className="text-[10px] font-bold text-[var(--theme-muted)]">
+                  Łącznie: {muscleDistribution.reduce((acc, m) => acc + m.sets, 0)} serii
+                </span>
+              </div>
+
+              {/* Segmented Multi-Color Progress Bar */}
+              <div className="h-3.5 flex w-full overflow-hidden rounded-full bg-[var(--theme-game-bg)] p-0.5 gap-0.5">
+                {muscleDistribution.map((item, idx) => {
+                  const colors = [
+                    "bg-cyan-500",
+                    "bg-blue-500",
+                    "bg-indigo-500",
+                    "bg-violet-500",
+                    "bg-purple-500",
+                    "bg-emerald-500",
+                  ];
+                  const color = colors[idx % colors.length];
+                  if (item.percentage <= 0) return null;
+                  return (
+                    <div
+                      key={item.category}
+                      style={{ width: `${item.percentage}%` }}
+                      className={`h-full rounded-sm ${color} transition-all`}
+                      title={`${item.category}: ${item.sets} serii (${item.percentage}%)`}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Muscle Details Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                {muscleDistribution.map((item, idx) => {
+                  const dotColors = [
+                    "bg-cyan-400",
+                    "bg-blue-400",
+                    "bg-indigo-400",
+                    "bg-violet-400",
+                    "bg-purple-400",
+                    "bg-emerald-400",
+                  ];
+                  const dotColor = dotColors[idx % dotColors.length];
+                  return (
+                    <div
+                      key={item.category}
+                      className="flex items-center justify-between rounded-xl bg-black/20 px-2.5 py-1.5 text-xs"
+                    >
+                      <span className="flex items-center gap-1.5 truncate text-[11px] font-bold text-[var(--theme-text)]">
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${dotColor}`} />
+                        <span className="truncate">{item.category}</span>
+                      </span>
+                      <span className="ml-2 shrink-0 font-mono text-[10px] font-black text-[var(--theme-accent)]">
+                        {item.sets}s ({item.percentage}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Interactive Chart with Metric Switcher */}
+          <div className="space-y-2 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)] flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Wykres Progresu
+              </span>
+
+              {/* Metric Buttons */}
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveMetric("volume")}
+                  className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-all ${
+                    activeMetric === "volume"
+                      ? "sl-chip-active shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                      : "sl-chip text-[var(--theme-muted)]"
+                  }`}
+                >
+                  🏋️ Tonaż (kg)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveMetric("time")}
+                  className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-all ${
+                    activeMetric === "time"
+                      ? "sl-chip-active shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                      : "sl-chip text-[var(--theme-muted)]"
+                  }`}
+                >
+                  ⏱️ Czas (min)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveMetric("sets")}
+                  className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-all ${
+                    activeMetric === "sets"
+                      ? "sl-chip-active shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                      : "sl-chip text-[var(--theme-muted)]"
+                  }`}
+                >
+                  🔢 Serie
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveMetric("xp")}
+                  className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-wider transition-all ${
+                    activeMetric === "xp"
+                      ? "sl-chip-active shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                      : "sl-chip text-[var(--theme-muted)]"
+                  }`}
+                >
+                  ⚡ XP
+                </button>
+              </div>
+            </div>
+
+            <div className="sl-input h-60 rounded-2xl p-2 border border-[var(--theme-border)]/60">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 12, right: 8, left: -28, bottom: 0 }}>
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: "var(--theme-muted)", fontSize: 10, fontWeight: 800 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis hide />
+                  <Tooltip
+                    cursor={{ fill: "color-mix(in srgb, var(--theme-accent) 10%, transparent)" }}
+                    contentStyle={{
+                      background: "var(--theme-modal)",
+                      border: "1px solid var(--theme-border)",
+                      borderRadius: 14,
+                      color: "var(--theme-text)",
+                    }}
+                    labelStyle={{ color: "var(--theme-text-strong)", fontWeight: 900 }}
+                  />
+                  {activeMetric === "volume" && (
+                    <Bar dataKey="dailyPercent" name="Daily %" fill="var(--theme-accent)" radius={[6, 6, 0, 0]} />
+                  )}
+                  {activeMetric === "time" && (
+                    <Bar dataKey="minutes" name="Minuty" fill="var(--theme-progress-fill)" radius={[6, 6, 0, 0]} />
+                  )}
+                  {activeMetric === "sets" && (
+                    <Bar dataKey="sets" name="Serie" fill="var(--theme-success)" radius={[6, 6, 0, 0]} />
+                  )}
+                  {activeMetric === "xp" && (
+                    <Bar dataKey="xp" name="XP" fill="var(--theme-warning)" radius={[6, 6, 0, 0]} />
+                  )}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
-          <div className="mt-4 grid gap-2">
-            <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">Oś aktywności</p>
-            {filteredEvents.slice(0, 18).map((event) => (
+          {/* Detailed Workout Sessions List */}
+          {detailedSessions.length > 0 && (
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em] text-[var(--theme-accent)] flex items-center gap-1.5">
+                  <Dumbbell className="h-3.5 w-3.5" />
+                  Dziennik Sesji Treningowych ({detailedSessions.length})
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {detailedSessions.slice(0, 10).map((session) => {
+                  const isExpanded = expandedSessionId === session.id;
+                  return (
+                    <motion.div
+                      key={session.id}
+                      className="sl-input overflow-hidden rounded-2xl border border-[var(--theme-border)]/80 transition-all"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setExpandedSessionId(isExpanded ? null : session.id)}
+                        className="flex w-full items-center justify-between p-3.5 text-left active:scale-[0.99]"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--theme-accent-soft)] text-[var(--theme-accent)] font-black">
+                            <Dumbbell className="h-5 w-5" />
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-black text-sm text-[var(--theme-text-strong)]">
+                                {session.title}
+                              </h4>
+                              <span
+                                className={`rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider ${
+                                  session.paceGrade === "BŁYSKAWICZNE"
+                                    ? "bg-amber-500/20 text-amber-400"
+                                    : session.paceGrade === "SPOKOJNE"
+                                    ? "bg-blue-500/20 text-blue-400"
+                                    : "bg-emerald-500/20 text-emerald-400"
+                                }`}
+                              >
+                                {session.paceGrade}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-[10px] font-medium text-[var(--theme-muted)]">
+                              {session.date} ({session.timeAgo}) · ⏱️ {session.durationFormatted} · {session.totalSets} serii
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="text-right hidden sm:block">
+                            <span className="block font-mono text-xs font-black text-[var(--theme-text-strong)]">
+                              {session.totalVolumeKg > 0 ? `${session.totalVolumeKg} kg` : "Masa ciała"}
+                            </span>
+                            <span className="block text-[9px] font-bold text-amber-400">
+                              +{session.xpEarned} XP
+                            </span>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-[var(--theme-muted)]" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-[var(--theme-muted)]" />
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Expandable Exercise Details */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="border-t border-[var(--theme-border)]/50 bg-black/20 p-3.5 space-y-2"
+                          >
+                            <span className="sl-kicker text-[9px] font-black uppercase tracking-widest text-[var(--theme-muted)]">
+                              Ćwiczenia i obciążenia:
+                            </span>
+                            <div className="space-y-1.5">
+                              {session.exercises.map((ex, i) => (
+                                <div
+                                  key={`${ex.name}-${i}`}
+                                  className="flex items-center justify-between rounded-xl bg-[var(--theme-card)]/50 px-3 py-2 text-xs"
+                                >
+                                  <span className="font-bold text-[var(--theme-text)] truncate">
+                                    {ex.name}
+                                  </span>
+                                  <div className="flex items-center gap-3 shrink-0 font-mono text-[11px]">
+                                    <span className="text-[var(--theme-muted)]">
+                                      {ex.completedSets} serii × {ex.reps} powt.
+                                    </span>
+                                    <span className="font-black text-[var(--theme-accent)]">
+                                      {ex.weightKg > 0 ? `${ex.weightKg} kg` : "masa"}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between pt-1 text-[10px] font-black uppercase tracking-widest text-[var(--theme-muted)]">
+                              <span>Nagrody sesji</span>
+                              <span className="text-amber-400 font-bold">
+                                +{session.xpEarned} XP · +{session.goldEarned} Gold
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Unified Activity Events */}
+          <div className="space-y-2 pt-2">
+            <p className="sl-kicker text-[10px] font-black uppercase tracking-[0.24em]">
+              Oś Aktywności Dnia
+            </p>
+            {filteredEvents.slice(0, 15).map((event) => (
               <div key={event.id}>
                 <HistoryEventCard event={event} />
               </div>

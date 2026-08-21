@@ -108,6 +108,25 @@ const XIAOMI_BAND_FILTERS = [
   { namePrefix: "Redmi" },
   { namePrefix: "Smart Band" },
   { namePrefix: "Band" },
+  { namePrefix: "Watch" },
+  { namePrefix: "Smart Watch" },
+  { namePrefix: "Garmin" },
+  { namePrefix: "Forerunner" },
+  { namePrefix: "Fenix" },
+  { namePrefix: "HRM" },
+  { namePrefix: "Polar" },
+  { namePrefix: "Suunto" },
+  { namePrefix: "Huawei" },
+  { namePrefix: "Honor" },
+  { namePrefix: "Galaxy Watch" },
+  { namePrefix: "Pixel Watch" },
+  { namePrefix: "Apple Watch" },
+  { namePrefix: "Coros" },
+  { namePrefix: "Whoop" },
+  { namePrefix: "Fitbit" },
+  { namePrefix: "Amazfit" },
+  { namePrefix: "Heart Rate" },
+  { namePrefix: "Wahoo" },
 ];
 
 const BATTERY_SERVICE = numberToUUID(0x180f).toLowerCase();
@@ -132,6 +151,48 @@ const NATIVE_OPTIONAL_SERVICES = [
   HEART_RATE_SERVICE,
   ...XIAOMI_PRIVATE_SERVICES,
 ];
+
+export function getWearableDeviceCategory(name: string, serviceUuids: string[] = []): {
+  category: "watch" | "band" | "chest_strap" | "sensor" | "wearable";
+  iconName: "HeartPulse" | "Watch" | "Activity" | "Bluetooth";
+  label: string;
+} {
+  const lower = name.toLowerCase();
+  if (/hrm|chest|polar h|garmin hrm|wahoo tickr|strap/i.test(lower)) {
+    return { category: "chest_strap", iconName: "HeartPulse", label: "Pas telemetryczny HR" };
+  }
+  if (/band|smart band|mi band|fitbit charge|whoop|honor band|huawei band/i.test(lower)) {
+    return { category: "band", iconName: "Watch", label: "Opaska sportowa" };
+  }
+  if (/watch|forerunner|fenix|galaxy|apple|pixel|amazfit|suunto|coros/i.test(lower)) {
+    return { category: "watch", iconName: "Watch", label: "Smartwatch" };
+  }
+  if (serviceUuids.includes(HEART_RATE_SERVICE)) {
+    return { category: "sensor", iconName: "Activity", label: "Sensor pulsu BLE" };
+  }
+  return { category: "wearable", iconName: "Bluetooth", label: "Urządzenie BLE" };
+}
+
+export function getSignalStrength(rssi?: number): {
+  quality: "doskonały" | "dobry" | "średni" | "słaby";
+  bars: number;
+  percentage: number;
+  color: string;
+} {
+  if (rssi === undefined) {
+    return { quality: "średni", bars: 2, percentage: 50, color: "#38bdf8" };
+  }
+  if (rssi >= -55) {
+    return { quality: "doskonały", bars: 4, percentage: 100, color: "#22c55e" };
+  }
+  if (rssi >= -70) {
+    return { quality: "dobry", bars: 3, percentage: 75, color: "#38bdf8" };
+  }
+  if (rssi >= -85) {
+    return { quality: "średni", bars: 2, percentage: 45, color: "#facc15" };
+  }
+  return { quality: "słaby", bars: 1, percentage: 20, color: "#f87171" };
+}
 
 let nativeBleInitialized = false;
 
@@ -241,27 +302,42 @@ function buildCandidateScore(name: string, serviceUuids: string[], rssi?: number
   } else if (/xiaomi|redmi/i.test(name)) {
     score += 72;
     reasons.push("nazwa Xiaomi/Redmi");
-  } else if (/\bsmart\s*band\b|\bband\b/i.test(name)) {
-    score += 46;
-    reasons.push("nazwa typu Smart Band");
+  } else if (/garmin|forerunner|fenix|hrm/i.test(name)) {
+    score += 88;
+    reasons.push("urządzenie sportowe Garmin");
+  } else if (/polar\s*(h10|h9|verity|vantage|ignite|pacer)?/i.test(name)) {
+    score += 88;
+    reasons.push("sensor telemetryczny Polar");
+  } else if (/huawei|honor/i.test(name)) {
+    score += 78;
+    reasons.push("zegarek/opaska Huawei/Honor");
+  } else if (/apple\s*watch|galaxy\s*watch|pixel\s*watch/i.test(name)) {
+    score += 82;
+    reasons.push("smartwatch Wear OS / Apple");
+  } else if (/amazfit|suunto|coros|whoop|wahoo/i.test(name)) {
+    score += 80;
+    reasons.push("zegarek/sensor treningowy");
+  } else if (/\bsmart\s*(band|watch)\b|\bband\b|\bwatch\b/i.test(name)) {
+    score += 65;
+    reasons.push("urządzenie ubieralne (smart band/watch)");
   }
 
   if (serviceUuids.some((uuid) => XIAOMI_PRIVATE_SERVICES.includes(uuid))) {
     score += 60;
-    reasons.push("prywatna usługa Xiaomi/Huami FEE0/FEE1");
+    reasons.push("usługa Xiaomi/Huami FEE0/FEE1");
   }
 
   if (serviceUuids.includes(HEART_RATE_SERVICE)) {
-    score += 12;
-    reasons.push("standard tętna BLE");
+    score += 35;
+    reasons.push("standardowy profil tętna BLE (0x180D)");
   }
   if (serviceUuids.includes(BATTERY_SERVICE)) {
-    score += 8;
-    reasons.push("standard baterii BLE");
+    score += 15;
+    reasons.push("standardowy profil baterii (0x180F)");
   }
   if (serviceUuids.includes(DEVICE_INFORMATION_SERVICE)) {
-    score += 6;
-    reasons.push("standard informacji urządzenia");
+    score += 10;
+    reasons.push("standardowe info urządzenia (0x180A)");
   }
 
   if (rssi !== undefined) {

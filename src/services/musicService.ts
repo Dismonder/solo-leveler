@@ -81,21 +81,21 @@ export function setMusicTrackPreferences(settings?: Partial<MusicTrackSettings>)
 }
 
 export function pushMusicContext(context: ThemeMusicContext) {
-  lastRequestedContext = context;
-  void playMusicContext("status");
+  const previousContext = lastRequestedContext;
+  void playMusicContext(context);
   return () => {
-    void playMusicContext("status");
+    void playMusicContext(previousContext);
   };
 }
 
 export async function playMusicContext(context: ThemeMusicContext) {
   lastRequestedContext = context;
-  currentContext = "status";
+  currentContext = context;
   installLifecycleListeners();
   installMediaSessionHandlers();
   if (!enabled || volume <= 0 || !isBrowserAudioAvailable()) return false;
 
-  const url = resolveGlobalMusicUrl();
+  const url = resolveGlobalMusicUrl(context);
   if (!url) {
     pendingContext = null;
     if (currentAudio) stopBackgroundMusic(450);
@@ -108,7 +108,7 @@ export async function playMusicContext(context: ThemeMusicContext) {
   syncNativeNotification(track, true);
 
   if (!unlocked) {
-    pendingContext = "status";
+    pendingContext = context;
     installUnlockListeners();
     return false;
   }
@@ -647,8 +647,14 @@ function writeStorage(key: string, value: string) {
   }
 }
 
-function resolveGlobalMusicUrl() {
-  return getThemeMusicUrlWithSelection("status", false, trackPreferences.appTrackId);
+function resolveGlobalMusicUrl(context: ThemeMusicContext) {
+  const miniGameSelection = trackPreferences.miniGameTrackIds[context as MiniGameId];
+  const selectedTrackId = context === "status"
+    ? trackPreferences.appTrackId
+    : context === "training" || context === "workout-session"
+      ? trackPreferences.workoutTrackId
+      : miniGameSelection ?? "auto";
+  return getThemeMusicUrlWithSelection(context, false, selectedTrackId);
 }
 
 function normalizeTrackSelection(value: unknown): "auto" | string {

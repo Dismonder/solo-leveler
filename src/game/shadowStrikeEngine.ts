@@ -72,6 +72,8 @@ export type ShadowStrikeSnapshot = {
   remainingMs: number;
   remainingSeconds: number;
   cursorPosition: number;
+  targetCenter: number;
+  isTargetMoving: boolean;
   acceptedInputs: number;
   speedMultiplier: number;
   currentOneWayMs: number;
@@ -90,15 +92,34 @@ const MAX_SCORE_BONUS = 0.15;
 const MAX_PENALTY_RESIST = 0.18;
 
 export function getShadowStrikeDifficulty(score: number, level: number): number {
-  return Math.max(0, Math.min(14, Math.floor(Math.max(0, score) / 130) + Math.floor(Math.max(1, level) / 4)));
+  return Math.max(0, Math.floor(Math.max(0, score) / 130) + Math.floor(Math.max(1, level) / 4));
+}
+
+/**
+ * Computes the target center point (0..100).
+ * If the difficulty tier exceeds 15 (diff >= 15), the target smoothly oscillates
+ * back and forth, accelerating with higher level/score.
+ */
+export function getShadowStrikeTargetCenter(runtime: ShadowStrikeRuntime): number {
+  const diff = getShadowStrikeDifficulty(runtime.score, runtime.config.level ?? 1);
+  const difficultyTier = diff + 1;
+  if (difficultyTier <= 15) {
+    return runtime.config.targetCenter;
+  }
+
+  const excessLevel = difficultyTier - 15;
+  const amplitude = Math.min(25, 4 + excessLevel * 2.2);
+  const frequency = 0.0018 + Math.min(0.007, excessLevel * 0.0007);
+  const offset = Math.sin(runtime.activeElapsedMs * frequency) * amplitude;
+  return Math.max(16, Math.min(84, 50 + offset));
 }
 
 export function getShadowStrikeOneWayMs(score: number, combo: number, level: number, baseOneWayMs?: number): number {
   const base = baseOneWayMs ?? Math.max(850, 1450 - Math.min(8, Math.floor(Math.max(1, level) / 4)) * 55);
-  const diff = getShadowStrikeDifficulty(score, level);
+  const diff = Math.min(24, getShadowStrikeDifficulty(score, level));
   const comboBonus = Math.min(260, Math.max(0, combo) * 16);
   const scoreBonus = diff * 52;
-  return Math.max(450, base - scoreBonus - comboBonus);
+  return Math.max(320, base - scoreBonus - comboBonus);
 }
 
 export function getShadowStrikeHitWindows(
@@ -109,11 +130,11 @@ export function getShadowStrikeHitWindows(
   perfectStreak = 0
 ): { hitWindowWidth: number; perfectWindowWidth: number } {
   const clampedBonus = clampBonus(hitWindowBonus, MAX_HIT_WINDOW_BONUS);
-  const diff = getShadowStrikeDifficulty(score, level);
-  const comboTighten = Math.max(0.78, 1 - Math.min(0.22, Math.max(0, combo) * 0.009));
-  const perfectShrink = Math.max(0.4, Math.pow(0.9, Math.max(0, perfectStreak)));
-  const hitWindowWidth = Math.max(10, (28 - diff * 0.82) * (1 + clampedBonus) * comboTighten * perfectShrink);
-  const perfectWindowWidth = Math.max(3.0, hitWindowWidth * Math.max(0.2, 0.34 - diff * 0.006) * perfectShrink);
+  const diff = Math.min(20, getShadowStrikeDifficulty(score, level));
+  const comboTighten = Math.max(0.72, 1 - Math.min(0.28, Math.max(0, combo) * 0.009));
+  const perfectShrink = Math.max(0.35, Math.pow(0.9, Math.max(0, perfectStreak)));
+  const hitWindowWidth = Math.max(8, (28 - Math.min(14, diff) * 0.82) * (1 + clampedBonus) * comboTighten * perfectShrink);
+  const perfectWindowWidth = Math.max(2.5, hitWindowWidth * Math.max(0.18, 0.34 - Math.min(14, diff) * 0.006) * perfectShrink);
   return { hitWindowWidth, perfectWindowWidth };
 }
 
@@ -298,6 +319,7 @@ export function getShadowStrikeSnapshot(runtime: ShadowStrikeRuntime): ShadowStr
   const base = runtime.config.baseOneWayMs ?? runtime.config.oneWayMs;
   const speedMultiplier = Number((base / currentOneWayMs).toFixed(2));
   const difficultyTier = getShadowStrikeDifficulty(runtime.score, runtime.config.level ?? 1) + 1;
+  const targetCenter = getShadowStrikeTargetCenter(runtime);
 
   return {
     score: runtime.score,
@@ -306,6 +328,8 @@ export function getShadowStrikeSnapshot(runtime: ShadowStrikeRuntime): ShadowStr
     remainingMs: runtime.remainingMs,
     remainingSeconds: Math.ceil(runtime.remainingMs / 1_000),
     cursorPosition: runtime.cursorPosition,
+    targetCenter,
+    isTargetMoving: difficultyTier > 15,
     acceptedInputs: runtime.acceptedInputs,
     speedMultiplier,
     currentOneWayMs,
@@ -343,7 +367,8 @@ function moveCursor(
 }
 
 function classifyStrike(runtime: ShadowStrikeRuntime): ShadowStrikeTier {
-  const distance = Math.abs(runtime.cursorPosition - runtime.config.targetCenter);
+  const targetCenter = getShadowStrikeTargetCenter(runtime);
+  const distance = Math.abs(runtime.cursorPosition - targetCenter);
   const { hitWindowWidth, perfectWindowWidth } = getShadowStrikeHitWindows(
     runtime.score,
     runtime.combo,

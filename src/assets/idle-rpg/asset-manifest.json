@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "runtimeBudgetBytes": 33554432,
+  "preloadBudgetBytes": 6291456,
+  "activeBossTextureBudgetBytes": 50331648,
+  "artSourceRoot": "art-src/idlerpg/source-runtime-art",
+  "atlas": {
+    "width": 1536,
+    "height": 1536,
+    "columns": 8,
+    "rows": 6,
+    "frameWidth": 192,
+    "frameHeight": 256,
+    "sourceFrames": 48
+  },
+  "animationManifest": "animation-manifest.json",
+  "animationContracts": {
+    "hero": {
+      "frameBudget": 138,
+      "sourceCount": 1,
+      "requiredStates": ["idle", "march", "enter", "attack", "skill", "hit", "death", "ultimate"],
+      "impactStates": ["attack", "skill", "ultimate"]
+    },
+    "normalEnemy": {
+      "frameBudget": 40,
+      "sourceCount": 12,
+      "requiredStates": ["idle", "enter", "march", "attack", "hit", "death"],
+      "impactStates": ["attack"]
+    },
+    "elite": {
+      "frameBudget": 80,
+      "sourceCount": 4,
+      "requiredStates": ["idle", "enter", "march", "attack", "skill", "hit", "death"],
+      "impactStates": ["attack", "skill"]
+    },
+    "boss": {
+      "frameBudget": 134,
+      "sourceCount": 4,
+      "requiredStates": ["idle", "enter", "intro", "attack", "skill", "hit", "death"],
+      "impactStates": ["attack", "skill"]
+    },
+    "summon": {
+      "frameBudget": 72,
+      "sourceCount": 5,
+      "requiredStates": ["idle", "march", "enter", "attack", "skill", "hit", "death"],
+      "impactStates": ["attack", "skill"]
+    }
+  },
+  "environment": {
+    "composition": "contiguous-vertical-bands",
+    "canvasWidth": 1536,
+    "canvasHeight": 1024,
+    "paletteColors": 256,
+    "layerRoles": ["sky", "far", "mid", "ground", "foreground"],
+    "realms": {
+      "ashen-bulwark": {
+        "layers": [
+          { "role": "sky", "path": "environment/ashen-bulwark/sky.webp", "y": 0, "height": 256, "parallaxFactor": 0.08 },
+          { "role": "far", "path": "environment/ashen-bulwark/far.webp", "y": 256, "height": 192, "parallaxFactor": 0.20 },
+          { "role": "mid", "path": "environment/ashen-bulwark/mid.webp", "y": 448, "height": 192, "parallaxFactor": 0.45 },
+          { "role": "ground", "path": "environment/ashen-bulwark/ground.webp", "y": 640, "height": 192, "parallaxFactor": 1.0 },
+          { "role": "foreground", "path": "environment/ashen-bulwark/foreground.webp", "y": 832, "height": 192, "parallaxFactor": 1.35 }
+        ],
+        "bossOverlay": { "path": "environment/ashen-bulwark/boss-overlay.webp", "width": 768, "height": 512, "maxOpacity": 0.72 },
+        "ambientParticles": { "kind": "embers", "colors": ["#f0772e", "#a1302a"], "ratePerSecond": 9, "maxParticles": 36, "lifespanMs": [1400, 3200], "velocityX": [-8, 8], "velocityY": [-32, -12], "sizePx": [1, 4], "alpha": [0.25, 0.78], "reducedMotionRateMultiplier": 0.25 }
+      },
+      "drowned-archive": {
+        "layers": [
+          { "role": "sky", "path": "environment/drowned-archive/sky.webp", "y": 0, "height": 256, "parallaxFactor": 0.08 },
+          { "role": "far", "path": "environment/drowned-archive/far.webp", "y": 256, "height": 192, "parallaxFactor": 0.20 },
+          { "role": "mid", "path": "environment/drowned-archive/mid.webp", "y": 448, "height": 192, "parallaxFactor": 0.45 },
+          { "role": "ground", "path": "environment/drowned-archive/ground.webp", "y": 640, "height": 192, "parallaxFactor": 1.0 },
+          { "role": "foreground", "path": "environment/drowned-archive/foreground.webp", "y": 832, "height": 192, "parallaxFactor": 1.35 }
+        ],
+        "bossOverlay": { "path": "environment/drowned-archive/boss-overlay.webp", "width": 768, "height": 512, "maxOpacity": 0.68 },
+        "ambientParticles": { "kind": "brine-motes", "colors": ["#5ddbc2", "#99804c"], "ratePerSecond": 7, "maxParticles": 30, "lifespanMs": [2200, 4500], "velocityX": [-5, 6], "velocityY": [-12, -3], "sizePx": [1, 5], "alpha": [0.18, 0.62], "reducedMotionRateMultiplier": 0.25 }
+      },
+      "thorn-sky": {
+        "layers": [
+          { "role": "sky", "path": "environment/thorn-sky/sky.webp", "y": 0, "height": 256, "parallaxFactor": 0.08 },
+          { "role": "far", "path": "environment/thorn-sky/far.webp", "y": 256, "height": 192, "parallaxFactor": 0.20 },
+          { "role": "mid", "path": "environment/thorn-sky/mid.webp", "y": 448, "height": 192, "parallaxFactor": 0.45 },
+          { "role": "ground", "path": "environment/thorn-sky/ground.webp", "y": 640, "height": 192, "parallaxFactor": 1.0 },
+          { "role": "foreground", "path": "environment/thorn-sky/foreground.webp", "y": 832, "height": 192, "parallaxFactor": 1.35 }
+        ],
+        "bossOverlay": { "path": "environment/thorn-sky/boss-overlay.webp", "width": 768, "height": 512, "maxOpacity": 0.70 },
+        "ambientParticles": { "kind": "storm-shards", "colors": ["#e2b0ff", "#bce0ff"], "ratePerSecond": 6, "maxParticles": 24, "lifespanMs": [900, 1800], "velocityX": [-18, 18], "velocityY": [10, 35], "sizePx": [1, 4], "alpha": [0.22, 0.74], "reducedMotionRateMultiplier": 0.20 }
+      },
+      "duskless-crown": {
+        "layers": [
+          { "role": "sky", "path": "environment/duskless-crown/sky.webp", "y": 0, "height": 256, "parallaxFactor": 0.08 },
+          { "role": "far", "path": "environment/duskless-crown/far.webp", "y": 256, "height": 192, "parallaxFactor": 0.20 },
+          { "role": "mid", "path": "environment/duskless-crown/mid.webp", "y": 448, "height": 192, "parallaxFactor": 0.45 },
+          { "role": "ground", "path": "environment/duskless-crown/ground.webp", "y": 640, "height": 192, "parallaxFactor": 1.0 },
+          { "role": "foreground", "path": "environment/duskless-crown/foreground.webp", "y": 832, "height": 192, "parallaxFactor": 1.35 }
+        ],
+        "bossOverlay": { "path": "environment/duskless-crown/boss-overlay.webp", "width": 768, "height": 512, "maxOpacity": 0.74 },
+        "ambientParticles": { "kind": "crown-dust", "colors": ["#da5589", "#d6b770"], "ratePerSecond": 5, "maxParticles": 22, "lifespanMs": [2500, 5000], "velocityX": [-6, 8], "velocityY": [-8, -2], "sizePx": [1, 4], "alpha": [0.16, 0.60], "reducedMotionRateMultiplier": 0.20 }
+      }
+    }
+  },
+  "assets": [
+    { "path": "animation-manifest.json", "kind": "metadata", "preload": true },
+    { "path": "actors/core-battle-atlas.webp", "kind": "atlas", "preload": true },
+    { "path": "actors/ashen-bulwark-atlas.webp", "kind": "atlas", "preload": true },
+    { "path": "actors/drowned-archive-atlas.webp", "kind": "atlas", "preload": false },
+    { "path": "actors/thorn-sky-atlas.webp", "kind": "atlas", "preload": false },
+    { "path": "actors/duskless-crown-atlas.webp", "kind": "atlas", "preload": false },
+    { "path": "actors/ashen-bulwark-atlas-summon-strip.webp", "kind": "summon-strip", "preload": false },
+    { "path": "actors/drowned-archive-atlas-summon-strip.webp", "kind": "summon-strip", "preload": false },
+    { "path": "actors/thorn-sky-atlas-summon-strip.webp", "kind": "summon-strip", "preload": false },
+    { "path": "actors/duskless-crown-atlas-summon-strip.webp", "kind": "summon-strip", "preload": false },
+    { "path": "environment/ashen-bulwark/sky.webp", "kind": "environment-layer", "preload": true },
+    { "path": "environment/ashen-bulwark/far.webp", "kind": "environment-layer", "preload": true },
+    { "path": "environment/ashen-bulwark/mid.webp", "kind": "environment-layer", "preload": true },
+    { "path": "environment/ashen-bulwark/ground.webp", "kind": "environment-layer", "preload": true },
+    { "path": "environment/ashen-bulwark/foreground.webp", "kind": "environment-layer", "preload": true },
+    { "path": "environment/ashen-bulwark/boss-overlay.webp", "kind": "boss-overlay", "preload": true },
+    { "path": "environment/drowned-archive/sky.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/drowned-archive/far.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/drowned-archive/mid.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/drowned-archive/ground.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/drowned-archive/foreground.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/drowned-archive/boss-overlay.webp", "kind": "boss-overlay", "preload": false },
+    { "path": "environment/thorn-sky/sky.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/thorn-sky/far.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/thorn-sky/mid.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/thorn-sky/ground.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/thorn-sky/foreground.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/thorn-sky/boss-overlay.webp", "kind": "boss-overlay", "preload": false },
+    { "path": "environment/duskless-crown/sky.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/duskless-crown/far.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/duskless-crown/mid.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/duskless-crown/ground.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/duskless-crown/foreground.webp", "kind": "environment-layer", "preload": false },
+    { "path": "environment/duskless-crown/boss-overlay.webp", "kind": "boss-overlay", "preload": false },
+    { "path": "backgrounds/ash-realm-map.webp", "kind": "map", "preload": false },
+    { "path": "backgrounds/drowned-archive-map.webp", "kind": "map", "preload": false },
+    { "path": "backgrounds/thorn-sky-map.webp", "kind": "map", "preload": false },
+    { "path": "backgrounds/duskless-crown-map.webp", "kind": "map", "preload": false },
+    { "path": "fonts/PixelifySans-Variable.ttf", "kind": "font", "preload": true }
+  ]
+}

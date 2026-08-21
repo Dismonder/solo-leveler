@@ -1,0 +1,14 @@
+Use case: precise-object-edit
+Asset type: production 2D game sprite atlas
+Input images: Image 1 is the EDIT TARGET, a generated dark-fantasy pixel-art sprite sheet. Preserve its exact character designs, shared palette, side-view pixel-art style, hard edges and overall scale.
+Primary request: CHANGE ONLY THE GRID OCCUPANCY AND FRAME PACKING. Rebuild the sheet as a mathematically strict square atlas with exactly 8 columns and exactly 6 rows, exactly one complete sprite frame centered in each cell, exactly 48 occupied cells total. Intended final canvas is 1536×1536 and each logical cell is 192×256. Cell centers must be at 6.25%, 18.75%, 31.25%, 43.75%, 56.25%, 68.75%, 81.25%, and 93.75% of canvas width; row centers at 8.333%, 25%, 41.667%, 58.333%, 75%, and 91.667% of canvas height. Use a genuinely transparent background with no visible grid.
+Required rows:
+Row 1: exactly 8 copper-haired hero frames, idle/walk, facing right.
+Row 2: exactly 8 identical-hero attack/skill frames, facing right.
+Row 3: exactly 8 spectral-wolf idle/attack frames, facing right. The current target has only seven; add one coherent recovery frame.
+Row 4: exactly 8 normal-enemy frames, facing left: cells 1–2 Slag Beetle, cells 3–5 Ash Pikeman, cells 6–8 Smoke Vulture. Remove all surplus beetles or pikemen.
+Row 5: exactly 8 Forge Warden elite frames, facing left. Remove the surplus ninth frame.
+Row 6: exactly 8 Raghor furnace-antler boss frames, facing left. Every cell must contain Raghor himself; the furnace-burst cell must retain a clearly visible Raghor behind/alongside the contained flame effect.
+Invariants: preserve Image 1’s original copper-haired asymmetric-cloak hero, spectral wolf, ash enemies, black-iron Forge Warden, furnace-antler Raghor, colors and authentic crisp 32-bit pixel-art treatment. Keep a common baseline within every row. Scale each sprite down as necessary so it stays at least 8 transparent pixels away from every cell edge. Effects and weapons must stay inside their own cell.
+Constraints: genuine alpha transparency; exactly 48 complete non-overlapping frames; no frame crosses a cell boundary; no empty cells; no duplicated pasted frames; no labels, text, numbers, guides, checkerboard pattern, floor, shadows across cells, UI, borders, logos, watermark, scenery or copyrighted characters.
+Avoid: changing character identity, extra rows/columns, contact-sheet labels, clipping, overlap, soft painting, blur, 3D rendering, anime cutouts, visible background.

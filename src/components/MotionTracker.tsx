@@ -516,7 +516,7 @@ export function MotionTracker({ exerciseId, exerciseName, onAddReps, onClose, on
 
               {watchCandidates.length > 0 && (
                 <div className="mt-3 grid gap-2 border-t border-[var(--theme-border)] pt-3">
-                  <span className="sl-kicker text-[9px] font-black uppercase tracking-[0.22em]">Wykryte opaski</span>
+                  <span className="sl-kicker text-[9px] font-black uppercase tracking-[0.22em]">Wykryte zegarki i sensory BLE</span>
                   {watchCandidates.slice(0, 4).map((candidate) => (
                     <button
                       key={candidate.id}
