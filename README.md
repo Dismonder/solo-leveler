@@ -78,4 +78,6 @@ Szczegółowa polityka prywatności dostępna jest w dokumencie:
 
 ## 📄 Licencja & Zastrzeżenia
 
-Projekt stworzony jako niezależna, niekomercyjna aplikacja fitnessowa i gra z motywem łowców (Fan-Made / Indie). Wszelkie motywy artystyczne stanowią hołd dla gatunku i nie są powiązane z oficjalnymi wydawcami komercyjnymi.
+Copyright © 2026 **Dismonder (Damian)**. All rights reserved.
+
+Kod źródłowy, grafiki i mechaniki aplikacji są chronione prawem autorskim. Projekt stworzony jako niezależna aplikacja fitnessowa i gra z motywem łowców (Indie / LitRPG). Szczegóły licencji znajdują się w pliku **[LICENSE](LICENSE)**.
