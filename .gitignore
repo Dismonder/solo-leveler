@@ -8,6 +8,14 @@ tools/
 .env*
 !.env.example
 
+# Keystores and private signing keys
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+google-services.json
+
 # Local diagnostics and temporary QA output
 .audit-dir
 .codex-logs/
