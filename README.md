@@ -1,6 +1,10 @@
 # ⚔️ Solo Leveler — Fitness RPG & Hunter System
 
 <p align="center">
+  <img src="docs/banner.png" alt="Solo Leveler - Fitness RPG & Hunter System" width="100%" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Wersja-1.2.0-38bdf8?style=for-the-badge&logo=android&logoColor=white" alt="Wersja v1.2.0" />
   <img src="https://img.shields.io/badge/Platforma-Android-10b981?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
   <img src="https://img.shields.io/badge/Architektura-Offline--First-6366f1?style=for-the-badge" alt="Offline-First" />
